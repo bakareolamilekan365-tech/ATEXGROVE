@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import styles from "@/components/cases/case-workflow.module.css";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -65,6 +66,7 @@ export default function ProfilePage() {
         <textarea id="profile-bio" value={bio} onChange={(event) => setBio(event.target.value)} rows={4} />
         {error ? <p role="alert">{error}</p> : null}
         <button type="submit" disabled={saving}>{saving ? "Saving..." : "Save profile"}</button>
+        <p className={styles.muted}>Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
       </form>
     </main>
   );

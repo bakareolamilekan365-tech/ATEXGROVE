@@ -68,6 +68,7 @@ export function NewCaseForm() {
 
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       <SubmitButton pendingLabel="Submitting request...">Submit request</SubmitButton>
+      <p className={styles.muted}>Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
     </form>
   );
 }

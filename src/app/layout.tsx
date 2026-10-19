@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Atexgrove",
-  description: "The trusted digital ecosystem for land development in Africa.",
+  description: "Land verification workflow prototype — demo data.",
 };
 
 export default function RootLayout({
