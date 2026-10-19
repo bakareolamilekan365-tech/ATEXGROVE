@@ -9,15 +9,15 @@ Use this as an engineering gate, not a list of screens. Every item should be mar
 - **IMPLEMENTED** — real behavior is connected to its intended persistence/security boundary.
 - **VERIFIED** — implementation passes relevant tests/review, including failure and authorization cases.
 
-## Current evidence snapshot — 2026-10-16
+## Current evidence snapshot — 2026-10-19
 
-On `main` after PR #11 (`3946841`), before the unmerged Slice 1 branch:
+Hosted Supabase now records migrations `001`-`018`. Slice 2 migration `019` and its application/tests are repository changes only until review, green CI and explicit deployment approval.
 
-- **DEPLOYED/CONFIGURATION VERIFIED:** hosted migration history contains `001`-`017`; the `documents` bucket is private; user-scoped SELECT/INSERT/UPDATE/DELETE storage policies exist; RLS is enabled on `profiles`, `organizations`, `organization_members` and `audit_logs`.
+- **DEPLOYED/CONFIGURATION RECORDED:** hosted migration history contains `001`-`018`; the `documents` bucket is private; its currently hosted policies remain the foundation user-scoped policies until migration `019` is approved. Slice 1 case tables and the foundation tables use RLS.
 - **IMPLEMENTED IN CODE:** password recovery request, PKCE callback, safe internal redirects, authenticated password update, profile onboarding fields, role-aware dashboard copy, server authorization helpers, synthetic fixture tooling, membership-owner protection, security guardrails, pgTAP suites, and Docker-backed database-test CI.
 - **AUTOMATED VERIFIED:** general CI [run 38276873401](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873401) and database-security [run 38276873408](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) passed for PR #9 head commit `c259db0`; pgTAP executed in a temporary Supabase environment.
 - **NOT YET HOSTED/OPERATIONALLY VERIFIED:** realistic hosted-user authorization and document isolation, hosted email confirmation/recovery including invalid/expired links, complete E2E journey and production readiness.
-- **OPEN HOSTED FINDINGS:** live Supabase advisor findings remain. Migration `018` contains the forward revocation and pgTAP assertion for `organization_actor_role` anonymous execute exposure, but the fix remains unapplied to hosted Supabase until review and green CI.
+- **OPEN HOSTED/OPERATIONAL FINDINGS:** live Supabase advisor findings and realistic hosted-session checks remain. Migration `018` is recorded remotely; migration `019` is not.
 
 Migration deployment and temporary-environment automated database tests are complete, but the foundation is not fully **VERIFIED** until hosted behavioral and operational evidence closes the remaining gates.
 
@@ -59,6 +59,10 @@ Migration deployment and temporary-environment automated database tests are comp
 - [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — Slice 1:** an active department lead assigns manually; non-leads and cross-department leads are denied. Acceptance/decline/handover and preparer/approver separation remain Slice 3.
 - [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — Slice 1:** RLS limits customers to their own cases/customer-safe timeline and staff to department-lead or active-assignment scope; status events are append-only.
 - [x] Migration `018` and its original 36-assertion pgTAP suite passed database-security [run 38886400039](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38886400039). Review hardening expands that suite to 45 assertions; the PR checks are the current evidence for those additions. Hosted review/application remains a separate, deliberately incomplete gate.
+- [ ] **IMPLEMENTED IN BRANCH / CI PENDING — Slice 2:** customers can add up to 10 synthetic PDF/JPEG/PNG files to an owned open case; metadata and timeline/audit records are transactionally registered and evidence versions are immutable.
+- [ ] **IMPLEMENTED IN BRANCH / CI PENDING — Slice 2:** case-scoped staff retrieval is audited and uses a 60-second attachment URL; cross-customer, cross-department, anonymous, update and delete paths are covered by the new pgTAP suite.
+- [ ] **IMPLEMENTED IN BRANCH / CI PENDING — Slice 2:** a case owner can respond from `needs_customer_info` and resume `in_review`; evidence can be added before the response.
+- [ ] **NOT HOSTED:** migration `019` must not be applied until review and CI are green and the founder explicitly approves it. Realistic hosted-session storage isolation remains unverified.
 - [ ] Verification records have explicit type, status, evidence, source, reviewer, authority and dates.
 - [ ] Authority hierarchy is visible; internal review is not represented as official certification.
 - [ ] Documents use private storage, authorization before retrieval, validation and controlled access.
@@ -67,7 +71,7 @@ Migration deployment and temporary-environment automated database tests are comp
 
 **Slice 1 evidence:** lint, typecheck, 23 unit tests, 12 configured integration tests, the eight-table RLS guardrail and the production build pass locally. General CI [run 38886399935](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38886399935) and database-security [run 38886400039](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38886400039) are green; the latter applied migration `018` and ran pgTAP in a disposable Supabase environment. Three hosted-environment integration tests remain intentionally skipped without test credentials. Hosted migration/application and realistic hosted sessions remain unverified.
 
-**Known Slice 1 limits:** `needs_customer_info` communicates that more information is required, but the customer reply/evidence path begins in Slice 2. Deactivated assignees are denied status changes; lead-driven reassignment/handover remains Slice 3, so an operator must resolve affected cases until that workflow exists. Append-only history is enforced for application roles through grants; the privileged `service_role`/database-operator path remains an exceptional maintenance boundary and must be controlled and audited. Case ownership currently uses restrictive Auth foreign keys, so account deletion requires a deliberate retention/anonymization policy before it is offered.
+**Known Slice 2 limits:** no malware scanning is available in this free-plan cut, so files remain untrusted, download-only and limited to PDF/JPEG/PNG. Evidence is customer-supplied and unauthenticated. Real customer documents remain prohibited pending the privacy/legal readiness gate. Evidence review/findings, staff uploads, handover/escalation and preparer/approver separation remain later work. The privileged `service_role`/database-operator path can still perform exceptional maintenance and must be controlled and audited.
 
 ## Feasibility
 
@@ -120,7 +124,7 @@ Track these items from implementation evidence, not documentation alone:
 - **Password recovery/email confirmation:** recovery request, PKCE callback, safe internal redirect and authenticated password update.
 - **Profile onboarding/dashboard:** full name, phone, location and bio persist for the authenticated user; dashboard copy reflects the selected platform role without implying future modules exist.
 - **Organization security:** creator spoofing, self-verification, admin escalation, owner transfer/removal and last-owner loss are denied by database policy/trigger behavior.
-- **Private storage:** the foundation `documents` bucket is private and object paths are scoped to `documents/<user-id>/...`.
+- **Private storage:** the hosted foundation bucket is private. Migration `019` replaces user paths with immutable `documents/cases/<case-id>/<evidence-id>/<random>.<ext>` paths and case-scoped RLS when approved and applied.
 - **Synthetic fixtures:** demo users/organizations are reproducible, synthetic and labelled `DEMO DATA / NOT OFFICIAL`.
 - **Requirement-specific tests:** behavior, persistence, denial paths and recovery states are covered; smoke/source-text checks do not substitute for them.
 
@@ -128,7 +132,7 @@ Current gate state:
 
 | Gate | Status | Evidence / remaining work |
 | --- | --- | --- |
-| Migrations `015`-`017` deployed | **IMPLEMENTED** | Present in hosted migration history. |
+| Migrations `015`-`018` deployed | **IMPLEMENTED** | Present in hosted migration history as reported on 2026-10-19. |
 | Application foundation RLS enabled | **IMPLEMENTED** | Read-only hosted inspection confirms RLS on four application tables. |
 | Private documents bucket/policies | **IMPLEMENTED / AUTOMATED VERIFIED** | Bucket is private; four per-operation policies exist; temporary-environment pgTAP passed. Realistic hosted cross-user isolation remains pending. |
 | Organization/profile hardening | **IMPLEMENTED / AUTOMATED VERIFIED** | Policies/triggers are deployed and temporary-environment pgTAP ALLOW/DENY tests passed; hosted-user behavior remains pending. |

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
+import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
 import styles from "@/components/cases/case-workflow.module.css";
+import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
 import { caseStatusLabels } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CaseStatusEvent, VerificationCase } from "@/types/verification";
+import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -16,14 +19,17 @@ export default async function CustomerCasePage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: caseData }, { data: eventData }] = await Promise.all([
+  const [{ data: caseData }, { data: eventData }, { data: evidenceData }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).eq("customer_visible", true).order("created_at", { ascending: false }),
+    supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
   ]);
   if (!caseData) notFound();
 
   const item = caseData as VerificationCase;
   const events = (eventData ?? []) as CaseStatusEvent[];
+  const evidence = (evidenceData ?? []) as CaseEvidence[];
+  const acceptsEvidence = ["submitted", "assigned", "in_review", "needs_customer_info"].includes(item.workflow_status);
 
   return (
     <main className={styles.shell}>
@@ -55,6 +61,48 @@ export default async function CustomerCasePage({
             ))}
           </ol>
         </section>
+        <section className={styles.panel}>
+          <div className={styles.cardHeader}>
+            <div>
+              <p className={styles.eyebrow}>Private evidence</p>
+              <h2>Documents ({evidence.length}/10)</h2>
+            </div>
+            <span className={styles.demo}>Demo data / not official</span>
+          </div>
+          <p className={styles.muted}>Every file is received from customer — not authenticated.</p>
+          {evidence.length ? (
+            <div className={styles.stack}>
+              {evidence.map((document) => (
+                <article className={styles.card} key={document.id}>
+                  <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
+                  <p>{document.description}</p>
+                  <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
+                  <span className={styles.demo}>Demo data / not official</span>
+                </article>
+              ))}
+            </div>
+          ) : <p className={styles.empty}>No documents added.</p>}
+        </section>
+        {acceptsEvidence ? (
+          <section className={styles.panel}>
+            <h2>Add document</h2>
+            <EvidenceUploadForm
+              caseId={item.id}
+              existingEvidence={evidence.map((document) => ({
+                id: document.id,
+                evidenceType: document.evidence_type,
+                version: document.version,
+                filename: document.original_filename,
+              }))}
+            />
+          </section>
+        ) : null}
+        {item.workflow_status === "needs_customer_info" ? (
+          <section className={styles.panel}>
+            <h2>Respond to the review team</h2>
+            <CustomerResponseForm caseId={item.id} />
+          </section>
+        ) : null}
         <aside className={styles.card}>
           <p className={styles.eyebrow}>Request received</p>
           <h2>Site details</h2>

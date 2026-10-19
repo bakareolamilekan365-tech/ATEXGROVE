@@ -6,7 +6,7 @@ PostgreSQL with PostGIS.
 
 ## Schema status and implementation boundary
 
-This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. Migrations `001`-`014` create and harden the foundation around `profiles`, `organizations`, `organization_members` and `audit_logs`; migrations `004`-`011` remain domain placeholders rather than proof that their named modules exist. Migrations `015`-`017` add foundation security, private document storage, membership-owner protection and advisor-oriented permission fixes. As of 2026-10-16, migrations `001`-`017` are recorded on hosted Supabase. Migration `018_verification_case_slice_1.sql` is a **repository implementation with green disposable-environment CI**; it must not be described as hosted until it is approved and deliberately applied. General CI [run 38886399935](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38886399935) and database-security [run 38886400039](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38886400039) passed for the Slice 1 branch. Read-only hosted inspection still covers only the `001`-`017` foundation state.
+This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. Migrations `001`-`014` create and harden the foundation around `profiles`, `organizations`, `organization_members` and `audit_logs`; migrations `004`-`011` remain domain placeholders rather than proof that their named modules exist. Migrations `015`-`017` add foundation security, private document storage, membership-owner protection and advisor-oriented permission fixes. As of 2026-10-19, hosted migration history records `001`-`018`, including the Slice 1 verification-case workflow. Migration `019_private_case_evidence.sql` is a **repository implementation pending review and disposable-environment CI**. It has not been applied to hosted Supabase and must not be described as deployed or operationally verified.
 
 ## Conventions
 
@@ -20,7 +20,7 @@ This document describes the current prototype's domain contract and the reserved
 
 ## Current live application tables
 
-The current live application tables are `profiles`, `organizations`, `organization_members` and `audit_logs`. The hosted private `documents` bucket and Storage policies are configuration, not a completed document metadata schema.
+The current hosted application schema includes the foundation tables plus Slice 1 `staff_members`, `verification_cases`, `case_assignments` and `case_status_events`. The hosted private `documents` bucket still uses the foundation policy configuration until migration `019` is reviewed and deliberately applied.
 
 ### profiles
 
@@ -72,7 +72,7 @@ Audit records are required for important mutations, verification decisions, docu
 
 The first commercial workflow starts with a verification case, not a marketplace listing. A case may be created from site/request details before any `land_parcels` record exists. Any later parcel/listing link must be optional and follow-on.
 
-The Slice 1 tables below are defined by migration `018` and have passed disposable-environment migration/pgTAP CI, but remain **NOT HOSTED / NOT OPERATIONALLY VERIFIED** until separately approved and applied. Evidence, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
+The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is implemented in migration `019` in this branch but is **NOT HOSTED / NOT YET CI-VERIFIED**. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
 
 ### staff_members (Slice 1 repository implementation)
 
@@ -116,22 +116,22 @@ Slice 1 supports customer creation only. Staff-assisted creation, its consent re
 
 A human department lead assigns manually in Slice 1. Acceptance/decline, capacity reasons and handover history remain Slice 3 work. A deactivated assignee cannot change case status, but lead-driven reassignment is not yet implemented; affected cases require controlled operator handling until Slice 3. Automation must not silently assign or approve.
 
-### case_evidence (Planned — Slice 2)
+### case_evidence (Slice 2 repository implementation — migration 019 not hosted)
 
 - id
 - verification_case_id
-- document/evidence reference
-- evidence_type
-- source
-- source_type
-- supplied_by_user_id nullable
-- version / version-lineage reference
-- jurisdiction
-- received_at
-- current_review_state
-- created_at / updated_at
+- uploaded_by_user_id
+- evidence_type (`title_deed_copy`, `survey_plan_copy`, `receipt`, `seller_id`, `other`)
+- description
+- source (fixed to `customer_supplied` in Slice 2)
+- storage_path (private case/evidence/random object path)
+- original_filename, MIME type and size
+- version and nullable `supersedes_evidence_id`
+- review_state (fixed to `received_unreviewed` in Slice 2)
+- is_demo_data (fixed true for the controlled pilot)
+- created_at
 
-Evidence storage remains private. A case-evidence record refers to the exact document/evidence version considered; it does not turn receipt into authentication or official confirmation.
+Evidence rows and objects are immutable to authenticated clients. Replacements create a new row and retain predecessor lineage. Customers can insert objects only under an owned, upload-eligible case; case-scoped staff and the customer can read metadata according to RLS, while object retrieval is exposed to scoped staff through the controlled download action. Registration writes the metadata row, customer-visible timeline event and audit row in one transaction. Staff download authorization records `document.accessed` before a 60-second attachment URL is created. A case-evidence record means **received from customer — not authenticated**; it does not turn receipt into review, verification or official confirmation.
 
 ### case_evidence_reviews or case_findings (Planned)
 
