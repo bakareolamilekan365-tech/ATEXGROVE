@@ -18,7 +18,7 @@ export default async function CustomerCasePage({
 
   const [{ data: caseData }, { data: eventData }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).maybeSingle(),
-    supabase.from("case_status_events").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
+    supabase.from("case_status_events").select("*").eq("verification_case_id", id).eq("customer_visible", true).order("created_at", { ascending: false }),
   ]);
   if (!caseData) notFound();
 
