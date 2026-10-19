@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
-import { Figtree } from "next/font/google";
+import "@fontsource-variable/figtree";
 import "./globals.css";
-
-const figtree = Figtree({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  display: "swap",
-  variable: "--font-figtree",
-});
 
 export const metadata: Metadata = {
   title: "Atexgrove",
@@ -19,7 +12,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={figtree.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
