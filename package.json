@@ -15,6 +15,7 @@
     "seed:fixtures": "node scripts/seed-fixtures.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/figtree": "^5.3.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "next": "^15.0.0",

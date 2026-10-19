@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import styles from "@/components/cases/case-workflow.module.css";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -72,6 +73,7 @@ export default function RegisterPage() {
         {message ? <p role="status">{message}</p> : null}
         {error ? <p role="alert">{error}</p> : null}
         <button type="submit">Create account</button>
+        <p className={styles.muted}>Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
       </form>
       <p>
         <a href="/login">Already have an account?</a>
