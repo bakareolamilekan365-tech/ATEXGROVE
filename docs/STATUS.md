@@ -6,7 +6,7 @@
 
 ## Current hosted state
 
-- **Current / hosted:** Supabase migrations `001`-`019` are recorded on the linked hosted project. Migration `019_private_case_evidence.sql` was applied on 2026-10-20.
+- **Current / hosted:** Supabase migrations `001`-`020` are recorded on the linked hosted project. Migration `019_private_case_evidence.sql` was applied on 2026-10-20.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.
 - **Current / hosted:** `storage.objects` has exactly one Atexgrove policy for the `documents` bucket: authenticated customers may insert into an owned, eligible case path. There is no authenticated object SELECT, UPDATE or DELETE policy.
 - **Current / hosted:** staff downloads must first pass the audited `authorize_case_evidence_download` RPC. Only the server-side admin client, using the server-only service-role credential, creates the 60-second signed download URL.
