@@ -94,6 +94,24 @@
   text-transform: uppercase;
 }
 
+.roleBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.roleBadge {
+  display: inline-flex;
+  border: 1px solid #b8cbed;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  background: #e3edfb;
+  color: #0b3a85;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 .status {
   display: inline-flex;
   max-width: 100%;

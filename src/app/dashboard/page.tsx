@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import styles from "@/components/cases/case-workflow.module.css";
+import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { VerificationCase } from "@/types/verification";
+import type { StaffMember, VerificationCase } from "@/types/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +27,16 @@ export default async function DashboardPage({
     supabase
       .from("verification_cases")
       .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, created_at, updated_at")
+      .eq("customer_user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
+
+  let staff: StaffMember | null = null;
+  try {
+    staff = (await requireStaff()).staff;
+  } catch (error) {
+    if (!(error instanceof AuthorizationError)) throw error;
+  }
 
   const role = profile?.account_type ?? "buyer";
   const roleCopy: Record<string, string> = {
@@ -46,9 +55,20 @@ export default async function DashboardPage({
         <div>
           <p className={styles.eyebrow}>Customer dashboard</p>
           <h1>Welcome{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
+          <div className={styles.roleBadges} aria-label="Account access">
+            <span className={styles.roleBadge}>Customer</span>
+            {staff ? (
+              <span className={styles.roleBadge}>
+                Staff · {staff.department} · {staff.is_lead ? "Lead" : "Member"}
+              </span>
+            ) : null}
+          </div>
           <p className={styles.muted}>{roleCopy[role] ?? "Your customer workspace."}</p>
         </div>
-        <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
+        <div className={styles.actions}>
+          {staff ? <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</Link> : null}
+          <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
+        </div>
       </div>
 
       {request === "submitted" ? (

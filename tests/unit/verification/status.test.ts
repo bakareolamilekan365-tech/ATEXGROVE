@@ -3,6 +3,8 @@ import {
   availableCaseTransitions,
   canTransitionVerificationCase,
   caseStatusLabels,
+  customerSafeStatusMessages,
+  timelineEventAudienceLabel,
 } from "@/lib/verification-cases/status";
 
 describe("verification case status transitions", () => {
@@ -39,5 +41,17 @@ describe("verification case status transitions", () => {
     expect(caseStatusLabels.submitted).toBe("Received — not yet verified");
     expect(caseStatusLabels.submitted.toLowerCase()).not.toBe("verified");
     expect(caseStatusLabels.closed).toBe("Closed — no verification result issued");
+  });
+});
+
+describe("customer-safe case timeline", () => {
+  it("separates fixed status text from staff notes and customer messages", () => {
+    expect(customerSafeStatusMessages.in_review).toBe("Your case is now in review.");
+    expect(customerSafeStatusMessages.needs_customer_info).toBe("The review team needs more information from you.");
+    expect(customerSafeStatusMessages.closed).toBe("This case was closed. No verification result was issued.");
+    expect(customerSafeStatusMessages.cancelled).toBe("This case was cancelled.");
+    expect(timelineEventAudienceLabel("in_review", "Your case is now in review.", true)).toBe("Customer status");
+    expect(timelineEventAudienceLabel("in_review", "Internal analysis note", false)).toBe("Staff-only note");
+    expect(timelineEventAudienceLabel("in_review", "We have begun the review.", true)).toBe("Customer message");
   });
 });

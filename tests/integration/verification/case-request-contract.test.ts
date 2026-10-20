@@ -37,8 +37,14 @@ describe("verification case request contracts", () => {
     expect(statusTransitionSchema.safeParse({
       caseId: "11111111-1111-4111-8111-111111111111",
       toStatus: "in_review",
-      note: "Started review.",
-      customerVisible: true,
+      staffNote: "Started review.",
+      customerMessage: "We have started reviewing your request.",
     }).success).toBe(true);
+    expect(statusTransitionSchema.safeParse({
+      caseId: "11111111-1111-4111-8111-111111111111",
+      toStatus: "in_review",
+      staffNote: "",
+      customerMessage: "",
+    }).success).toBe(false);
   });
 });

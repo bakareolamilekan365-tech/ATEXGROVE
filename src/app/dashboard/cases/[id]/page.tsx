@@ -5,7 +5,7 @@ import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
 import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { caseStatusLabels } from "@/lib/verification-cases/status";
+import { caseStatusLabels, timelineEventAudienceLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 
@@ -20,7 +20,7 @@ export default async function CustomerCasePage({
   if (!user) redirect("/login");
 
   const [{ data: caseData }, { data: eventData }, { data: evidenceData }] = await Promise.all([
-    supabase.from("verification_cases").select("*").eq("id", id).maybeSingle(),
+    supabase.from("verification_cases").select("*").eq("id", id).eq("customer_user_id", user.id).maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).eq("customer_visible", true).order("created_at", { ascending: false }),
     supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
   ]);
@@ -53,6 +53,9 @@ export default async function CustomerCasePage({
             {events.map((event) => (
               <li key={event.id}>
                 <strong>{caseStatusLabels[event.to_status]}</strong>
+                <p className={`${styles.eyebrow} ${styles.small}`}>
+                  {timelineEventAudienceLabel(event.to_status, event.reason, event.customer_visible)}
+                </p>
                 <p>{event.reason}</p>
                 <time className={`${styles.muted} ${styles.small}`} dateTime={event.created_at}>
                   {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.created_at))}
