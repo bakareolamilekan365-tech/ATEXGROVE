@@ -21,7 +21,7 @@ The roadmap separates the working prototype from future architecture. A phase is
 
 **Gate:** a signed-in user can complete the foundation flow against real persistence; secrets remain outside source control.
 
-**Current status (2026-10-14): IN PROGRESS.** PR #9 is merged and migrations `001`-`017` are deployed. The private bucket and foundation RLS configuration are present. The phase remains open until database ALLOW/DENY tests, hosted Auth recovery/confirmation, remaining advisor findings and the final CI evidence are resolved or explicitly accepted.
+**Current status:** see [STATUS.md](STATUS.md); this roadmap defines sequencing and gates rather than duplicating implementation or deployment evidence.
 
 ## Phase 2 — Verification Case + Private Evidence
 

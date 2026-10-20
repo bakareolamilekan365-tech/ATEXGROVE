@@ -41,15 +41,11 @@ The security branch strengthened the existing foundation. It added or improved:
 - tests for allowed and forbidden database actions;
 - GitHub automation for testing database changes before they are merged.
 
-Two database changes initially failed because they attempted to change tables owned by Supabase itself. Those statements were removed. Audit triggers were also removed from Supabase's managed Storage table; document audit events will instead be added in Atexgrove's application workflow when document uploading is built.
+Two database changes initially failed because they attempted to change tables owned by Supabase itself. Those statements were removed. Audit triggers were also removed from Supabase's managed Storage table; Slice 2 now records document access and evidence events through Atexgrove's controlled application/database workflow instead.
 
 ## Current repository and database state
 
-PR #9 has been merged into `main`. The hosted Supabase project records migrations `001`-`017`. A read-only check confirms that the document bucket is private, user-path storage policies exist, and the main foundation tables use row-level security.
-
-The automated evidence is now recorded. On 2026-10-14, the [general CI workflow](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873401) and [database-security workflow](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) both passed for PR #9 head commit `c259db0`. The database workflow created a temporary Supabase environment and ran the pgTAP allow/deny tests.
-
-That automated result is not the same as testing real user sessions against the hosted project. Hosted cross-user document access, real email confirmation/password recovery and the remaining Supabase advisor findings still require operational verification. One application helper, `organization_actor_role`, also still needs its anonymous execute permission removed and tested in a forward migration.
+See [../STATUS.md](../STATUS.md) for the single current record of what is implemented, what is deployed, which automated checks passed and what still requires real hosted-user verification.
 
 ## Product direction changed
 
@@ -65,5 +61,5 @@ The project name is Atexgrove. Supplied logo images have been preserved and conv
 
 ## Where the project stands
 
-The groundwork is stronger, but foundation verification is not completely closed. The immediate milestone is to verify the hosted Auth and cross-user storage journeys, close or accept the remaining advisor findings, add the required anonymous-helper permission fix, and complete the real-document policy gate. The next product proof is then a working synthetic/redacted verification case and staff work queue—not another collection of placeholder screens.
+Current progress and remaining operational gates are maintained in [../STATUS.md](../STATUS.md); this story preserves the project history and accepted verification-first direction.
 

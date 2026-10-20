@@ -8,7 +8,7 @@ Free tiers are suitable for development and demonstration when quotas, attributi
 
 ### Supabase plan boundary
 
-The first prototype remains on the Supabase Free plan. Leaked-password protection is still reported disabled; its availability and plan requirement must be confirmed in the connected dashboard before the finding is accepted as a plan limitation. Any future feature that requires Pro must be labelled **PRO PLAN REQUIRED** in the relevant checklist before it becomes a commitment; upgrading the plan requires a separate cost decision.
+The first prototype remains on the Supabase Free plan. Leaked-password protection is an accepted Pro-only limitation for the current prototype and must be reassessed before production or a plan change. See [STATUS.md](STATUS.md) for the current hosted/advisor record. Any future feature that requires Pro must be labelled **PRO PLAN REQUIRED** in the relevant checklist before it becomes a commitment; upgrading the plan requires a separate cost decision.
 
 ## Integration inventory
 
@@ -79,7 +79,7 @@ Before implementing a module, define:
 | Service           | Use                                        | Free-first decision                                                                                                                                       | Signup timing             |
 | ----------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
 | GitHub            | Source control and GitHub Actions          | Already configured. Public repository Actions are suitable for CI.                                                                                        | Complete                  |
-| Supabase          | PostgreSQL, PostGIS, Auth, private Storage | Linked hosted project has migrations `001`-`017`; private bucket and foundation RLS configuration are present. Keep service-role keys server-side.      | Connected; verification gaps remain |
+| Supabase          | PostgreSQL, PostGIS, Auth, private Storage | Connected. Keep service-role keys server-side; current hosted configuration and verification gaps are maintained in [STATUS.md](STATUS.md). | Connected; verification gaps remain |
 | Map tile provider | Phase 4 basemap/vector tiles for MapLibre | Do not require one for Phase 2. Use a compliant free developer/public option only when a contextual case map or Phase 4 implementation genuinely needs it, behind a map adapter. | Optional contextual map; otherwise before Phase 4 |
 
 Docker is required only to run the local Supabase stack and pgTAP database tests; it is not required to connect to or push reviewed migrations to hosted Supabase. GitHub Actions supplies a Docker-capable runner for those database tests. Neither mechanism replaces hosted configuration checks or end-to-end Auth email testing.

@@ -37,11 +37,11 @@ The security work prevents common abuses such as:
 
 ## Private documents
 
-The hosted `documents` bucket is private and currently has user-scoped rules for reading, uploading, updating and deleting objects. The automated database-security workflow has passed the policy allow/deny tests in a temporary Supabase environment. A real hosted-session test must still confirm that one user cannot reach another user's objects. The completed document product must also check permission before preview/download, preserve versions and create application audit events.
+See [../STATUS.md](../STATUS.md) for the current hosted Storage policy and verification evidence. The product rule remains: documents are private, retrieval is authorized and audited, versions are preserved, and storage never makes evidence verified or official.
 
 ## Current security boundary
 
-Migrations `001`-`017` are deployed, but security follow-up remains. The `organization_actor_role` helper still needs anonymous execute access removed through a new forward migration and a database test. Supabase also reports findings involving PostGIS-managed objects and leaked-password protection. These are recorded risks, not hidden failures and not evidence of production readiness.
+See [../STATUS.md](../STATUS.md) for the single current record of deployed security controls, accepted advisor items and remaining operational verification; none of that evidence is a production-readiness claim.
 
 ## Audit history
 

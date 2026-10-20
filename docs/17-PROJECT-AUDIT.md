@@ -500,3 +500,26 @@ This reconciliation changes documentation only. It does not change application c
 ### Audit boundary
 
 The accepted roadmap is a build priority, not implementation evidence. A private bucket is not a finished document product; a GIS specification is not a working map; placeholder migration filenames do not create domain tables. Production readiness, legal compliance, official land status and professional conclusions remain unclaimed.
+
+## Audit Addendum — 2026-10-20 Current-State Consolidation
+
+**Update type:** Documentation-only consolidation after Slice 2 merge and hosted migration `019` deployment.
+
+**Historical boundary:** All earlier audit sections remain unchanged as dated evidence. Their older migration ranges, policy descriptions, test counts and open findings are historical and may be superseded by this addendum and [STATUS.md](STATUS.md).
+
+### Current record established
+
+- [STATUS.md](STATUS.md) is now the single source of truth for current implementation, hosted deployment/configuration, automated evidence and operational verification gaps.
+- Hosted Supabase records migrations `001`-`019`; migration `019_private_case_evidence.sql` was applied on 2026-10-20.
+- Slice 1 case submission, work queue, lead assignment and status workflow are implemented.
+- Slice 2 private synthetic evidence upload, immutable metadata/version lineage, customer response and audited staff download are implemented; the hosted `documents` bucket reflects migration `019`.
+- [CI run 39401267311](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39401267311) and [database-security run 39401267443](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39401267443) passed for the PR #17 head commit now merged into `main`.
+- PR #17 is merged as `4c304f0`. Customer/staff query separation and role display are current `main` behavior; migration `020` remains unapplied to hosted Supabase.
+
+### Remaining boundary
+
+Real upload/download through the hosted application, realistic multi-account isolation and hosted email flows beyond the exercised password-reset path remain operationally unverified. Customers cannot yet retrieve their own uploaded evidence. Privacy/Terms/cookie pages, deletion/retention decisions, malware scanning and production operations remain incomplete. None of the current evidence establishes production readiness, legal compliance, government certification or statutory verification.
+
+### Change boundary
+
+This consolidation changes documentation only. It does not change application code, migrations, tests, dependencies, CI configuration or hosted Supabase state.

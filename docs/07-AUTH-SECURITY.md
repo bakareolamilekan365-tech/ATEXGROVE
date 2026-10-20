@@ -27,14 +27,9 @@ The authentication boundary must account for:
 
 Logout completeness and session-revocation administration remain **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
 
-### Current database-security evidence (2026-10-14)
+### Current implementation and security evidence
 
-- Hosted migration history contains `001`-`017`.
-- RLS is enabled on `profiles`, `organizations`, `organization_members` and `audit_logs`.
-- The `documents` bucket is private and has user-scoped SELECT, INSERT, UPDATE and DELETE policies.
-- General CI [run 38276873401](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873401) and database-security [run 38276873408](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) passed for PR #9 head commit `c259db0`; the database workflow executed pgTAP ALLOW/DENY tests in a temporary Supabase environment.
-- This is valid automated database evidence, but it is not hosted-environment verification. Hosted cross-user authorization, hosted document isolation and real Auth confirmation/recovery email flows remain open.
-- The live security advisor still reports unresolved findings, and `organization_actor_role` anonymous execute exposure requires a new forward migration and test. PostGIS/system-managed findings require deliberate treatment rather than an unsafe rewrite of old migrations.
+See [STATUS.md](STATUS.md) for the single current record of hosted migrations, Storage policies, CI/database-test evidence, accepted advisor items and operational verification gaps.
 
 ### Future authentication hardening
 
