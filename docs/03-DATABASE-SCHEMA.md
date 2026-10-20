@@ -159,7 +159,7 @@ Source, review state and authority level are separate. Authority levels must pre
 - customer_visible
 - created_at
 
-Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events deliberately marked customer-visible; internal assignment/status notes default to hidden. Permitted staff can read the complete case timeline. Assignment and status RPCs write their event within the same transaction as the state change.
+Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events marked customer-visible; customer routes also filter the case owner explicitly so dual customer/staff accounts do not mix workspaces. Migration `020` is a repository-only forward migration until approved for hosted deployment. It makes every assignee-driven transition write a fixed customer-safe status event, stores the required internal staff note as a separate hidden event, and creates a separate visible customer-message event only when staff deliberately supplies one. The transition remains transactional with its audit record, active-staff/assignee check and allowed-transition check. Permitted staff can read the complete timeline.
 
 ### feasibility_scenarios (Phase 3 target)
 

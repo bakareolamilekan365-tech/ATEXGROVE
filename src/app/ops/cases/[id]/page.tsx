@@ -7,7 +7,7 @@ import styles from "@/components/cases/case-workflow.module.css";
 import { downloadCaseEvidenceAction } from "@/app/ops/cases/actions";
 import { requireStaff } from "@/lib/auth/guards";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { caseStatusLabels } from "@/lib/verification-cases/status";
+import { caseStatusLabels, timelineEventAudienceLabel } from "@/lib/verification-cases/status";
 import type { CaseEvidence, CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 
 export const dynamic = "force-dynamic";
@@ -109,6 +109,9 @@ export default async function OperationsCasePage({
               {events.map((event) => (
                 <li key={event.id}>
                   <strong>{caseStatusLabels[event.to_status]}</strong>
+                  <p className={`${styles.eyebrow} ${styles.small}`}>
+                    {timelineEventAudienceLabel(event.to_status, event.reason, event.customer_visible)}
+                  </p>
                   <p>{event.reason}</p>
                   <p className={`${styles.muted} ${styles.small}`}>
                     Actor {event.actor_user_id.slice(0, 8)} · {event.customer_visible ? "Customer visible" : "Staff only"}

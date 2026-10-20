@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 1.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(45);
+select plan(51);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.staff_members'::regclass), 'staff_members has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid = 'public.verification_cases'::regclass), 'verification_cases has RLS enabled');
@@ -14,7 +14,7 @@ select ok(not has_function_privilege('anon', 'public.is_department_lead(text)', 
 select ok(not has_function_privilege('anon', 'public.staff_can_access_verification_case(uuid)', 'EXECUTE'), 'case access helper is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,text)', 'EXECUTE'), 'case creation RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.assign_verification_case(uuid,uuid,text,boolean)', 'EXECUTE'), 'assignment RPC is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.transition_verification_case(uuid,text,text,boolean)', 'EXECUTE'), 'transition RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.transition_verification_case(uuid,text,text,text)', 'EXECUTE'), 'transition RPC is not callable by anon');
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
   ('a1000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'case-customer-a@test.invalid', '{}'),
@@ -136,7 +136,7 @@ set local role authenticated;
 select is((select count(*)::int from public.verification_cases), 1, 'active assignee can read the assigned case');
 select throws_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'closed',
     'Invalid early completion'
@@ -147,7 +147,7 @@ select throws_ok(
 );
 select lives_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'in_review',
     'Started the synthetic document-free review.'
@@ -173,7 +173,17 @@ select throws_ok(
   null,
   'status events cannot be deleted'
 );
-select is((select count(*)::int from public.case_status_events), 3, 'staff sees the complete append-only timeline');
+select is((select count(*)::int from public.case_status_events), 4, 'status move writes separate customer status and staff-note events');
+select is(
+  (select count(*)::int from public.case_status_events where reason = 'Your case is now in review.' and customer_visible),
+  1,
+  'status move always writes fixed customer-safe status text'
+);
+select is(
+  (select count(*)::int from public.case_status_events where reason = 'Started the synthetic document-free review.' and not customer_visible),
+  1,
+  'staff note is recorded separately and remains staff-only'
+);
 select throws_ok(
   format(
     'update public.verification_cases set workflow_status = %L where id = %L::uuid',
@@ -205,7 +215,7 @@ select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-0000000
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'needs_customer_info',
     'Attempt by a deactivated assignee'
@@ -224,16 +234,17 @@ select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-0000000
 set local role authenticated;
 select lives_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'needs_customer_info',
-    'Customer clarification is needed.'
+    'Customer clarification is needed.',
+    'Please provide the missing customer-safe details.'
   ),
   'active assignee can request customer information'
 );
 select lives_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'in_review',
     'Review resumed after clarification.'
@@ -242,11 +253,27 @@ select lives_ok(
 );
 reset role;
 
+select is(
+  (select count(*)::int from public.case_status_events where reason = 'The review team needs more information from you.' and customer_visible),
+  1,
+  'needs-information transition writes its fixed customer-safe status event'
+);
+select is(
+  (select count(*)::int from public.case_status_events where reason = 'Please provide the missing customer-safe details.' and customer_visible),
+  1,
+  'optional customer message is stored as a separate visible event'
+);
+select is(
+  (select count(*)::int from public.case_status_events where reason in ('Customer clarification is needed.', 'Review resumed after clarification.') and customer_visible),
+  0,
+  'internal staff notes never become customer-visible'
+);
+
 select set_config('request.jwt.claims', '{"sub":"c3000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'cancelled',
     'Lead attempted to bypass the active assignee.'
@@ -261,7 +288,7 @@ select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-0000000
 set local role authenticated;
 select lives_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, false)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'cancelled',
     'Synthetic request cancelled without a verification result.'
@@ -270,9 +297,15 @@ select lives_ok(
 );
 reset role;
 
+select is(
+  (select count(*)::int from public.case_status_events where reason = 'This case was cancelled.' and customer_visible),
+  1,
+  'cancel transition writes fixed customer-safe status text'
+);
+
 select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_status_events), 1, 'customer sees only customer-visible events');
+select is((select count(*)::int from public.case_status_events), 6, 'customer sees fixed status events and the explicit customer message only');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"b2000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
@@ -324,7 +357,7 @@ select throws_ok(
 );
 select throws_ok(
   format(
-    'select public.transition_verification_case(%L::uuid, %L, %L, true)',
+    'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'needs_customer_info',
     'Anonymous transition'

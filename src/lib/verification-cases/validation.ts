@@ -33,12 +33,15 @@ export const assignmentSchema = z.object({
 export const statusTransitionSchema = z.object({
   caseId: z.string().uuid(),
   toStatus: z.enum(verificationCaseStatuses),
-  note: z
+  staffNote: z
     .string()
     .trim()
     .min(2, "Add a note explaining this status change.")
     .max(2000, "Keep the status note under 2,000 characters."),
-  customerVisible: z.boolean(),
+  customerMessage: z
+    .string()
+    .trim()
+    .max(2000, "Keep the customer message under 2,000 characters."),
 });
 
 export function checkboxValue(value: FormDataEntryValue | null) {

@@ -53,8 +53,8 @@ export async function transitionVerificationCaseAction(
   const parsed = statusTransitionSchema.safeParse({
     caseId: formData.get("caseId"),
     toStatus: formData.get("toStatus"),
-    note: formData.get("note"),
-    customerVisible: checkboxValue(formData.get("customerVisible")),
+    staffNote: formData.get("staffNote"),
+    customerMessage: formData.get("customerMessage") ?? "",
   });
 
   if (!parsed.success) {
@@ -65,8 +65,8 @@ export async function transitionVerificationCaseAction(
   const { error } = await supabase.rpc("transition_verification_case", {
     p_case_id: parsed.data.caseId,
     p_to_status: parsed.data.toStatus,
-    p_reason: parsed.data.note,
-    p_customer_visible: parsed.data.customerVisible,
+    p_staff_note: parsed.data.staffNote,
+    p_customer_message: parsed.data.customerMessage,
   });
 
   if (error) {

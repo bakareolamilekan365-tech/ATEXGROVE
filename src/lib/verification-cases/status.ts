@@ -10,6 +10,27 @@ export const caseStatusLabels: Record<VerificationCaseStatus, string> = {
   cancelled: "Cancelled",
 };
 
+export const customerSafeStatusMessages: Readonly<
+  Partial<Record<VerificationCaseStatus, string>>
+> = {
+  submitted: "Request submitted by customer.",
+  in_review: "Your case is now in review.",
+  needs_customer_info: "The review team needs more information from you.",
+  closed: "This case was closed. No verification result was issued.",
+  cancelled: "This case was cancelled.",
+};
+
+export function timelineEventAudienceLabel(
+  status: VerificationCaseStatus,
+  reason: string,
+  customerVisible: boolean,
+) {
+  if (!customerVisible) return "Staff-only note";
+  return customerSafeStatusMessages[status] === reason
+    ? "Customer status"
+    : "Customer message";
+}
+
 export const caseStatusTransitions: Readonly<
   Partial<Record<VerificationCaseStatus, readonly VerificationCaseStatus[]>>
 > = {

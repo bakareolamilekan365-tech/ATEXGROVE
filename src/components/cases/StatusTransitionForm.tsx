@@ -39,12 +39,15 @@ export function StatusTransitionForm({
         </select>
       </div>
       <div className={styles.field}>
-        <label htmlFor="statusNote">Status note</label>
-        <textarea id="statusNote" name="note" minLength={2} maxLength={2000} rows={4} required />
+        <label htmlFor="staffNote">Internal staff note</label>
+        <textarea id="staffNote" name="staffNote" minLength={2} maxLength={2000} rows={4} required />
+        <span className={`${styles.muted} ${styles.small}`}>Staff only. This text is never shown to the customer.</span>
       </div>
-      <label className={styles.checkbox}>
-        <input type="checkbox" name="customerVisible" /> Show this note to the customer
-      </label>
+      <div className={styles.field}>
+        <label htmlFor="customerMessage">Customer message (optional)</label>
+        <textarea id="customerMessage" name="customerMessage" maxLength={2000} rows={3} />
+        <span className={`${styles.muted} ${styles.small}`}>The customer always receives a standard status update. Add only customer-safe context here.</span>
+      </div>
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       {state.success ? <p className={styles.success} role="status">{state.success}</p> : null}
       <SubmitButton pendingLabel="Updating...">Update status</SubmitButton>
