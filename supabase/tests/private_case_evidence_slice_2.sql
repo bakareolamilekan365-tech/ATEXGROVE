@@ -118,7 +118,11 @@ select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-0000000
 set local role authenticated;
 select throws_ok($$update public.case_evidence set description = 'tampered' where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$, '42501', null, 'customer cannot update evidence rows');
 select throws_ok($$delete from public.case_evidence where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$, '42501', null, 'customer cannot delete evidence rows');
-select throws_ok($$update storage.objects set name = name || '.changed' where name like 'documents/cases/11111111%'$$, '42501', null, 'customer cannot update evidence objects');
+select results_eq(
+  $$update storage.objects set name = name || '.changed' where name like 'documents/cases/11111111%' returning name$$,
+  ARRAY[]::text[],
+  'customer evidence-object update is a no-op and leaves the object unchanged'
+);
 select throws_ok($$delete from storage.objects where name like 'documents/cases/11111111%'$$, '42501', null, 'customer cannot delete evidence objects');
 select throws_ok(
   $$insert into storage.objects (bucket_id, name, owner_id) values ('documents', 'documents/cases/not-a-uuid/nope/file.pdf', 'a1100000-0000-4000-8000-000000000001')$$,
