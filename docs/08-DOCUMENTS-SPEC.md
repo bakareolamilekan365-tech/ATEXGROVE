@@ -4,16 +4,13 @@
 
 Documents are sensitive assets connected to users, organizations, verification cases, later land parcels and projects. The Phase 2 primary resource scope is the verification case; a case and its evidence must not require an existing marketplace parcel. This specification defines the target controls without claiming that every lifecycle stage is implemented today.
 
-The current foundation now includes a hosted private `documents` bucket and user-scoped object policies using the `documents/<user-id>/...` convention. This is a storage-security foundation, not a completed document product: upload UI, metadata persistence, version lineage, application-level document audit events, case/project authorization, malware scanning, retention policy and automated analysis remain **Planned/Future** until implemented and tested.
+**Current hosted state:** the private `documents` bucket exists with the older user-scoped foundation policies. **Slice 2 repository implementation:** migration `019` and its application code replace that model with case-scoped private evidence, but are not hosted until review, green CI and explicit approval. Slice 2 adds customer upload/listing, immutable metadata and version lineage, staff-only audited signed downloads, and a customer response path. Evidence review/authentication, staff uploads, malware scanning, retention policy and automated analysis remain **Planned/Future**.
 
-## Supported prototype types
+## Supported Slice 2 types
 
 - PDF
 - PNG/JPG
-- XLSX
-- DOCX
-
-Additional formats require an explicit security and processing decision.
+Slice 2 deliberately excludes SVG, HTML and Office formats. Additional formats require an explicit security and processing decision.
 
 ## Document lifecycle
 
@@ -76,6 +73,12 @@ Metadata should not contain unnecessary copies of sensitive document content. Ac
 - Store service-role credentials only on the server and never in client bundles or committed environment files.
 - Access, review, rejection, approval, version changes and deletion should be auditable without dumping full sensitive contents into logs.
 
+Slice 2 uses `documents/cases/{case_id}/{evidence_id}/{random}.{ext}`. The original filename never becomes part of the object path. PDF, JPEG and PNG are allowlisted, each file is limited to 10 MB, and the server validates the declared MIME type against the file signature before upload. Each case is limited to 10 registered evidence rows. Customers may upload only to their own open case, but cannot retrieve their own uploaded files in this slice. Neither leads nor assignees can read `storage.objects` directly: staff retrieval must use the server action, which calls the audited authorization RPC before a server-only service-role client creates a 60-second signed download URL. Files are served as attachments and never rendered inline.
+
+The 10-file limit counts registered evidence rows. The application removes an uploaded object when registration fails, but a client that uploads an object without completing registration does not consume the evidence-row limit. This orphan-object gap is a known free-plan limitation and requires operational monitoring/cleanup rather than being represented as a stronger quota guarantee.
+
+There is no antivirus or malware scanning on the free-plan Slice 2 path. Every file remains untrusted even when its MIME type is allowed. Real customer documents remain prohibited until the legal name, privacy notice, retention and operational-control questions are settled. Every row remains visibly labelled `DEMO DATA / NOT OFFICIAL` and “Received from customer — not authenticated.”
+
 ## Prototype document states
 
 - **Draft** — uploaded or being prepared; not submitted for a decision.
@@ -136,6 +139,6 @@ Long-running work should expose durable states such as queued, running, succeede
 
 ## Current prototype boundary
 
-The current prototype boundary includes the private hosted bucket and foundation user-path policies described above. pgTAP ALLOW/DENY tests have passed in a temporary Supabase environment through GitHub Actions, which is valid automated evidence. Hosted cross-user document isolation with realistic authenticated sessions remains pending.
+The hosted boundary currently includes the private bucket and pre-Slice-2 user-path policies. The repository boundary additionally contains migration `019`, the case evidence upload/list UI, customer clarification response, server-side validation, transactional registration/event/audit RPC, staff access audit and short-lived download action. These changes remain **NOT HOSTED / NOT YET CI-VERIFIED** until this branch passes review and CI and migration `019` receives explicit deployment approval.
 
-The prototype still does not include a complete case-level upload/retrieval journey, document metadata records, version-aware review, case/project/organization authorization, application audit events, malware scanning, immutable audit guarantees, jurisdiction-specific retention, background processing or AI analysis. A private bucket and temporary-environment policy tests are necessary foundations, not proof of the finished document lifecycle.
+Slice 2 still does not include document authentication, findings, reviewer decisions, staff uploads, full project/organization authorization, malware scanning, privileged-operator immutability, jurisdiction-specific retention/deletion, background processing or AI analysis. A received file is not “verified”, “approved” or “valid”. Hosted cross-user object isolation with realistic authenticated sessions remains a separate operational gate after approved deployment.

@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireLead, requireStaff } from "@/lib/auth/guards";
+import { createAuthorizedEvidenceDownload } from "@/lib/case-evidence/download";
 import {
   assignmentSchema,
   checkboxValue,
@@ -75,4 +77,13 @@ export async function transitionVerificationCaseAction(
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
   revalidatePath("/dashboard");
   return { error: null, success: "Status updated." };
+}
+
+export async function downloadCaseEvidenceAction(formData: FormData) {
+  const evidenceId = formData.get("evidenceId");
+  if (typeof evidenceId !== "string") return;
+
+  const { supabase } = await requireStaff();
+  const signedUrl = await createAuthorizedEvidenceDownload(supabase, evidenceId);
+  redirect(signedUrl);
 }

@@ -4,9 +4,11 @@ import { AssignmentForm } from "@/components/cases/AssignmentForm";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { StatusTransitionForm } from "@/components/cases/StatusTransitionForm";
 import styles from "@/components/cases/case-workflow.module.css";
+import { downloadCaseEvidenceAction } from "@/app/ops/cases/actions";
 import { requireStaff } from "@/lib/auth/guards";
+import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
 import { caseStatusLabels } from "@/lib/verification-cases/status";
-import type { CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
+import type { CaseEvidence, CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +26,18 @@ export default async function OperationsCasePage({
   const { id } = await params;
   const { supabase, user, staff: currentStaff } = await requireStaff();
 
-  const [{ data: caseData }, { data: eventData }, { data: assignmentData }] = await Promise.all([
+  const [{ data: caseData }, { data: eventData }, { data: assignmentData }, { data: evidenceData }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
     supabase.from("case_assignments").select("id, assignee_user_id, assigned_by_user_id, status, created_at").eq("verification_case_id", id).order("created_at", { ascending: false }),
+    supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
   ]);
   if (!caseData) notFound();
 
   const item = caseData as VerificationCase;
   const events = (eventData ?? []) as CaseStatusEvent[];
   const assignments = (assignmentData ?? []) as AssignmentRow[];
+  const evidence = (evidenceData ?? []) as CaseEvidence[];
   const activeAssignment = assignments.find((assignment) => assignment.status === "active");
   const isAssignee = activeAssignment?.assignee_user_id === user.id;
 
@@ -71,6 +75,32 @@ export default async function OperationsCasePage({
             <p><strong>Contact preference:</strong> {item.contact_preference}</p>
             <p><strong>Customer notes:</strong> {item.customer_notes || "None supplied"}</p>
             <div className={styles.notice}>This case is a coordination record. It is not a verified title, survey, boundary or government record.</div>
+          </section>
+
+          <section className={styles.panel}>
+            <div className={styles.cardHeader}>
+              <div>
+                <p className={styles.eyebrow}>Private evidence</p>
+                <h2>Customer documents ({evidence.length})</h2>
+              </div>
+              <span className={styles.demo}>Demo data / not official</span>
+            </div>
+            <p className={styles.muted}>Received from customer — not authenticated. Files are untrusted and download only.</p>
+            {evidence.length ? (
+              <div className={styles.stack}>
+                {evidence.map((document) => (
+                  <article className={styles.card} key={document.id}>
+                    <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
+                    <p>{document.description}</p>
+                    <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
+                    <form action={downloadCaseEvidenceAction}>
+                      <input type="hidden" name="evidenceId" value={document.id} />
+                      <button className={styles.button} type="submit">Download (60-second access)</button>
+                    </form>
+                  </article>
+                ))}
+              </div>
+            ) : <p className={styles.empty}>No customer documents added.</p>}
           </section>
 
           <section className={styles.panel}>

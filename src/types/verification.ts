@@ -49,3 +49,21 @@ export type StaffMember = {
   is_lead: boolean;
   active: boolean;
 };
+
+export type CaseEvidence = {
+  id: string;
+  verification_case_id: string;
+  uploaded_by_user_id: string;
+  evidence_type: "title_deed_copy" | "survey_plan_copy" | "receipt" | "seller_id" | "other";
+  description: string;
+  source: "customer_supplied";
+  storage_path: string;
+  original_filename: string;
+  mime_type: "application/pdf" | "image/jpeg" | "image/png";
+  size_bytes: number;
+  version: number;
+  supersedes_evidence_id: string | null;
+  review_state: "received_unreviewed";
+  is_demo_data: true;
+  created_at: string;
+};
