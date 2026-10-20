@@ -85,15 +85,7 @@ Every vertical slice must pass through the relevant server/business, database/RL
 
 **Output:** repository, environment, Supabase project, migrations, RLS, sessions, registration, login, role selection, and dashboard shell.
 
-**Status:** foundation migrations and the first auth flow are working and manually verified.
-
-**Implemented and merged:** password recovery/callback code, profile onboarding details, private-storage migration, security guardrails, synthetic fixture tooling, migrations `015`-`017`, pgTAP files, and a database-test GitHub Actions workflow.
-
-**Hosted evidence (2026-10-14):** migrations `001`-`017` are recorded remotely; the `documents` bucket is private; foundation table RLS and storage policies are present.
-
-**Automated evidence:** general CI [run 38276873401](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873401) and database-security [run 38276873408](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) passed; pgTAP executed in a temporary Supabase environment.
-
-**Still unverified/open:** hosted-user authorization and cross-user document isolation, hosted Auth redirect/email behavior, end-to-end recovery including invalid/expired links, `organization_actor_role` anonymous execute exposure, and unresolved security/performance advisor findings. Docker is only needed for local Supabase testing; GitHub Actions can provide that temporary environment.
+**Current status:** see [STATUS.md](STATUS.md) for implemented slices, hosted deployment/configuration, automated evidence and remaining operational gaps. Docker is only needed for local Supabase testing; GitHub Actions can provide the disposable database-test environment.
 
 ### Phase 2 - Verification case and private evidence
 

@@ -23,7 +23,7 @@ All demo records must display **DEMO DATA / NOT OFFICIAL**. Planned features mus
 
 Requirements must also preserve the V2 boundaries: platform role, professional discipline, organization/project role, permission, subscription and entitlement are distinct; verification authority and provenance are explicit; GIS geometry is not automatically legal; private documents are protected; AI is advisory; and payments remain out of prototype scope.
 
-The requirement order above is the accepted delivery priority, not an implementation claim. As of 2026-10-16, foundation security code is merged and migrations `001`-`017` are hosted. General CI and database-security GitHub Actions have passed, including pgTAP in a temporary Supabase environment. Hosted-user authorization/document isolation, hosted Auth recovery/confirmation and the complete E2E journey still lack passing evidence. Current evidence and gaps are recorded in `12-IMPLEMENTATION-CHECKLIST.md` and the latest section of `17-PROJECT-AUDIT.md`.
+The requirement order above is the accepted delivery priority, not an implementation claim; see [STATUS.md](STATUS.md) for the single current record of implemented slices, hosted deployment, CI evidence and verification gaps.
 
 ## Test Layers
 
@@ -45,7 +45,7 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 ### 2a. Database/RLS and authorization tests
 
-The repository contains `supabase/tests/foundation_security.sql` and `supabase/tests/membership_behavior.sql`, and `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Database-security [run 38276873408](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) passed for PR #9 head commit `c259db0`. This is valid automated pgTAP evidence, but it does not verify the linked hosted project or realistic hosted-user sessions.
+The repository contains four pgTAP suites under `supabase/tests/`, and `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Current counts and the latest green database-security run are maintained in [STATUS.md](STATUS.md); disposable CI does not verify the linked hosted project or realistic hosted-user sessions.
 
 Test the same decisions at the server and database boundaries:
 

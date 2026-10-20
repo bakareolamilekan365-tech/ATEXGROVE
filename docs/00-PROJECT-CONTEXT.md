@@ -43,7 +43,7 @@ The first commercial slice is a controlled land-verification and development-fea
 - Admin/reviewer management limited to granted scope
 - Database/API integration
 
-The list above describes the target first commercial slice, not the current implementation. As of 2026-10-16, the authentication/foundation work is merged and migrations `001`-`017` are recorded on hosted Supabase. General CI and temporary-environment pgTAP database-security tests have passed. This establishes valid automated evidence, but does not prove hosted cross-user authorization or hosted Auth email flows; the case, report, GIS and feasibility behavior is not yet implemented.
+The list above describes the target first commercial slice, not the current implementation; see [STATUS.md](STATUS.md) for the single current implementation, deployment, CI-evidence and verification-gap record.
 
 ### Architect but do not fake
 - Planning intelligence
