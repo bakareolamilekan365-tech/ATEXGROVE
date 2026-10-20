@@ -105,13 +105,13 @@ reset role;
 select set_config('request.jwt.claims', '{"sub":"c3300000-0000-4000-8000-000000000003","role":"authenticated"}', true);
 set local role authenticated;
 select is((select count(*)::int from public.case_evidence), 1, 'department lead can read case evidence');
-select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 1, 'department lead can read the evidence object');
+select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 0, 'department lead cannot read evidence objects directly');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"d4400000-0000-4000-8000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
 select is((select count(*)::int from public.case_evidence), 1, 'active assignee can read case evidence');
-select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 1, 'active assignee can read the evidence object');
+select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 0, 'active assignee cannot read evidence objects directly');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);

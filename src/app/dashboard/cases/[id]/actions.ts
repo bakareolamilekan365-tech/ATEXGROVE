@@ -9,6 +9,7 @@ import {
   MAX_EVIDENCE_FILES_PER_CASE,
   normalizeOriginalFilename,
   validateEvidenceFile,
+  validateEvidenceFileSignature,
 } from "@/lib/case-evidence/validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -35,6 +36,9 @@ export async function uploadCaseEvidenceAction(
 
   const fileValidation = validateEvidenceFile(file);
   if (!fileValidation.ok) return failure(fileValidation.error);
+  if (!(await validateEvidenceFileSignature(file))) {
+    return failure("The file contents do not match its declared PDF, JPG or PNG type.");
+  }
 
   const { supabase, user } = await requireAuthenticatedUser();
   const { data: verificationCase } = await supabase

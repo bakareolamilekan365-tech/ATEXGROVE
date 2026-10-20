@@ -43,6 +43,12 @@ const extensionsByMime: Record<(typeof evidenceMimeTypes)[number], string> = {
   "image/png": "png",
 };
 
+const signaturesByMime: Record<(typeof evidenceMimeTypes)[number], readonly number[]> = {
+  "application/pdf": [0x25, 0x50, 0x44, 0x46, 0x2d],
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+};
+
 export function validateEvidenceFile(file: EvidenceFileInput) {
   if (!evidenceMimeTypes.includes(file.type as (typeof evidenceMimeTypes)[number])) {
     return { ok: false as const, error: "Upload a PDF, JPG or PNG file." };
@@ -51,6 +57,23 @@ export function validateEvidenceFile(file: EvidenceFileInput) {
     return { ok: false as const, error: "The file must be between 1 byte and 10 MB." };
   }
   return { ok: true as const };
+}
+
+export function hasValidEvidenceFileSignature(
+  mimeType: string,
+  bytes: Uint8Array,
+) {
+  const signature = signaturesByMime[mimeType as keyof typeof signaturesByMime];
+  return Boolean(
+    signature &&
+      bytes.length >= signature.length &&
+      signature.every((byte, index) => bytes[index] === byte),
+  );
+}
+
+export async function validateEvidenceFileSignature(file: File) {
+  const bytes = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  return hasValidEvidenceFileSignature(file.type, bytes);
 }
 
 export function extensionForMime(mimeType: string) {

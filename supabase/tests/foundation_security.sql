@@ -14,7 +14,7 @@ select ok(exists(select 1 from pg_policies where schemaname = 'public' and table
 select ok(exists(select 1 from pg_policies where schemaname = 'public' and tablename = 'organizations' and policyname = 'Administrators can update organization security fields'), 'administrator organization workflow exists');
 select ok(exists(select 1 from pg_policies where schemaname = 'public' and tablename = 'organization_members' and policyname = 'Organization owners and admins can insert memberships'), 'membership insert policy exists');
 select ok(exists(select 1 from pg_policies where schemaname = 'public' and tablename = 'organization_members' and policyname = 'Organization owners and admins can delete memberships'), 'membership delete policy exists');
-select ok(exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'Scoped staff can read case evidence objects'), 'scoped staff case-evidence read policy exists');
+select ok(not exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and cmd = 'SELECT'), 'authenticated clients have no direct evidence-object read policy');
 select ok(exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'Customers can upload evidence for their cases'), 'customer case-evidence upload policy exists');
 select ok(not exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and (qual = 'true' or with_check = 'true')), 'storage has no unconditional true policy');
 

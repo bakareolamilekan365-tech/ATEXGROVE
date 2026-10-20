@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AuthorizationError } from "@/lib/auth/guards";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-type DownloadClient = Pick<SupabaseClient, "rpc" | "storage">;
+type DownloadClient = Pick<SupabaseClient, "rpc">;
 
 export async function createAuthorizedEvidenceDownload(
   supabase: DownloadClient,
@@ -16,7 +17,8 @@ export async function createAuthorizedEvidenceDownload(
     throw new AuthorizationError("Staff access to this evidence is required.");
   }
 
-  const { data: signed, error: signError } = await supabase.storage
+  const admin = createSupabaseAdminClient();
+  const { data: signed, error: signError } = await admin.storage
     .from("documents")
     .createSignedUrl(access.storage_path, 60, { download: access.original_filename });
   if (signError || !signed?.signedUrl) {

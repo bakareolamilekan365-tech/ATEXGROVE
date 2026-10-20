@@ -144,14 +144,6 @@ create policy "Customers can upload evidence for their cases"
 
 drop policy if exists "Customers and scoped staff can read case evidence objects" on storage.objects;
 drop policy if exists "Scoped staff can read case evidence objects" on storage.objects;
-create policy "Scoped staff can read case evidence objects"
-  on storage.objects for select
-  to authenticated
-  using (
-    bucket_id = 'documents'
-    and public.document_case_id_from_path(name) is not null
-    and (select public.staff_can_access_verification_case(public.document_case_id_from_path(name)))
-  );
 
 -- The object must already exist. The case row lock serializes the per-case count,
 -- predecessor version and transactionally related event/audit writes.
@@ -398,6 +390,6 @@ grant execute on function public.register_case_evidence(uuid, uuid, text, text, 
 grant execute on function public.customer_respond_to_case(uuid, text) to authenticated;
 grant execute on function public.authorize_case_evidence_download(uuid) to authenticated;
 
--- No authenticated UPDATE or DELETE grant/policy exists for evidence rows or
--- evidence objects. Failed-upload cleanup is a narrowly scoped server-only use of
--- the Storage API with service-role credentials.
+-- Authenticated clients receive no object SELECT, UPDATE or DELETE policy.
+-- Audited staff downloads and failed-upload cleanup use narrowly scoped
+-- server-only actions with service-role credentials.
