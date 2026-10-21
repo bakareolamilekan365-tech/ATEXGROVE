@@ -58,6 +58,7 @@ as $$
 declare
   actor_id uuid := (select auth.uid());
   new_case_id uuid;
+  existing_case public.verification_cases%rowtype;
 begin
   if actor_id is null then
     raise exception 'Authentication is required' using errcode = '42501';
@@ -65,16 +66,6 @@ begin
   if p_idempotency_key is null then
     raise exception 'An idempotency key is required' using errcode = '22023';
   end if;
-
-  select id into new_case_id
-  from public.verification_cases
-  where customer_user_id = actor_id
-    and idempotency_key = p_idempotency_key;
-
-  if found then
-    return new_case_id;
-  end if;
-
   if char_length(btrim(coalesce(p_site_description, ''))) not between 10 and 2000 then
     raise exception 'Plot description must be between 10 and 2000 characters' using errcode = '22023';
   end if;
@@ -86,6 +77,23 @@ begin
   end if;
   if char_length(coalesce(p_customer_notes, '')) > 4000 then
     raise exception 'Notes must not exceed 4000 characters' using errcode = '22023';
+  end if;
+
+  select * into existing_case
+  from public.verification_cases
+  where customer_user_id = actor_id
+    and idempotency_key = p_idempotency_key;
+
+  if found then
+    if existing_case.site_description is distinct from btrim(p_site_description)
+      or existing_case.area_lga is distinct from btrim(p_area_lga)
+      or existing_case.customer_notes is distinct from nullif(btrim(coalesce(p_customer_notes, '')), '')
+      or existing_case.contact_preference is distinct from p_contact_preference then
+      raise exception 'Idempotency key was already used with different request data'
+        using errcode = '22023';
+    end if;
+
+    return existing_case.id;
   end if;
 
   insert into public.verification_cases (
@@ -112,7 +120,7 @@ begin
   returning id into new_case_id;
 
   if new_case_id is null then
-    select id into new_case_id
+    select * into existing_case
     from public.verification_cases
     where customer_user_id = actor_id
       and idempotency_key = p_idempotency_key;
@@ -121,7 +129,15 @@ begin
       raise exception 'Could not resolve idempotent case creation' using errcode = '40001';
     end if;
 
-    return new_case_id;
+    if existing_case.site_description is distinct from btrim(p_site_description)
+      or existing_case.area_lga is distinct from btrim(p_area_lga)
+      or existing_case.customer_notes is distinct from nullif(btrim(coalesce(p_customer_notes, '')), '')
+      or existing_case.contact_preference is distinct from p_contact_preference then
+      raise exception 'Idempotency key was already used with different request data'
+        using errcode = '22023';
+    end if;
+
+    return existing_case.id;
   end if;
 
   insert into public.case_status_events (

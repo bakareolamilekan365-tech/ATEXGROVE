@@ -1,7 +1,7 @@
 -- Behavioural coverage for migration 021.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(26);
+select plan(28);
 
 select ok(
   exists (
@@ -102,6 +102,18 @@ insert into pg_temp.migration_021_results values (
     '99999999-9999-4999-8999-999999999999'
   )
 );
+select throws_ok(
+  $$select public.create_verification_case(
+    'DEMO DATA / NOT OFFICIAL materially different Kuje plot request',
+    'Kuje',
+    'Synthetic request.',
+    'email',
+    '99999999-9999-4999-8999-999999999999'
+  )$$,
+  '22023',
+  'Idempotency key was already used with different request data',
+  'same customer and key cannot be reused with materially different request data'
+);
 reset role;
 
 select is(
@@ -127,6 +139,16 @@ select is(
   ),
   1,
   'replaying a key creates only one set of case events'
+);
+select is(
+  (
+    select site_description from public.verification_cases
+    where id = (
+      select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'
+    )
+  ),
+  'DEMO DATA / NOT OFFICIAL idempotent case for customer A',
+  'rejected replay leaves the originally created case data unchanged'
 );
 select is(
   (
