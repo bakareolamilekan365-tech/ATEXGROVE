@@ -6,7 +6,7 @@ This list distinguishes current gaps from planned work. It is not a production-r
 
 | Item | Current status | Planned direction |
 | --- | --- | --- |
-| Customer/staff context separation and role display | **Code fix merged:** [PR #17](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/17) separates customer queries and adds role/workspace display. Migration `020` is not hosted. | Operationally verify the merged UI and apply migration `020` only after separate hosted approval. |
+| Customer/staff context separation and role display | **Code fix merged and schema hosted:** [PR #17](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/17) separates customer queries and adds role/workspace display. Migration `020_customer_safe_status.sql` was applied to hosted Supabase on 2026-10-20. | Operationally verify the merged UI with separate customer, staff and dual-role accounts. |
 | Staff UI displays raw user IDs | **Open:** work-queue/detail screens show identifiers rather than safe display names. | Resolve names through an authorized profile/staff view without broadening profile access. |
 | Privacy, Terms and cookie pages | **Not implemented.** | Required, with appropriate legal/privacy review, before real customer documents or production use. |
 | Account deletion versus `on delete restrict` | **Open design issue:** evidence/customer references can block Auth-user deletion. | Define retention, anonymization, legal hold and deletion behavior before real use. |
@@ -15,5 +15,7 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Virus scanning | **Unavailable in the current Free-plan slice.** Files are untrusted, allowlisted and download-only. | Add a replaceable malware-scanning integration before real-document use where required. |
 | Role-based onboarding routing | **Undecided / not implemented.** | Keep onboarding neutral until the product decision is recorded; do not infer staff access from platform role. |
 | Login `?next=` handling | **Open:** login currently ignores the requested safe internal destination. | Add validated relative redirect handling; never allow open redirects. |
+| Data API grants for new public tables | **Upcoming platform change:** from 2026-10-30, Supabase stops automatically granting Data API access to newly created tables in `public`. Existing tables are unaffected. | Every new-table migration must grant `SELECT` explicitly to `authenticated` only, grant `service_role` access only as needed, grant no access to `anon`, and keep writes behind secured RPCs. RLS remains required and separate from grants. |
+| Final logo application assets | **Owner-confirmed source:** the final logo is in `assets/brand/source/atexgrove-*.jpg`. The removed `public/logo/apexgrove-*.svg` files were text placeholders, not final artwork. | Obtain a true vector or transparent PNG before using the logo in the application header or favicon. Do not substitute generated placeholder artwork. |
 
 Operational verification gaps are maintained in [STATUS.md](STATUS.md), not duplicated here.

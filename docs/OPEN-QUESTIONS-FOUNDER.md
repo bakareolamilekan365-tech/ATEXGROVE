@@ -9,7 +9,7 @@ Record answers here with the date. Do not build on an assumption while a questio
 4. Which staff roles and departments exist at launch, and which can be combined? Answer (2026-10-14, partial): No staff team exists yet. The founder/CTO may act as pilot lead/operator; automated methods may recommend assignments, but a human lead confirms them. An independent qualified specialist is required for the second review. Named personnel, availability and contracted responsibilities remain open.
 
 ## Brand and naming
-5. Product name: ATEX GROVE, Atexgrove, or APEXGROVE? Rename the repo? Answer (2026-10-11): Decided — display name Atexgrove, code identifier atexgrove. Repository rename pending.
+5. Product name and repository rename? Answer (2026-10-11): Decided — display name Atexgrove, code identifier `atexgrove`. Repository rename pending.
 6. Final palette: logo navy/blue, or blueprint forest green/gold/ivory/charcoal? Final logo file and font? Answer (2026-10-14): Navy/blue is primary; forest green and warm gold are semantic accents; ivory/light grey and charcoal support the interface. Use the existing web-ready logo files under `public/brand/` and Figtree (weights 400-800), matching the approved dashboard references. A true editable vector is still desirable for future professional print/large-format production, but it does not block the application.
 
 ## Trust and legal
