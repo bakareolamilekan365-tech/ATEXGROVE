@@ -11,6 +11,8 @@ export default async function NewVerificationCasePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const idempotencyKey = crypto.randomUUID();
+
   return (
     <main className={styles.shell}>
       <div className={styles.headerRow}>
@@ -23,8 +25,8 @@ export default async function NewVerificationCasePage() {
       </div>
       <section className={styles.panel} aria-labelledby="request-form-heading">
         <h2 id="request-form-heading">Tell us about the site</h2>
-        <p className={styles.muted}>No parcel or marketplace listing is required.</p>
-        <NewCaseForm />
+        <p className={styles.muted}>No parcel or marketplace listing is required. Documents are added after the request is submitted.</p>
+        <NewCaseForm idempotencyKey={idempotencyKey} />
       </section>
     </main>
   );

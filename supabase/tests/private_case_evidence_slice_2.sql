@@ -213,7 +213,7 @@ select lives_ok(
 );
 reset role;
 select is((select workflow_status from public.verification_cases where id = '22222222-2222-4222-8222-222222222222'), 'in_review', 'customer response resumes review');
-select is((select count(*)::int from public.case_status_events where verification_case_id = '22222222-2222-4222-8222-222222222222' and customer_visible), 1, 'customer response writes a visible event');
+select is((select count(*)::int from public.case_status_events where verification_case_id = '22222222-2222-4222-8222-222222222222' and customer_visible), 2, 'customer response writes the fixed update and the customer text as visible events');
 
 update public.verification_cases set workflow_status = 'closed' where id = '11111111-1111-4111-8111-111111111111';
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);

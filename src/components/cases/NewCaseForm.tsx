@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import {
   createVerificationCaseAction,
   type CaseFormState,
@@ -10,7 +10,8 @@ import styles from "./case-workflow.module.css";
 
 const initialState: CaseFormState = { error: null };
 
-export function NewCaseForm() {
+export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: string }>) {
+  const idempotencyKeyRef = useRef(idempotencyKey);
   const [state, action] = useActionState(
     createVerificationCaseAction,
     initialState,
@@ -18,6 +19,7 @@ export function NewCaseForm() {
 
   return (
     <form action={action} className={styles.form}>
+      <input type="hidden" name="idempotencyKey" value={idempotencyKeyRef.current} />
       <div className={styles.field}>
         <label htmlFor="areaLga">Area or LGA in Abuja</label>
         <input

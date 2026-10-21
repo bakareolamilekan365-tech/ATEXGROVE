@@ -12,7 +12,7 @@ select ok(not has_function_privilege('anon', 'public.organization_actor_role(uui
 select ok(not has_function_privilege('anon', 'public.is_active_staff()', 'EXECUTE'), 'is_active_staff is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.is_department_lead(text)', 'EXECUTE'), 'is_department_lead is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.staff_can_access_verification_case(uuid)', 'EXECUTE'), 'case access helper is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,text)', 'EXECUTE'), 'case creation RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,text,uuid)', 'EXECUTE'), 'case creation RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.assign_verification_case(uuid,uuid,text,boolean)', 'EXECUTE'), 'assignment RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.transition_verification_case(uuid,text,text,text)', 'EXECUTE'), 'transition RPC is not callable by anon');
 
@@ -40,7 +40,8 @@ select lives_ok(
       'DEMO DATA / NOT OFFICIAL plot near Kuje town centre',
       'Kuje',
       'Synthetic pilot request only.',
-      'email'
+      'email',
+      'a1111111-1111-4111-8111-111111111111'
     )$$,
   'customer can create a submitted verification case through the RPC'
 );
@@ -175,12 +176,12 @@ select throws_ok(
 );
 select is((select count(*)::int from public.case_status_events), 4, 'status move writes separate customer status and staff-note events');
 select is(
-  (select count(*)::int from public.case_status_events where reason = 'Your case is now in review.' and customer_visible),
+  (select count(*)::int from public.case_status_events where reason = 'Your case is now in review.' and customer_visible and event_kind = 'status_change'),
   1,
   'status move always writes fixed customer-safe status text'
 );
 select is(
-  (select count(*)::int from public.case_status_events where reason = 'Started the synthetic document-free review.' and not customer_visible),
+  (select count(*)::int from public.case_status_events where reason = 'Started the synthetic document-free review.' and not customer_visible and event_kind = 'staff_note'),
   1,
   'staff note is recorded separately and remains staff-only'
 );
@@ -254,12 +255,12 @@ select lives_ok(
 reset role;
 
 select is(
-  (select count(*)::int from public.case_status_events where reason = 'The review team needs more information from you.' and customer_visible),
+  (select count(*)::int from public.case_status_events where reason = 'The review team needs more information from you.' and customer_visible and event_kind = 'information_requested'),
   1,
   'needs-information transition writes its fixed customer-safe status event'
 );
 select is(
-  (select count(*)::int from public.case_status_events where reason = 'Please provide the missing customer-safe details.' and customer_visible),
+  (select count(*)::int from public.case_status_events where reason = 'Please provide the missing customer-safe details.' and customer_visible and event_kind = 'information_requested'),
   1,
   'optional customer message is stored as a separate visible event'
 );
@@ -298,7 +299,7 @@ select lives_ok(
 reset role;
 
 select is(
-  (select count(*)::int from public.case_status_events where reason = 'This case was cancelled.' and customer_visible),
+  (select count(*)::int from public.case_status_events where reason = 'This case was cancelled.' and customer_visible and event_kind = 'status_change'),
   1,
   'cancel transition writes fixed customer-safe status text'
 );
@@ -339,7 +340,7 @@ select throws_ok(
   'anonymous user cannot select case status events'
 );
 select throws_ok(
-  $$select public.create_verification_case('Anonymous plot description', 'Kuje', null, 'email')$$,
+  $$select public.create_verification_case('Anonymous plot description', 'Kuje', null, 'email', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
   '42501',
   null,
   'anonymous user cannot call case creation RPC'

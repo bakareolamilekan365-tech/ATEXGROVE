@@ -87,7 +87,7 @@ export default async function DashboardPage({
       ) : ownCases.length === 0 ? (
         <div className={styles.empty}>
           <h2>No requests yet</h2>
-          <p>Start with an Abuja/FCT plot description. Document upload comes in a later slice.</p>
+          <p>Start with an Abuja/FCT plot description.</p>
           <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
         </div>
       ) : (

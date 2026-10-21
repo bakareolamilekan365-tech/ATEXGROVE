@@ -1,4 +1,7 @@
-import type { VerificationCaseStatus } from "@/types/verification";
+import type {
+  CaseStatusEventKind,
+  VerificationCaseStatus,
+} from "@/types/verification";
 
 export const caseStatusLabels: Record<VerificationCaseStatus, string> = {
   draft: "Draft",
@@ -20,15 +23,18 @@ export const customerSafeStatusMessages: Readonly<
   cancelled: "This case was cancelled.",
 };
 
-export function timelineEventAudienceLabel(
-  status: VerificationCaseStatus,
-  reason: string,
-  customerVisible: boolean,
-) {
-  if (!customerVisible) return "Staff-only note";
-  return customerSafeStatusMessages[status] === reason
-    ? "Customer status"
-    : "Customer message";
+export const caseStatusEventKindLabels: Readonly<
+  Record<CaseStatusEventKind, string>
+> = {
+  status_change: "Status change",
+  staff_note: "Staff-only note",
+  customer_message: "Customer message",
+  information_requested: "Information requested",
+  customer_response: "Customer response",
+};
+
+export function timelineEventKindLabel(eventKind: CaseStatusEventKind) {
+  return caseStatusEventKindLabels[eventKind];
 }
 
 export const caseStatusTransitions: Readonly<

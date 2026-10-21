@@ -11,6 +11,7 @@ export async function createVerificationCaseAction(
   formData: FormData,
 ): Promise<CaseFormState> {
   const parsed = newVerificationCaseSchema.safeParse({
+    idempotencyKey: formData.get("idempotencyKey"),
     siteDescription: formData.get("siteDescription"),
     areaLga: formData.get("areaLga"),
     notes: formData.get("notes") ?? "",
@@ -29,6 +30,7 @@ export async function createVerificationCaseAction(
       p_area_lga: parsed.data.areaLga,
       p_customer_notes: parsed.data.notes || null,
       p_contact_preference: parsed.data.contactPreference,
+      p_idempotency_key: parsed.data.idempotencyKey,
     },
   );
 

@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   availableCaseTransitions,
   canTransitionVerificationCase,
+  caseStatusEventKindLabels,
   caseStatusLabels,
   customerSafeStatusMessages,
-  timelineEventAudienceLabel,
+  timelineEventKindLabel,
 } from "@/lib/verification-cases/status";
 
 describe("verification case status transitions", () => {
@@ -45,13 +46,19 @@ describe("verification case status transitions", () => {
 });
 
 describe("customer-safe case timeline", () => {
-  it("separates fixed status text from staff notes and customer messages", () => {
+  it("maps every event kind without inferring meaning from its text", () => {
     expect(customerSafeStatusMessages.in_review).toBe("Your case is now in review.");
     expect(customerSafeStatusMessages.needs_customer_info).toBe("The review team needs more information from you.");
     expect(customerSafeStatusMessages.closed).toBe("This case was closed. No verification result was issued.");
     expect(customerSafeStatusMessages.cancelled).toBe("This case was cancelled.");
-    expect(timelineEventAudienceLabel("in_review", "Your case is now in review.", true)).toBe("Customer status");
-    expect(timelineEventAudienceLabel("in_review", "Internal analysis note", false)).toBe("Staff-only note");
-    expect(timelineEventAudienceLabel("in_review", "We have begun the review.", true)).toBe("Customer message");
+    expect(caseStatusEventKindLabels).toEqual({
+      status_change: "Status change",
+      staff_note: "Staff-only note",
+      customer_message: "Customer message",
+      information_requested: "Information requested",
+      customer_response: "Customer response",
+    });
+    expect(timelineEventKindLabel("information_requested")).toBe("Information requested");
+    expect(timelineEventKindLabel("customer_response")).toBe("Customer response");
   });
 });
