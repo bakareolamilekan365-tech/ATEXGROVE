@@ -2,6 +2,10 @@
 
 This runbook covers current development and hosted-configuration procedures. It does not authorize unreviewed production changes. Use synthetic data only.
 
+## Owner-request intake and delivery rule
+
+Owner requests do not move directly from chat into implementation. Record each request in [BACKLOG.md](BACKLOG.md), identify its source, and triage it as now, next or later before starting work. Keep one scoped backlog item in progress per feature branch. Database migrations and security changes must use the normal review and CI loop; never apply them to hosted Supabase just because a request was received.
+
 ## Apply reviewed Supabase migrations
 
 Run these commands from the repository root. Review the dry-run output before applying anything:

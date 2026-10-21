@@ -1,6 +1,6 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-20
+**Status date:** 2026-10-21
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
 
@@ -16,6 +16,6 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Role-based onboarding routing | **Undecided / not implemented.** | Keep onboarding neutral until the product decision is recorded; do not infer staff access from platform role. |
 | Login `?next=` handling | **Open:** login currently ignores the requested safe internal destination. | Add validated relative redirect handling; never allow open redirects. |
 | Data API grants for new public tables | **Upcoming platform change:** from 2026-10-30, Supabase stops automatically granting Data API access to newly created tables in `public`. Existing tables are unaffected. | Every new-table migration must grant `SELECT` explicitly to `authenticated` only, grant `service_role` access only as needed, grant no access to `anon`, and keep writes behind secured RPCs. RLS remains required and separate from grants. |
-| Final logo application assets | **Owner-confirmed source:** the final logo is in `assets/brand/source/atexgrove-*.jpg`. The removed `public/logo/apexgrove-*.svg` files were text placeholders, not final artwork. | Obtain a true vector or transparent PNG before using the logo in the application header or favicon. Do not substitute generated placeholder artwork. |
+| Final logo application assets | **Resolved:** owner-confirmed logo, mark and wordmark SVGs are in `public/logo`; the mark is used in the staff header and as the favicon. | No open action. |
 
 Operational verification gaps are maintained in [STATUS.md](STATUS.md), not duplicated here.
