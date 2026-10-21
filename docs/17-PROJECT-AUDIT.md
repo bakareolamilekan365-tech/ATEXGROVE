@@ -1,4 +1,4 @@
-# APEXGROVE - Project Audit
+# Atexgrove - Project Audit
 
 **Audit date:** 2026-10-02  
 **Repository:** `bakareolamilekan365-tech/APEXGROVE`  
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-APEXGROVE has completed its repository, product-definition, design-planning, dependency, testing, security-ignore, and initial Supabase foundation setup. The first authentication and onboarding slice is now implemented locally, and the foundation migrations have been applied to the hosted Supabase project.
+Atexgrove has completed its repository, product-definition, design-planning, dependency, testing, security-ignore, and initial Supabase foundation setup. The first authentication and onboarding slice is now implemented locally, and the foundation migrations have been applied to the hosted Supabase project.
 
 The application is **not yet feature-complete**. Many routes and modules are intentional scaffolds, and no claim of production readiness or official land verification should be made at this stage.
 
@@ -178,7 +178,7 @@ These changes clarify the intended architecture without claiming that future cap
 - Identity, platform role, professional discipline, organization membership, project role, permission, subscription and entitlement remain separate.
 - Administrative responsibility is least-privilege and separable; there is no intended unrestricted “God Admin”.
 - Authorization requires ownership, organization/project membership, permissions, scope, server-side checks and RLS.
-- Verification is structured and authority-aware; APEXGROVE internal review is not government or statutory certification.
+- Verification is structured and authority-aware; Atexgrove internal review is not government or statutory certification.
 - Provenance is required for important land, GIS, document and verification information.
 - GIS geometry is not automatically a legally authoritative cadastral boundary.
 - Sensitive documents follow private storage, controlled access, metadata, versioning, review, audit and retention/deletion principles.
@@ -230,7 +230,7 @@ This addendum records the documentation milestone and the next implementation di
 
 ## Rename note — 2026-10-11
 
-The product display name changed from APEXGROVE to Atexgrove (code identifier `atexgrove`). Existing lines above were left unchanged as a historical record. The GitHub repository name and the hosted Supabase project's dashboard name and the local `supabase/config.toml` `project_id` have not yet been renamed. Logo files under `public/logo/apexgrove-*.svg`, `LICENSE`, applied Supabase migrations, seed, functions, environment variables, cookie/storage keys and repository URLs were intentionally left unchanged.
+The current product display name is Atexgrove (code identifier `atexgrove`). Existing lines above were left unchanged as a historical record. The GitHub repository name and the hosted Supabase project's dashboard name and the local `supabase/config.toml` `project_id` have not yet been renamed. `LICENSE`, applied Supabase migrations, seed, functions, environment variables, cookie/storage keys and repository URLs were intentionally left unchanged.
 
 ## Audit Update — 2026-10-11
 
