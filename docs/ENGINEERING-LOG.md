@@ -121,3 +121,27 @@ Related work: [PR #16](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Fix:** Replaced Google-hosted Figtree with a self-hosted font. Cleared the stale `.next` output before rebuilding. Set the branch upstream before normal push/pull work. Ran `npm install` after dependency changes so the local installation matched the committed lockfile.
 
 **Lesson:** Prefer deterministic local assets for build-critical resources. Treat generated caches as disposable, configure branch tracking when a branch is created, and synchronize dependencies whenever the package manifest or lockfile changes.
+
+## 2026-10-21 — Refreshing a submitted case could create duplicates
+
+Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/21)
+
+**Problem:** Replaying the new-case form submission after its redirect could create another verification case. Reusing a key with different request details also needed an explicit rejection rule.
+
+**Cause:** Case creation had no customer-scoped idempotency key or database constraint to recognize a retried submission.
+
+**Fix:** Migration `021_case_creation_idempotency_and_response_event.sql` adds a unique customer/key index. The creation RPC returns the existing case only when the normalized request matches; materially different request data with the same key is rejected. pgTAP verifies matching replay, conflicting replay, and that the original case remains unchanged. The migration passed disposable CI and was merged, but has not been applied to hosted Supabase.
+
+**Lesson:** Make retries safe at the database boundary, and bind an idempotency key to the original request rather than silently treating every reuse as a replay.
+
+## 2026-10-21 — Customer replies were not distinct from timeline messages
+
+Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/21)
+
+**Problem:** A customer response to an information request was stored and labelled like an ordinary customer message, making its purpose unclear in the case timeline.
+
+**Cause:** Timeline events had no explicit event kind, so their display depended on text and status fields that represented different actions.
+
+**Fix:** Migration `021` adds a constrained `event_kind` and classifies historical events. Customer responses now include a fixed customer-safe status line plus a separate response event; staff-only notes remain hidden from customers. The behavior is covered by pgTAP and application tests. Migration `021` is merged and CI-verified but not hosted.
+
+**Lesson:** Give events explicit meaning and audience. Do not infer the kind of interaction from free-form text, and test both customer-visible and staff-only views.
