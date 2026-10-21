@@ -13,6 +13,16 @@ export type VerificationCaseStatus =
 
 export type StaffDepartment = "Verification" | "Feasibility" | "Operations";
 
+export const caseStatusEventKinds = [
+  "status_change",
+  "staff_note",
+  "customer_message",
+  "information_requested",
+  "customer_response",
+] as const;
+
+export type CaseStatusEventKind = (typeof caseStatusEventKinds)[number];
+
 export type VerificationCase = {
   id: string;
   customer_user_id: string;
@@ -27,6 +37,7 @@ export type VerificationCase = {
   current_stage: "Request received";
   workflow_status: VerificationCaseStatus;
   assigned_lead_user_id: string | null;
+  idempotency_key: string | null;
   is_demo_data: boolean;
   created_at: string;
   updated_at: string;
@@ -40,6 +51,7 @@ export type CaseStatusEvent = {
   to_status: VerificationCaseStatus;
   reason: string;
   customer_visible: boolean;
+  event_kind: CaseStatusEventKind;
   created_at: string;
 };
 

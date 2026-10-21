@@ -2,6 +2,7 @@ import { z } from "zod";
 import { verificationCaseStatuses } from "@/types/verification";
 
 export const newVerificationCaseSchema = z.object({
+  idempotencyKey: z.string().uuid("Refresh the page and try again."),
   siteDescription: z
     .string()
     .trim()

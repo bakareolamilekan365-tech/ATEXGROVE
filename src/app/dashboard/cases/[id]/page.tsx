@@ -5,7 +5,7 @@ import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
 import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { caseStatusLabels, timelineEventAudienceLabel } from "@/lib/verification-cases/status";
+import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 
@@ -54,7 +54,7 @@ export default async function CustomerCasePage({
               <li key={event.id}>
                 <strong>{caseStatusLabels[event.to_status]}</strong>
                 <p className={`${styles.eyebrow} ${styles.small}`}>
-                  {timelineEventAudienceLabel(event.to_status, event.reason, event.customer_visible)}
+                  {timelineEventKindLabel(event.event_kind)}
                 </p>
                 <p>{event.reason}</p>
                 <time className={`${styles.muted} ${styles.small}`} dateTime={event.created_at}>
