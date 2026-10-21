@@ -11,7 +11,7 @@
 
 ## Prototype boundary
 
-The API areas below describe logical boundaries, not implemented routes. The current repository has authentication/profile/foundation server behavior but no complete verification-case API. Phase 2/3 is case-first: creating a case must not require a marketplace listing or existing parcel. Planning, approvals, construction, billing, public land discovery/GIS and AI endpoints remain later work until implemented and tested.
+The API areas below describe logical boundaries; they are not a promise that every conceptual REST route exists. The current repository implements a verification-case workflow through Next.js server actions and secured Supabase RPCs rather than a complete REST API. Customer case creation requires a signed-in user and a form-generated UUID idempotency key: the same key and same normalized request returns the existing case, while reusing the key with materially different data is rejected (migration `021`, merged and CI-verified, not yet hosted). Case creation does not require a marketplace listing or existing parcel. Planning, approvals, construction, billing, public land discovery/GIS and AI endpoints remain later work until implemented and tested.
 
 ## Request security pipeline
 
@@ -36,7 +36,7 @@ Frontend route guards and hidden controls are not authorization. Server-side che
 
 The exact implementation may use Next.js server actions rather than route handlers. The security contract is the same.
 
-### Phase 2/3 case-first boundaries (Planned)
+### Phase 2/3 case-first boundaries (Conceptual; implemented behavior noted)
 
 - `/api/cases`
 - `/api/cases/[id]`
@@ -65,7 +65,7 @@ Each case boundary must enforce authentication, server-side authorization, objec
 Phase 2 does not require a map provider. A limited contextual site map may be added through a replaceable adapter when genuinely useful, without introducing parcel discovery or implying cadastral/legal authority.
 
 ## Example
-### POST /api/cases (Planned)
+### POST /api/cases (Conceptual example — no REST route is implied)
 Request:
 ```json
 {

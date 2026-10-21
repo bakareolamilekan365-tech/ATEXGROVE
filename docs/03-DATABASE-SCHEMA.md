@@ -6,7 +6,7 @@ PostgreSQL with PostGIS.
 
 ## Schema status and implementation boundary
 
-This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. Migrations `001`-`014` create and harden the foundation around `profiles`, `organizations`, `organization_members` and `audit_logs`; migrations `004`-`011` remain domain placeholders rather than proof that their named modules exist. Migrations `015`-`017` add foundation security, private document storage, membership-owner protection and advisor-oriented permission fixes. As of 2026-10-19, hosted migration history records `001`-`018`, including the Slice 1 verification-case workflow. Migration `019_private_case_evidence.sql` is a **repository implementation pending review and disposable-environment CI**. It has not been applied to hosted Supabase and must not be described as deployed or operationally verified.
+This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. Migrations `001`-`014` create and harden the foundation around `profiles`, `organizations`, `organization_members` and `audit_logs`; migrations `004`-`011` remain domain placeholders rather than proof that their named modules exist. Migrations `015`-`018` add foundation security, membership-owner protection, advisor-oriented permission fixes and the Slice 1 case workflow. Hosted migration history currently records `001`-`020`, including private case evidence and customer-safe status events. Migration `021_case_creation_idempotency_and_response_event.sql` is merged and verified in disposable CI, but is not applied to hosted Supabase.
 
 ## Conventions
 
@@ -20,7 +20,7 @@ This document describes the current prototype's domain contract and the reserved
 
 ## Current live application tables
 
-The current hosted application schema includes the foundation tables plus Slice 1 `staff_members`, `verification_cases`, `case_assignments` and `case_status_events`. The hosted private `documents` bucket still uses the foundation policy configuration until migration `019` is reviewed and deliberately applied.
+The current hosted application schema includes the foundation tables plus `staff_members`, `verification_cases`, `case_assignments`, `case_status_events` and Slice 2 `case_evidence`. Hosted migration history is at `020`; repository migration `021` adds case-creation idempotency and typed timeline events but remains unapplied to hosted Supabase.
 
 ### profiles
 
@@ -72,7 +72,7 @@ Audit records are required for important mutations, verification decisions, docu
 
 The first commercial workflow starts with a verification case, not a marketplace listing. A case may be created from site/request details before any `land_parcels` record exists. Any later parcel/listing link must be optional and follow-on.
 
-The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is implemented in migration `019` in this branch but is **NOT HOSTED / NOT YET CI-VERIFIED**. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
+The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019` and its migration/test suite is verified in disposable CI. Migration `021` is merged and CI-verified but not hosted. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
 
 ### staff_members (Slice 1 repository implementation)
 
@@ -84,7 +84,7 @@ The Slice 1 tables below are defined by hosted migration `018`; realistic hosted
 
 Slice 1 permits one active lead per department. Staff rows are provisioned only through a trusted database-operator/service-role path; account type does not create staff access. Customers cannot assign themselves staff or lead responsibility.
 
-### verification_cases (Slice 1 repository implementation)
+### verification_cases (Slice 1; idempotency added in migration 021)
 
 - id
 - customer_user_id
@@ -96,6 +96,7 @@ Slice 1 permits one active lead per department. Staff rows are provisioned only 
 - Abuja area/LGA
 - customer notes nullable
 - contact preference
+- idempotency_key nullable UUID (migration `021`; unique per customer when non-null)
 - current_stage (fixed at `Request received` in Slice 1)
 - workflow_status (`draft`, `submitted`, `assigned`, `in_review`, `needs_customer_info`, `closed`, `cancelled`)
 - assigned_lead_user_id nullable
@@ -103,7 +104,7 @@ Slice 1 permits one active lead per department. Staff rows are provisioned only 
 - created_at
 - updated_at
 
-Slice 1 supports customer creation only. Staff-assisted creation, its consent record and related actor/channel metadata remain later work. `current_stage` is journey progress; it must not be overloaded as verification authority or legal status. A case does not require a parcel or listing. Customer and actor Auth references currently use restrictive deletion behavior; retention, anonymization and account-deletion handling require an explicit policy before customer deletion is offered.
+Customer case creation uses an idempotency key generated when the request form is rendered. Replaying the same key with the same normalized request returns the existing case; materially different request data with that key is rejected. Staff-assisted creation, its consent record and related actor/channel metadata remain later work. `current_stage` is journey progress; it must not be overloaded as verification authority or legal status. A case does not require a parcel or listing. Customer and actor Auth references currently use restrictive deletion behavior; retention, anonymization and account-deletion handling require an explicit policy before customer deletion is offered.
 
 ### case_assignments (Slice 1 repository implementation)
 
@@ -116,7 +117,7 @@ Slice 1 supports customer creation only. Staff-assisted creation, its consent re
 
 A human department lead assigns manually in Slice 1. Acceptance/decline, capacity reasons and handover history remain Slice 3 work. A deactivated assignee cannot change case status, but lead-driven reassignment is not yet implemented; affected cases require controlled operator handling until Slice 3. Automation must not silently assign or approve.
 
-### case_evidence (Slice 2 repository implementation — migration 019 not hosted)
+### case_evidence (Slice 2 implementation — migration 019 hosted)
 
 - id
 - verification_case_id
@@ -157,9 +158,10 @@ Source, review state and authority level are separate. Authority levels must pre
 - to_stage/status
 - reason
 - customer_visible
+- event_kind (`status_change`, `staff_note`, `customer_message`, `information_requested`, `customer_response`; migration `021`)
 - created_at
 
-Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events marked customer-visible; customer routes also filter the case owner explicitly so dual customer/staff accounts do not mix workspaces. Migration `020` is a repository-only forward migration until approved for hosted deployment. It makes every assignee-driven transition write a fixed customer-safe status event, stores the required internal staff note as a separate hidden event, and creates a separate visible customer-message event only when staff deliberately supplies one. The transition remains transactional with its audit record, active-staff/assignee check and allowed-transition check. Permitted staff can read the complete timeline.
+Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events marked customer-visible; customer routes also filter the case owner explicitly so dual customer/staff accounts do not mix workspaces. Migration `020` is hosted and makes every assignee-driven transition write a fixed customer-safe status event, stores the required internal staff note as a separate hidden event, and creates a separate visible customer-message event only when staff deliberately supplies one. Migration `021` adds `event_kind`, classifies historical events, and labels a customer reply as `customer_response` with a fixed customer-safe status line. The 021 migration is verified in disposable CI but not hosted. Permitted staff can read the complete timeline.
 
 ### feasibility_scenarios (Phase 3 target)
 
