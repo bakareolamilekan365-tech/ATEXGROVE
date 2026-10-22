@@ -148,12 +148,22 @@ Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 ## 2026-10-22 — Assignment notes, location input and session exit need explicit safeguards
 
-Related work: migration 022 and sign-out changes in `fix/assignment-events-location-and-contact` (PR number not yet known).
+Related work: migration 022 and sign-out changes in `fix/assignment-events-location-and-contact` (PR #24).
 
 **Problem:** Assignment notes could be shown directly to customers, case locations were free text, contact phone details had no explicit consent boundary, and the application had no visible sign-out control.
 
 **Cause:** The original assignment action exposed an optional visibility toggle; location and contact fields were not structured; and the app relied on cookie expiry without an explicit user action to end the session.
 
 **Fix:** Migration 022 is implemented on this branch to write a fixed customer-safe assignment event plus a private staff note, add council/area/address and consented phone fields, and keep phone values out of events and audit metadata. A POST server action signs out the local Supabase session and redirects to login; protected responses use `private, no-store`. New tests and documentation cover the flow. CI verification is pending and migration 022 is not hosted. No idle timeout is implemented; its policy remains undecided.
+
+### PR #24 follow-up — legacy location and assignment conflict checks (2026-10-22)
+
+**Problem:** A legacy `Kwali LGA` value could conflict with migration 022's new area-council constraint, and the assignment RPC did not prevent a case customer from being assigned their own case or acting as the assigning lead. The UI also needed explicit null fallbacks for newly added location columns on older rows.
+
+**Cause:** The constraint was introduced without normalizing the known legacy value first; assignment authorization checked department-lead scope and assignee activity, but not customer/assignee conflicts.
+
+**Fix:** Normalize `Kwali LGA` to `Kwali` before adding the `NOT VALID` constraint; reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. Migration remains unhosted pending CI and review.
+
+**Lesson:** Even `NOT VALID` checks constrain later updates to old rows. Normalize known legacy values before adding them, and test conflict-of-interest rules at the database boundary.
 
 **Lesson:** Separate audiences in the data model, validate structured fields at both application and database boundaries, keep contact details out of audit/event text, and provide an explicit session-exit path without suggesting an unapproved timeout policy.

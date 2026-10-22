@@ -45,7 +45,7 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 ### 2a. Database/RLS and authorization tests
 
-The merged main branch contains five pgTAP suites with 166 planned assertions; this migration 022 branch adds a sixth suite for a total of 180 planned assertions. `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Current run evidence is maintained in [STATUS.md](STATUS.md); local Docker is unavailable and PR CI is pending. Disposable CI does not verify the linked hosted project or realistic hosted-user sessions.
+The merged main branch contains five pgTAP suites with 166 planned assertions; this migration 022 branch adds a sixth suite and two assignment-conflict assertions for a total of 182 planned assertions. `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Current run evidence is maintained in [STATUS.md](STATUS.md); local Docker is unavailable and PR CI is pending. Disposable CI does not verify the linked hosted project or realistic hosted-user sessions.
 
 Test the same decisions at the server and database boundaries:
 

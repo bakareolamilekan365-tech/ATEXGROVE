@@ -36,7 +36,7 @@ export default async function CustomerCasePage({
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
-          <h1>{item.area_name ? `${item.area_name}, ${item.area_lga}` : item.area_lga}, Abuja</h1>
+          <h1>{item.area_name ?? "Not recorded"}, {item.area_lga}, Abuja</h1>
           <div className={styles.metaRow}>
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />
@@ -112,8 +112,9 @@ export default async function CustomerCasePage({
           <p>{item.site_description}</p>
           <p><strong>Jurisdiction:</strong> {item.jurisdiction}</p>
           <p><strong>Area council:</strong> {item.area_lga}</p>
-          <p><strong>Area:</strong> {item.area_name || "Not supplied"}{item.area_is_listed ? "" : " (not in starter list)"}</p>
-          <p><strong>Address:</strong> {item.address_line || "Not supplied"}</p>
+          <p><strong>Area:</strong> {item.area_name ?? "Not recorded"}</p>
+          <p><strong>Area list status:</strong> {item.area_is_listed === null ? "Not recorded" : item.area_is_listed ? "Starter list" : "Customer-entered, not in starter list"}</p>
+          <p><strong>Address:</strong> {item.address_line ?? "Not recorded"}</p>
           <p><strong>Contact:</strong> {item.contact_preference}</p>
           <div className={styles.notice}>This workflow coordinates review. It is not government or statutory certification.</div>
         </aside>

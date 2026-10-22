@@ -101,7 +101,7 @@ export default async function DashboardPage({
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
               <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
-              <h2>{item.area_name ? `${item.area_name}, ${item.area_lga}` : item.area_lga}, Abuja</h2>
+              <h2>{item.area_name ?? "Not recorded"}, {item.area_lga}, Abuja</h2>
               <p>{item.site_description}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 Received {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}

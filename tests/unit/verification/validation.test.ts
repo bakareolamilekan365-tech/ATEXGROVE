@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { newVerificationCaseSchema } from "@/lib/verification-cases/validation";
-import { fctAreaCouncils, fctLocationsDisclaimer } from "@/lib/verification-cases/abuja-locations";
+import { fctAreaCouncils, fctLocationsDisclaimer, STARTER_AREAS_VERSION } from "@/lib/verification-cases/abuja-locations";
 
 const validRequest = {
   idempotencyKey: "11111111-1111-4111-8111-111111111111",
@@ -32,6 +34,24 @@ describe("new verification case validation", () => {
     expect(fctAreaCouncils.map(({ name }) => name)).toEqual(["AMAC", "Bwari", "Gwagwalada", "Kuje", "Kwali", "Abaji"]);
     expect(fctAreaCouncils.every(({ areas }) => areas.length > 0)).toBe(true);
     expect(fctLocationsDisclaimer).toMatch(/not official/i);
+  });
+
+  it("keeps the SQL starter-area allowlist identical to the typed location dataset", () => {
+    const migration = readFileSync(
+      resolve(process.cwd(), "supabase/migrations/022_assignment_events_location_and_contact.sql"),
+      "utf8",
+    );
+    expect(migration).toContain(`STARTER_AREAS_VERSION: ${STARTER_AREAS_VERSION}`);
+    const sqlAreas = [...migration.matchAll(/\(normalized_area_lga = '([^']+)' and btrim\(p_area_name\) in \(([^)]*)\)\)/g)]
+      .map(([, council, areaList]) => [
+        council,
+        [...areaList.matchAll(/'([^']+)'/g)].map(([, area]) => area),
+      ]);
+    const typedAreas = fctAreaCouncils.map(({ name, areas }) => [name, [...areas]]);
+
+    expect(sqlAreas).toEqual(typedAreas);
+    expect(migration.indexOf("where area_lga = 'Kwali LGA'"))
+      .toBeLessThan(migration.indexOf("add constraint verification_cases_area_lga_fct_council_check"));
   });
 
   it("validates listed locations and permits explicitly unlisted areas", () => {

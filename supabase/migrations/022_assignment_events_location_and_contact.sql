@@ -1,12 +1,19 @@
 -- Add structured FCT locations and case-scoped customer contact details.
 -- Replace assignment note visibility with a fixed customer event plus a private note.
+-- STARTER_AREAS_VERSION: 2026-10-22 (keep aligned with abuja-locations.ts)
 
 alter table public.verification_cases
   add column area_name text,
-  add column area_is_listed boolean not null default true,
+  add column area_is_listed boolean,
   add column address_line text,
   add column contact_phone text,
   add column contact_phone_consent boolean not null default false;
+
+-- Legacy rows may contain this older council label. Normalize before adding the check;
+-- NOT VALID skips the initial scan, but still checks later updates to old rows.
+update public.verification_cases
+set area_lga = 'Kwali'
+where area_lga = 'Kwali LGA';
 
 alter table public.verification_cases
   add constraint verification_cases_area_lga_fct_council_check
@@ -44,6 +51,12 @@ begin
 
   if not found then
     raise exception 'Verification case not found' using errcode = 'P0002';
+  end if;
+  if actor_id = case_row.customer_user_id then
+    raise exception 'Case customer cannot assign their own case' using errcode = '42501';
+  end if;
+  if p_assignee_user_id = case_row.customer_user_id then
+    raise exception 'Case customer cannot be assigned to their own case' using errcode = '42501';
   end if;
   if not public.is_department_lead(case_row.department) then
     raise exception 'An active lead in the case department must assign this case' using errcode = '42501';

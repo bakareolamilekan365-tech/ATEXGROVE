@@ -2,7 +2,7 @@
 
 This is the single master list for product gaps and owner requests. Items are **Planned** unless their status explicitly records existing implementation, CI evidence, or hosted state. “Tier not assigned” means the supplied priority map did not place that item; it is not a priority decision.
 
-Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tier C: December demo polish. Tier D: required before real users. Tier E: Slice 4 onward. Tier F: later. See [RUNBOOK.md](RUNBOOK.md) for owner-request intake and delivery rules.
+Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3 verification workflow. Tier C: demo and UX polish. Tier D: real-user/legal/security readiness. Tier E: Phase 3 feasibility and Land & Development Report. Tier F: Phase 4 and later. See [RUNBOOK.md](RUNBOOK.md) for owner-request intake and delivery rules.
 
 | ID | Actor | Item | Tier | Status |
 | --- | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tie
 | <a id="c-18"></a>C-18 | Customer | Show the six-stage case progress journey in the product | B | Planned |
 | <a id="c-19"></a>C-19 | Customer | Show plainly who must act next on each case | A | Planned |
 | <a id="c-20"></a>C-20 | Customer | Checklist of expected evidence, purpose, received items, gaps and review state | A | Planned |
-| <a id="c-21"></a>C-21 | Customer | Authorized short-lived download access to the customer’s own uploads | Tier not assigned | Planned; requires a reviewed customer-access path |
+| <a id="c-21"></a>C-21 | Customer | Authorized short-lived download access to the customer’s own uploads | B | Planned; requires a reviewed customer-access path |
 | <a id="c-22"></a>C-22 | Customer | Evidence findings linked to exact versions, reviewers, sources and limits | B | Planned |
 | <a id="c-23"></a>C-23 | Customer | Clear evidence review states from receipt through inconclusive/rejected outcomes | B | Planned |
 | <a id="s-24"></a>S-24 | Staff/admin | Department/team structure, membership, workload and availability states | F | Planned |
@@ -35,9 +35,9 @@ Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tie
 | <a id="s-27"></a>S-27 | Staff/admin | Lead view of reviewer workload and capacity | F | Planned |
 | <a id="s-28"></a>S-28 | Staff/admin | Controlled case escalation for conflicts, external input, inactivity or deadlines | F | Planned |
 | <a id="s-29"></a>S-29 | Staff/admin | Structured case closure reasons beyond the generic closed status | B | Planned |
-| <a id="p-30"></a><a id="p-a"></a><a id="p-19"></a>P-30 | Professional | Professional registration/credential provenance, expiry and re-verification state; no vague trust score | F | Planned |
-| <a id="p-31"></a>P-31 | Professional | Written professional assignment-scope document (D); broader case/discipline engagement workflow (F) | D / F | Planned |
-| <a id="p-32"></a>P-32 | Professional | Specific customer authorization before external professional data sharing | F | Planned |
+| <a id="p-30"></a><a id="p-a"></a><a id="p-19"></a>P-30 | Professional | Minimal staff-entered review record: reviewer name, discipline, credential relied on, source/check date, assigned scope and decision; label “recorded by Atexgrove, not independently verified”; no external login | B / E | Planned |
+| <a id="p-31"></a>P-31 | Professional | Fuller professional credential lifecycle (expiry and re-verification) and engagement workflow | F | Planned |
+| <a id="p-32"></a>P-32 | Professional | Case-specific consent record before any document is shared outside the platform; no external sharing before the D readiness gate is met | B — D gate | Planned |
 | <a id="p-33"></a><a id="p-c"></a><a id="p-08"></a><a id="p-09"></a>P-33 | Professional | Professional conflict declarations and automatic separation of preparer from independent reviewer | B | Planned; merges earlier P-c and second-list items 8–9 |
 | <a id="r-34"></a>R-34 | Report/map | Contextual case map that is clearly not a legal/cadastral boundary | F | Planned |
 | <a id="r-35"></a>R-35 | Report/map | Deterministic feasibility calculations with visible assumptions and outputs | E | Planned |
@@ -71,14 +71,14 @@ Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tie
 | <a id="c-63"></a>C-63 | Customer | Sign out from customer and staff workspaces using a POST action | Current PR | Implemented; local checks pass; PR CI pending; not hosted |
 | <a id="c-64"></a>C-64 | Customer | Decide whether an idle session timeout is needed | Decision | Not decided; no idle timeout exists today |
 | <a id="s-a"></a>S-a | Staff/admin | Staff conflict declarations and prevention of assigning a case to its own customer; separate staff conflict declaration from automatic assignment checks | B — Slice 3 | Planned; current assignment RPC has no conflict-of-interest check |
-| <a id="s-b"></a>S-b | Staff/admin | Search, filter and sort the staff case queue | Tier not assigned | Planned |
+| <a id="s-b"></a>S-b | Staff/admin | Search, filter and sort the staff case queue | F | Planned |
 | <a id="s-c"></a><a id="s-31"></a><a id="s-70"></a>S-c | Staff/admin | Case and assignment due dates, overdue flags/reminders, and internal service targets (not legal guarantees) | F | Planned |
-| <a id="s-d"></a>S-d | Staff/admin | Lead-absence delegation | Tier not assigned | Planned |
-| <a id="s-e"></a>S-e | Staff/admin | Lead-facing audit-log viewer | Tier not assigned | Planned |
-| <a id="s-f"></a>S-f | Staff/admin | Stricter staff session policy | Tier not assigned | Planned; separate from the undecided customer idle-timeout policy |
-| <a id="s-g"></a>S-g | Staff/admin | Safe staff display names instead of raw user IDs | Tier not assigned | Planned |
+| <a id="s-d"></a>S-d | Staff/admin | Lead-absence delegation | F | Planned |
+| <a id="s-e"></a>S-e | Staff/admin | Lead-facing audit-log viewer | F | Planned |
+| <a id="s-f"></a>S-f | Staff/admin | Stricter staff session policy | F | Planned; separate from the undecided customer idle-timeout policy |
+| <a id="s-g"></a>S-g | Staff/admin | Safe staff display names instead of raw user IDs | B | Planned |
 | <a id="p-b"></a>P-b | Professional | Accept or decline a scoped case invitation | B | Planned |
-| <a id="p-d"></a><a id="p-16"></a><a id="p-17"></a><a id="p-18"></a><a id="p-39"></a>P-d / P-16–P-18 / P-39 | Professional | Per-assignment, time-limited, revocable access to selected case documents, with document-level access audit | D | Planned |
+| <a id="p-d"></a><a id="p-16"></a><a id="p-17"></a><a id="p-18"></a><a id="p-39"></a>P-d / P-16–P-18 / P-39 | Professional | Per-assignment, time-limited, revocable access to selected case documents, with document-level access audit | D | Planned; move to B/E only if external professionals log in during Phase 3 (open decision) |
 | <a id="p-e"></a><a id="p-24"></a><a id="p-25"></a><a id="p-26"></a>P-e / P-24–P-26 | Professional | Deliverable acceptance, version history, scope/capacity sign-off and internal QA before customer completion | F | Planned |
 | <a id="p-f"></a>P-f | Professional | Professional work dashboard and individual activity history | F | Planned |
 | <a id="p-g"></a>P-g | Professional | Professional fees and invoices, coordinated with later payments | F | Planned |
@@ -116,7 +116,7 @@ Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tie
 | <a id="s-48"></a>S-48 | Staff/admin | Require second-authorized approval for sensitive sharing or consequential overrides | D | Planned |
 | <a id="s-49"></a>S-49 | Staff/admin | Record exceptional case overrides with reason, authority and audit history | D | Planned |
 | <a id="s-50"></a>S-50 | Staff/admin | Track staff training/readiness for sensitive workflows | F — later, maybe | Planned; defer decision |
-| <a id="p-50"></a>P-50 | Professional | Require accepted professional agreement/confidentiality terms before assignment access | D | Planned |
+| <a id="p-50"></a>P-50 | Professional | Basic confidentiality acceptance before a professional review is attached to a case; final agreement terms require lawyer review | E — basic acceptance; D — final terms | Planned |
 | <a id="x-51"></a>X-51 | Compliance | Define handling and deletion of professional copies/material after assignment ends | D | Planned |
 | <a id="p-62"></a>P-62 | Professional | Allow view-only/no-download restrictions for selected assignments where feasible | D | Planned |
 | <a id="x-53"></a>X-53 | Compliance | Classify cases and documents by confidentiality and handling requirements | F | Planned |
@@ -127,6 +127,7 @@ Tier A: immediately after migration 022 and before Slice 3. Tier B: Slice 3. Tie
 | <a id="p-58"></a>P-58 | Professional | Track professional availability by service and location | F | Planned |
 | <a id="p-59"></a>P-59 | Professional | Invite a named external professional to a scoped case without marketplace registration | F | Planned |
 | <a id="p-60"></a>P-60 | Professional | End a professional relationship while preserving reviews, deliverables and audit history | F | Planned |
+| <a id="p-63"></a>P-63 | Professional | Decide whether external professionals log in during Phase 3 or staff attach their reviews | Decision | Open |
 
 ### Delivery constraints
 

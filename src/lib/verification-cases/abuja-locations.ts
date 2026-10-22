@@ -1,4 +1,5 @@
-export const fctLocationsVersion = "2026-10-22" as const;
+export const STARTER_AREAS_VERSION = "2026-10-22" as const;
+export const fctLocationsVersion = STARTER_AREAS_VERSION;
 export const fctLocationsDisclaimer = "Starter list, not official." as const;
 
 export const fctAreaCouncils = [

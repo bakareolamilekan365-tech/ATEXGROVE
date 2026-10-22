@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 1.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(57);
+select plan(60);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.staff_members'::regclass), 'staff_members has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid = 'public.verification_cases'::regclass), 'verification_cases has RLS enabled');
@@ -55,6 +55,11 @@ select is(
   'new case is submitted'
 );
 select is(
+  (select area_is_listed from public.verification_cases where id = (select id from pg_temp.slice_1_case_ids)),
+  true,
+  'new listed-area case records true rather than a legacy null'
+);
+select is(
   (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids)),
   1,
   'case creation records the initial status event atomically'
@@ -83,6 +88,36 @@ reset role;
 select set_config('request.jwt.claims', '{"sub":"c3000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 set local role authenticated;
 select is((select count(*)::int from public.verification_cases), 1, 'department lead can read the department case');
+reset role;
+
+select set_config('request.jwt.claims', '{"sub":"c3000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok(
+  format(
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
+    (select id from pg_temp.slice_1_case_ids),
+    'a1000000-0000-0000-0000-000000000001',
+    'Customer cannot review own case'
+  ),
+  '42501',
+  'Case customer cannot be assigned to their own case',
+  'lead cannot assign a case to its customer'
+);
+reset role;
+
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok(
+  format(
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
+    (select id from pg_temp.slice_1_case_ids),
+    'd4000000-0000-0000-0000-000000000004',
+    'Customer self-assignment attempt'
+  ),
+  '42501',
+  'Case customer cannot assign their own case',
+  'case customer cannot act as the assigning lead'
+);
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-000000000004","role":"authenticated"}', true);

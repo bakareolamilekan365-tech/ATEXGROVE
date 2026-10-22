@@ -33,7 +33,7 @@ export type VerificationCase = {
   site_description: string;
   area_lga: string;
   area_name: string | null;
-  area_is_listed: boolean;
+  area_is_listed: boolean | null;
   address_line: string | null;
   contact_phone: string | null;
   contact_phone_consent: boolean;
