@@ -13,8 +13,13 @@ describe("verification case request contracts", () => {
       idempotencyKey,
       siteDescription: "DEMO DATA / NOT OFFICIAL plot beside the Kuje market road",
       areaLga: "Kuje",
+      areaName: "Kuje",
+      areaIsListed: true,
+      addressLine: "Near Kuje market road",
       notes: "Synthetic test request.",
       contactPreference: "email",
+      contactPhone: "",
+      contactPhoneConsent: false,
     }).success).toBe(true);
   });
 
@@ -23,8 +28,13 @@ describe("verification case request contracts", () => {
       idempotencyKey,
       siteDescription: "Plot",
       areaLga: "",
+      areaName: "",
+      areaIsListed: true,
+      addressLine: "",
       notes: "",
       contactPreference: "sms",
+      contactPhone: "",
+      contactPhoneConsent: false,
     }).success).toBe(false);
   });
 
@@ -33,8 +43,13 @@ describe("verification case request contracts", () => {
       idempotencyKey,
       siteDescription: "DEMO DATA / NOT OFFICIAL replay-safe Kuje plot",
       areaLga: "Kuje",
+      areaName: "Kuje",
+      areaIsListed: true,
+      addressLine: "Near Kuje market road",
       notes: "Synthetic retry contract.",
       contactPreference: "email" as const,
+      contactPhone: "",
+      contactPhoneConsent: false,
     };
     const firstAttempt = newVerificationCaseSchema.parse(request);
     const replayedAttempt = newVerificationCaseSchema.parse(request);
@@ -48,7 +63,6 @@ describe("verification case request contracts", () => {
       caseId: "11111111-1111-4111-8111-111111111111",
       assigneeUserId: "22222222-2222-4222-8222-222222222222",
       note: "",
-      customerVisible: false,
     }).success).toBe(false);
   });
 

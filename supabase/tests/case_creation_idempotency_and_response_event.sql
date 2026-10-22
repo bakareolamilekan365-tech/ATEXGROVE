@@ -52,7 +52,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'anon',
-    'public.create_verification_case(text,text,text,text,uuid)',
+    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)',
     'EXECUTE'
   ),
   'anonymous users cannot execute idempotent case creation'
@@ -60,7 +60,7 @@ select ok(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.create_verification_case(text,text,text,text,uuid)',
+    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)',
     'EXECUTE'
   ),
   'authenticated users can execute idempotent case creation'
@@ -87,8 +87,10 @@ insert into pg_temp.migration_021_results values (
   public.create_verification_case(
     'DEMO DATA / NOT OFFICIAL idempotent case for customer A',
     'Kuje',
+    'Kuje', true, 'Near Kuje town centre',
     'Synthetic request.',
     'email',
+    null, false,
     '99999999-9999-4999-8999-999999999999'
   )
 );
@@ -97,8 +99,10 @@ insert into pg_temp.migration_021_results values (
   public.create_verification_case(
     'DEMO DATA / NOT OFFICIAL idempotent case for customer A',
     'Kuje',
+    'Kuje', true, 'Near Kuje town centre',
     'Synthetic request.',
     'email',
+    null, false,
     '99999999-9999-4999-8999-999999999999'
   )
 );
@@ -106,8 +110,10 @@ select throws_ok(
   $$select public.create_verification_case(
     'DEMO DATA / NOT OFFICIAL materially different Kuje plot request',
     'Kuje',
+    'Kuje', true, 'Near Kuje town centre',
     'Synthetic request.',
     'email',
+    null, false,
     '99999999-9999-4999-8999-999999999999'
   )$$,
   '22023',
@@ -179,8 +185,10 @@ insert into pg_temp.migration_021_results values (
   public.create_verification_case(
     'DEMO DATA / NOT OFFICIAL separate case for customer B',
     'Bwari',
+    'Kubwa', true, 'Near Kubwa market',
     'Synthetic request.',
     'phone',
+    '+2348012345678', true,
     '99999999-9999-4999-8999-999999999999'
   )
 );
@@ -378,8 +386,10 @@ select throws_ok(
   $$select public.create_verification_case(
     'Anonymous plot description',
     'Kuje',
+    'Kuje', true, 'Near Kuje',
     null,
     'email',
+    null, false,
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
   )$$,
   '42501',

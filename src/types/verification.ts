@@ -32,6 +32,11 @@ export type VerificationCase = {
   department: StaffDepartment;
   site_description: string;
   area_lga: string;
+  area_name: string | null;
+  area_is_listed: boolean;
+  address_line: string | null;
+  contact_phone: string | null;
+  contact_phone_consent: boolean;
   customer_notes: string | null;
   contact_preference: "email" | "phone" | "whatsapp";
   current_stage: "Request received";

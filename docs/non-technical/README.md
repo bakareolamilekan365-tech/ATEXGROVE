@@ -4,7 +4,7 @@ This folder explains Atexgrove for founders, partners, advisers, future team mem
 
 The files in the parent `docs/` folder remain the detailed source of truth. These versions explain the same direction in simpler language and must never be used to exaggerate what has been built.
 
-**Status date: 2026-10-14.** PR #9 and hosted migrations `001`-`017` are complete. The [general CI run](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873401) and [database-security test run](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/38276873408) passed for the merged PR head. Real hosted-user authorization, account-email recovery/confirmation and remaining Supabase advisor findings are still open, so the foundation is deployed but not production-ready.
+**Status date: 2026-10-22.** Hosted Supabase is at migrations `001`-`021` (021 applied 2026-10-21). The case workflow and private evidence slice are implemented. Migration 022 and sign-out are implemented on the current PR branch, but CI verification is pending and 022 is not hosted. See the technical [STATUS.md](../STATUS.md) for evidence and open operational checks.
 
 ## Suggested reading order
 
@@ -17,6 +17,8 @@ The files in the parent `docs/` folder remain the detailed source of truth. Thes
 7. [07-DECISIONS-NEEDED.md](07-DECISIONS-NEEDED.md) — approved pilot decisions and the questions still open.
 8. [08-HOW-WE-WORK.md](08-HOW-WE-WORK.md) — how changes are planned, tested, and accepted.
 9. [GLOSSARY.md](GLOSSARY.md) — simple definitions of common project terms.
+
+For current operations and delivery status, see [STATUS](../STATUS.md), [RUNBOOK](../RUNBOOK.md), [KNOWN-ISSUES](../KNOWN-ISSUES.md), [BACKLOG](../BACKLOG.md), [RELEASE-PLAN](../RELEASE-PLAN.md), and [ENGINEERING-LOG](../ENGINEERING-LOG.md).
 
 ## Coverage of the technical documents
 

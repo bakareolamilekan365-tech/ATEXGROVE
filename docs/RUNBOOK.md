@@ -77,3 +77,7 @@ Only delete the repository-local `.next` build cache. Do not delete source or de
 5. Enter and confirm the new password, then sign in again.
 
 If the link is expired or invalid, request a new recovery email. Do not invent or manually copy recovery tokens. Hosted redirect, expiry and error behavior still requires complete operational verification; see [STATUS.md](STATUS.md).
+
+## Switch accounts while testing
+
+Use the **Sign out** button in the customer dashboard or staff workspace, then sign in with the other synthetic test account. A private/incognito browser window is an alternative when you need to keep two test accounts signed in at once. Do not use real customer data for account-isolation tests.

@@ -37,7 +37,18 @@ The pilot has no established staff team yet. The founder/CTO may act as lead/ope
 
 The exact permission matrix and named/contracted reviewers remain open and must be settled before real cases.
 
-## 4. Real-document readiness
+## 4. Planned staff and professional operating model
+
+Everything in this section is **Planned**, not implemented. See the linked [master backlog](BACKLOG.md) for triage and status.
+
+- **Staff structure and authority — [S-24](BACKLOG.md#s-24), [S-64](BACKLOG.md#s-64):** distinguish departments from teams, define team membership and availability, and specify separate Team Lead and Department Lead scopes.
+- **Staff lifecycle and access — [S-61](BACKLOG.md#s-61), [S-62](BACKLOG.md#s-62), [S-44](BACKLOG.md#s-44), [S-45](BACKLOG.md#s-45), [S-46](BACKLOG.md#s-46), [S-48](BACKLOG.md#s-48), [S-49](BACKLOG.md#s-49):** invite and offboard staff through authorized flows; define action-level permissions, access review, expiring elevation, second approval for sensitive actions and reasoned/audited overrides.
+- **Assignment and collaboration — [S-a](BACKLOG.md#s-a), [S-26](BACKLOG.md#s-26), [S-c](BACKLOG.md#s-c), [S-72](BACKLOG.md#s-72), [S-73](BACKLOG.md#s-73), [S-74](BACKLOG.md#s-74):** capture conflicts, route accepted handovers, track due dates and internal targets, and keep staff discussion/tasks separate from customer-visible events.
+- **Professional context and records — [P-10](BACKLOG.md#p-10), [P-11](BACKLOG.md#p-11), [P-12](BACKLOG.md#p-12), [P-30](BACKLOG.md#p-30), [P-31](BACKLOG.md#p-31), [P-33](BACKLOG.md#p-33):** keep professional capacity separate from staff permissions; represent firm authority, credentials, engagement scope, conflicts and independent review controls.
+- **External professional access — [P-d](BACKLOG.md#p-d), [P-50](BACKLOG.md#p-50):** no external professional receives general case access. Access is per assignment, limited to selected documents, time-limited, immediately revocable and audited. The professional must accept applicable agreement/confidentiality terms before access.
+- **Professional work lifecycle — [P-24](BACKLOG.md#p-24), [P-27](BACKLOG.md#p-27), [P-28](BACKLOG.md#p-28), [P-55](BACKLOG.md#p-55), [P-60](BACKLOG.md#p-60):** preserve versions and sign-offs, have staff check scope completion, allow correction and replacement, and end engagements without erasing history.
+
+## 5. Real-document readiness
 
 Synthetic or properly redacted evidence is the default for demonstrations and early workflow testing. Real documents are blocked until the Privacy Notice, Terms of Service, explicit consent record, cookie treatment, access controls, retention/deletion procedure, incident response, processor controls and appropriate Nigerian legal/privacy review are complete.
 

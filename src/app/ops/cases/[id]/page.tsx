@@ -57,7 +57,7 @@ export default async function OperationsCasePage({
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{item.department} · Case {item.id.slice(0, 8)}</p>
-          <h1>{item.area_lga}, Abuja</h1>
+          <h1>{item.area_name ? `${item.area_name}, ${item.area_lga}` : item.area_lga}, Abuja</h1>
           <div className={styles.metaRow}>
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />
@@ -73,6 +73,10 @@ export default async function OperationsCasePage({
             <h2>{item.site_description}</h2>
             <p><strong>Customer:</strong> {item.customer_user_id}</p>
             <p><strong>Contact preference:</strong> {item.contact_preference}</p>
+            <p><strong>Area council:</strong> {item.area_lga}</p>
+            <p><strong>Area:</strong> {item.area_name || "Not supplied"}{item.area_is_listed ? "" : " (customer-entered; not in starter list)"}</p>
+            <p><strong>Address:</strong> {item.address_line || "Not supplied"}</p>
+            {item.contact_phone ? <p><strong>Customer-provided, not verified:</strong> {item.contact_phone}</p> : null}
             <p><strong>Customer notes:</strong> {item.customer_notes || "None supplied"}</p>
             <div className={styles.notice}>This case is a coordination record. It is not a verified title, survey, boundary or government record.</div>
           </section>

@@ -48,7 +48,9 @@ export async function updateSupabaseSession(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    redirectResponse.headers.set("Cache-Control", "private, no-store, max-age=0");
+    return redirectResponse;
   }
 
   if (user && ["/login", "/register"].includes(pathname)) {
@@ -58,5 +60,6 @@ export async function updateSupabaseSession(request: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
+  if (!isPublicPath) response.headers.set("Cache-Control", "private, no-store, max-age=0");
   return response;
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { signOutAction } from "@/app/actions";
 import { redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import styles from "@/components/cases/case-workflow.module.css";
@@ -26,7 +27,7 @@ export default async function DashboardPage({
       .maybeSingle(),
     supabase
       .from("verification_cases")
-      .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, created_at, updated_at")
+      .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, created_at, updated_at")
       .eq("customer_user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -62,6 +63,7 @@ export default async function DashboardPage({
                 Staff · {staff.department} · {staff.is_lead ? "Lead" : "Member"}
               </span>
             ) : null}
+            <form action={signOutAction}><button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Sign out</button></form>
           </div>
           <p className={styles.muted}>{roleCopy[role] ?? "Your customer workspace."}</p>
         </div>
@@ -99,7 +101,7 @@ export default async function DashboardPage({
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
               <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
-              <h2>{item.area_lga}, Abuja</h2>
+              <h2>{item.area_name ? `${item.area_name}, ${item.area_lga}` : item.area_lga}, Abuja</h2>
               <p>{item.site_description}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 Received {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}
