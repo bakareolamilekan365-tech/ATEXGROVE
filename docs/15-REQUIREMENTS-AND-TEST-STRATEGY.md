@@ -45,7 +45,7 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 ### 2a. Database/RLS and authorization tests
 
-The merged main branch contains five pgTAP suites with 166 planned assertions; this migration 022 branch adds a sixth suite and two assignment-conflict assertions for a total of 182 planned assertions. `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Current run evidence is maintained in [STATUS.md](STATUS.md); local Docker is unavailable and PR CI is pending. Disposable CI does not verify the linked hosted project or realistic hosted-user sessions.
+Merged main contains five pgTAP suites with 166 planned assertions. This migration 022 branch has six suites with 188 planned assertions; Database security run [39869566394](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39869566394) passed them on a disposable Supabase stack. Local Docker is unavailable. Disposable CI does not verify the linked hosted project or realistic hosted-user sessions; migration 022 remains not hosted.
 
 Test the same decisions at the server and database boundaries:
 

@@ -154,7 +154,7 @@ Related work: migration 022 and sign-out changes in `fix/assignment-events-locat
 
 **Cause:** The original assignment action exposed an optional visibility toggle; location and contact fields were not structured; and the app relied on cookie expiry without an explicit user action to end the session.
 
-**Fix:** Migration 022 is implemented on this branch to write a fixed customer-safe assignment event plus a private staff note, add council/area/address and consented phone fields, and keep phone values out of events and audit metadata. A POST server action signs out the local Supabase session and redirects to login; protected responses use `private, no-store`. New tests and documentation cover the flow. CI verification is pending and migration 022 is not hosted. No idle timeout is implemented; its policy remains undecided.
+**Fix:** Migration 022 is implemented on this branch to write a fixed customer-safe assignment event plus a private staff note, add council/area/address and consented phone fields, and keep phone values out of events and audit metadata. A POST server action signs out the local Supabase session and redirects to login; protected responses use `private, no-store`. New tests and documentation cover the flow. CI runs 39869566337 and 39869566394 passed; migration 022 is not hosted. No idle timeout is implemented; its policy remains undecided.
 
 ### PR #24 follow-up — legacy location and assignment conflict checks (2026-10-22)
 
@@ -162,8 +162,10 @@ Related work: migration 022 and sign-out changes in `fix/assignment-events-locat
 
 **Cause:** The constraint was introduced without normalizing the known legacy value first; assignment authorization checked department-lead scope and assignee activity, but not customer/assignee conflicts.
 
-**Fix:** Normalize `Kwali LGA` to `Kwali` before adding the `NOT VALID` constraint; reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. Migration remains unhosted pending CI and review.
+**Fix:** Normalize `Kwali LGA` to `Kwali` before adding the `NOT VALID` constraint; reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. CI runs 39869566337 and 39869566394 passed; migration 022 remains unhosted pending review.
 
 **Lesson:** Even `NOT VALID` checks constrain later updates to old rows. Normalize known legacy values before adding them, and test conflict-of-interest rules at the database boundary.
 
 **Lesson:** Separate audiences in the data model, validate structured fields at both application and database boundaries, keep contact details out of audit/event text, and provide an explicit session-exit path without suggesting an unapproved timeout policy.
+
+**CI evidence (2026-10-23):** CI run 39869566337 passed, and Database security run 39869566394 passed all six pgTAP suites (188 planned assertions) on a disposable Supabase stack. This verifies the branch in CI only; migration 022 has not been applied to the hosted project.

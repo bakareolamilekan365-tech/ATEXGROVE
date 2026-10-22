@@ -1,6 +1,6 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-22
+**Status date:** 2026-10-23
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit sections remain historical.
 
@@ -17,7 +17,8 @@ These hosted configuration observations do not prove realistic multi-account beh
 
 - **Implemented on `fix/assignment-events-location-and-contact`:** migration 022 replaces assignment notes with a fixed customer event plus a private staff note; adds structured FCT council/area/address fields and optional consented phone contact; and adds POST sign-out for customer/staff views. Protected responses are marked `private, no-store`.
 - **Follow-up fixes in PR #24:** migration 022 normalizes the legacy `Kwali LGA` council value before adding its `NOT VALID` check, and assignment now blocks both assigning a case to its customer and a customer acting as the assigning lead. A unit test checks that the SQL and TypeScript starter-area lists stay identical; old cases tolerate missing area/address values.
-- **Local verification on 2026-10-22:** lint, typecheck, 36 unit tests, 14 integration tests (3 credential-gated skips), security guardrails and production build passed. The six pgTAP suites (182 planned assertions) could not be run locally because Docker is not installed. PR CI has not reported yet.
+- **Local verification on 2026-10-23:** lint, typecheck, 36 unit tests, 14 integration tests (3 credential-gated skips), security guardrails and production build passed. The six pgTAP suites (188 planned assertions) passed in disposable Supabase CI; Docker is not installed locally.
+- **CI-verified, not hosted:** [CI run 39869566337](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39869566337) passed lint, typecheck, unit/integration tests, guardrails and production build. [Database security run 39869566394](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39869566394) successfully started Supabase and passed all six pgTAP suites (188 planned assertions).
 - **Hosted:** migration 022 has not been applied. Hosted remains at 001-021.
 - **Not included:** no idle timeout is implemented; the timeout policy remains undecided.
 
@@ -48,7 +49,7 @@ The latest green workflows associated with the current merged `main` changes are
 - [CI run 39584206476](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206476) - lint, typecheck, unit tests, integration tests, security guardrails and production build passed for PR #21.
 - [Database security run 39584206434](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206434) - migrations through `021` and all pgTAP suites passed in a disposable Supabase environment. That CI run was not itself the hosted apply; migration `021` was separately applied on 2026-10-21.
 
-Latest merged-main evidence is 31 passing unit tests, 13 passing integration tests with 3 hosted-credential tests intentionally skipped, and 166 pgTAP assertions across five suites. On this branch, the local passing totals are 36 unit tests and 14 integration tests (3 credential-gated skips); six pgTAP suites plan 182 assertions, but could not be run locally without Docker and PR CI has not reported. Automated disposable-environment evidence is not hosted-environment verification.
+Latest merged-main evidence is 31 passing unit tests, 13 passing integration tests with 3 hosted-credential tests intentionally skipped, and 166 pgTAP assertions across five suites. On this branch, local checks pass with 36 unit tests and 14 integration tests (3 credential-gated skips); CI run 39869566337 is green and six pgTAP suites passed their 188 planned assertions in run 39869566394. Automated disposable-environment evidence is not hosted-environment verification. Migration 022 remains not hosted.
 
 ## Accepted hosted advisor items
 

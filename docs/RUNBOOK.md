@@ -81,3 +81,9 @@ If the link is expired or invalid, request a new recovery email. Do not invent o
 ## Switch accounts while testing
 
 Use the **Sign out** button in the customer dashboard or staff workspace, then sign in with the other synthetic test account. A private/incognito browser window is an alternative when you need to keep two test accounts signed in at once. Do not use real customer data for account-isolation tests.
+
+## Deploying incompatible RPC signature changes
+
+For a migration that drops an RPC signature used by the current app, deploy in this order: **merge the compatible code first, apply the migration second, then run the new app build**. Do not run an older app build against the new schema during the transition.
+
+Migrations `021` and `022` replace RPC signatures: `021` drops the old `create_verification_case` signature; `022` drops the previous `create_verification_case` and `assign_verification_case` signatures. An older app build still calling those signatures will fail after the corresponding migration is applied. Apply the migration only to the intended environment after the compatible code is ready; migration 022 is CI-verified but is not hosted.
