@@ -28,7 +28,7 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), and 023 was applied after PR #26 merged, per owner confirmation. Migration 024 passed CI and is not hosted. See docs/STATUS.md for current CI evidence.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), and 023 was applied after PR #26 merged, per owner confirmation. Migration 024 is implemented on PR #27 and is not hosted; earlier CI covered its previous revision, and current follow-up checks are attached to that PR. See docs/STATUS.md for current status.
 
 ## Private files
 

@@ -215,3 +215,13 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Hosted baseline note (recorded 2026-10-23):** The owner confirms migration 023 was applied after PR #26 merged; hosted history is `001`–`023`. Earlier dated “023 not hosted” notes remain historical snapshots of the state at the time they were written.
 
 **Lesson:** Treat customer statements as claims, not evidence. Record consent at the transaction boundary that commits the request, allocate references only when the request becomes active, and retain nulls rather than inventing historical intake data.
+
+## 2026-10-23 — Annual case numbering and draft wording correction
+
+**Problem:** The first case-number implementation used a global sequence while embedding the year in each reference, so serials did not restart annually and the global capacity error was misleading. Draft cards/details also said “Received” before submission, and the RPC accepted the contradiction of “representing someone” while the request was for “myself.”
+
+**Cause:** A sequence has one global state and was formatted with a year that did not scope its allocation; shared copy did not distinguish a private saved draft from a submitted request; representation validation checked each field separately.
+
+**Fix:** Replace the sequence in unhosted migration 024 with an RLS-enabled counter table keyed by Africa/Lagos calendar year, with no Data API role grants or policies. The submit RPC increments a year row using a transactional `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`, serializing concurrent submissions for that year. Backfill submitted-or-later cases in deterministic `created_at,id` order within each Africa/Lagos year, excluding owner-discarded drafts; new drafts remain unnumbered and retries preserve their number. Reject `representing_someone` plus `self` in Zod and the create RPC. Label drafts “Saved” on the dashboard and “Draft” on details, and describe creation failures as saving a draft. Document the controlled maintenance window for migration 024's incompatible RPC signatures. Migration 024 remains unhosted; follow-up checks are on PR #27.
+
+**Lesson:** A year in an identifier must also scope its allocator. Keep display language aligned with workflow state, and enforce clear contradictions at both validation boundaries.

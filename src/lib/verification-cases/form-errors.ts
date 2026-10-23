@@ -14,7 +14,7 @@ const messages: Record<CaseFormField, string> = {
   contactPhoneConsent: "Please confirm that the review team may use this number for this request.",
   customerIntent: "Choose what you are asking us to help with.",
   relationshipToLand: "Choose your claimed relationship to the land.",
-  actingFor: "Choose who this request is for.",
+  actingFor: "If you are representing someone, choose another person or an organisation; otherwise choose who the request is for.",
   principalName: "Enter the person or organisation this request is for (up to 200 characters).",
   authorityConfirmed: "Confirm that you are authorised to submit this request on their behalf.",
 };

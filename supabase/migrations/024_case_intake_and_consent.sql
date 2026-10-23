@@ -28,28 +28,35 @@ alter table public.verification_cases
 create unique index verification_cases_case_number_key
   on public.verification_cases(case_number) where case_number is not null;
 
-create sequence public.verification_case_number_seq start with 1 increment by 1;
-revoke all on sequence public.verification_case_number_seq from public, anon, authenticated, service_role;
+-- Internal allocator only. It is not a Data API resource: no client roles have
+-- table privileges, and RLS has no client-facing policies. The submit RPC's
+-- SECURITY DEFINER owner performs the atomic per-year upsert.
+create table public.verification_case_number_counters (
+  year integer primary key check (year between 1 and 9999),
+  last_number integer not null check (last_number between 1 and 999999)
+);
+alter table public.verification_case_number_counters enable row level security;
+revoke all on public.verification_case_number_counters from public, anon, authenticated, service_role;
 
 -- Backfill only submitted-or-later cases. Existing draft and new intake claims
 -- remain NULL; legacy claims are never inferred from old free-text fields.
 with numbered as (
   select id, created_at,
-    row_number() over (order by created_at, id) as serial
+    row_number() over (partition by extract(year from timezone('Africa/Lagos', created_at))::integer order by created_at, id) as serial
   from public.verification_cases
   where workflow_status in ('submitted', 'assigned', 'in_review', 'needs_customer_info', 'closed', 'cancelled')
     and discarded_at is null
 )
 update public.verification_cases vc
-set case_number = 'ATX-LV-' || extract(year from numbered.created_at)::integer::text || '-' || lpad(numbered.serial::text, 6, '0')
+set case_number = 'ATX-LV-' || extract(year from timezone('Africa/Lagos', numbered.created_at))::integer::text || '-' || lpad(numbered.serial::text, 6, '0')
 from numbered
 where vc.id = numbered.id;
 
-select setval(
-  'public.verification_case_number_seq',
-  greatest(1, (select count(*) from public.verification_cases where case_number is not null)),
-  exists (select 1 from public.verification_cases where case_number is not null)
-);
+insert into public.verification_case_number_counters(year, last_number)
+select extract(year from timezone('Africa/Lagos', created_at))::integer, count(*)::integer
+from public.verification_cases
+where case_number is not null
+group by extract(year from timezone('Africa/Lagos', created_at))::integer;
 
 create table public.case_consents (
   id uuid primary key default gen_random_uuid(),
@@ -127,6 +134,9 @@ begin
   if p_customer_intent is null or p_customer_intent not in ('buying', 'own_or_occupy', 'developing', 'representing_someone', 'other') then raise exception 'Choose a valid reason for this request' using errcode = '22023'; end if;
   if p_relationship_to_land is null or p_relationship_to_land not in ('buyer', 'owner', 'occupier', 'developer', 'agent_or_representative', 'other') then raise exception 'Choose your relationship to the land' using errcode = '22023'; end if;
   if p_acting_for is null or p_acting_for not in ('self', 'another_person', 'organisation') then raise exception 'Choose who this request is for' using errcode = '22023'; end if;
+  if p_customer_intent = 'representing_someone' and p_acting_for = 'self' then
+    raise exception 'If you are representing someone, choose another person or an organisation' using errcode = '22023';
+  end if;
   if p_acting_for = 'self' then
     if normalized_principal is not null or coalesce(p_authority_confirmed, false) then raise exception 'For a request for yourself, principal details and authority confirmation must be empty' using errcode = '22023'; end if;
     normalized_principal := null;
@@ -213,7 +223,8 @@ as $$
 declare
   actor_id uuid := (select auth.uid());
   case_row public.verification_cases%rowtype;
-  next_number bigint;
+  next_number integer;
+  submission_year integer := extract(year from timezone('Africa/Lagos', transaction_timestamp()))::integer;
   selected_version constant text := 'case-service-scope-v1';
 begin
   if actor_id is null then raise exception 'Authentication is required' using errcode = '42501'; end if;
@@ -224,26 +235,26 @@ begin
   if case_row.customer_user_id <> actor_id then raise exception 'Only the case customer can submit' using errcode = '42501'; end if;
   if case_row.workflow_status not in ('draft', 'submitted') then raise exception 'Only a draft can be submitted' using errcode = '22023'; end if;
 
+  if case_row.workflow_status = 'submitted' then
+    if case_row.case_number is null then raise exception 'Submitted case is missing its case number' using errcode = '55000'; end if;
+    return p_case_id;
+  end if;
+
   insert into public.case_consents(verification_case_id, customer_user_id, consent_type, notice_version)
   values(p_case_id, actor_id, 'case_service_scope', selected_version)
   on conflict (verification_case_id, consent_type) do nothing;
 
-  if case_row.workflow_status = 'submitted' then
-    if case_row.case_number is null then
-      next_number := nextval('public.verification_case_number_seq');
-      if next_number > 999999 then raise exception 'Annual case number capacity exhausted' using errcode = '54000'; end if;
-      update public.verification_cases
-      set case_number = 'ATX-LV-' || extract(year from case_row.created_at)::integer::text || '-' || lpad(next_number::text, 6, '0')
-      where id = p_case_id;
-    end if;
-    return p_case_id;
-  end if;
+  insert into public.verification_case_number_counters(year, last_number)
+  values(submission_year, 1)
+  on conflict (year) do update
+    set last_number = public.verification_case_number_counters.last_number + 1
+    where public.verification_case_number_counters.last_number < 999999
+  returning last_number into next_number;
+  if next_number is null then raise exception 'Case number capacity for this year is exhausted' using errcode = '54000'; end if;
 
-  next_number := nextval('public.verification_case_number_seq');
-  if next_number > 999999 then raise exception 'Annual case number capacity exhausted' using errcode = '54000'; end if;
   update public.verification_cases
   set workflow_status = 'submitted',
-      case_number = 'ATX-LV-' || extract(year from now())::integer::text || '-' || lpad(next_number::text, 6, '0')
+      case_number = 'ATX-LV-' || submission_year::text || '-' || lpad(next_number::text, 6, '0')
   where id = p_case_id;
   insert into public.case_status_events(verification_case_id, actor_user_id, from_status, to_status, reason, customer_visible, event_kind)
   values(p_case_id, actor_id, 'draft', 'submitted', 'Request submitted by customer.', true, 'status_change');

@@ -73,7 +73,7 @@ export async function createVerificationCaseAction(
 
   if (error || !caseId) {
     return {
-      error: "We could not submit this request. Please try again. Your entered details are still here.",
+      error: "We could not save this draft. Please try again. Your entered details are still here.",
     };
   }
 

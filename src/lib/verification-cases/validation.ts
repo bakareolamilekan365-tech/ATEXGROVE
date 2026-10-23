@@ -38,6 +38,13 @@ export const newVerificationCaseSchema = z.object({
     }
     if (!data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhoneConsent"], message: "Please give consent to use this number for your request." });
   }
+  if (data.customerIntent === "representing_someone" && data.actingFor === "self") {
+    ctx.addIssue({
+      code: "custom",
+      path: ["actingFor"],
+      message: "If you are representing someone, choose another person or an organisation.",
+    });
+  }
   if (data.actingFor === "self") {
     if (data.principalName || data.authorityConfirmed) ctx.addIssue({ code: "custom", path: ["actingFor"], message: "For a request for yourself, leave representation details blank." });
   } else {

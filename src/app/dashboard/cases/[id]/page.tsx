@@ -108,7 +108,7 @@ export default async function CustomerCasePage({
           </section>
         ) : null}
         <aside className={styles.card}>
-          <p className={styles.eyebrow}>Request received</p>
+          <p className={styles.eyebrow}>{item.workflow_status === "draft" ? "Draft" : "Request received"}</p>
           <h2>Site details</h2>
           <p>{item.site_description}</p>
           <p><strong>Jurisdiction:</strong> {item.jurisdiction}</p>
