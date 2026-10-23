@@ -98,3 +98,11 @@ The future mobile client should share the web backend, authentication, authoriza
 - Visible focus states
 - Sufficient contrast
 - Helpful validation errors
+
+### Shared select and case-form errors
+
+The reusable `Select` control uses a rounded field and a white, softly elevated option panel that inherits the Figtree interface font. It accepts only its listed values: type-ahead moves the active option but never submits arbitrary text. Council and listed-area selection use this control; area selection stays disabled until a council is chosen, changing the council clears the area, and choosing “My area isn't listed” reveals a separate customer-entered field. The selected value is submitted through a hidden input.
+
+The select exposes combobox/listbox semantics, expanded and active-descendant state, selected-option state, and a visible 3px `#0048B0` focus ring. Arrow keys, Home/End, Enter, Escape, pointer selection and outside-click dismissal are supported. Form validation errors must be plain, field-specific messages shown next to the input; associate help/errors using `aria-describedby`, set `aria-invalid`, focus the first invalid field, and preserve entered values after validation failure. Never expose raw schema/library messages.
+
+For the new-case form, the application requires at least 10 characters for Address details (plot/house number, street and nearest landmark), with a 500-character maximum. The existing database constraint remains at 3 characters for compatibility; the stricter minimum is an application validation rule, not a migration or schema change.

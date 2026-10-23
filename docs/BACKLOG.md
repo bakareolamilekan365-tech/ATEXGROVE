@@ -128,6 +128,8 @@ Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3
 | <a id="p-59"></a>P-59 | Professional | Invite a named external professional to a scoped case without marketplace registration | F | Planned |
 | <a id="p-60"></a>P-60 | Professional | End a professional relationship while preserving reviews, deliverables and audit history | F | Planned |
 | <a id="p-63"></a>P-63 | Professional | Decide whether external professionals log in during Phase 3 or staff attach their reviews | Decision | Open |
+| <a id="c-69"></a>C-69 | Customer | Guided case intake: listed-value council/area selectors, field-specific accessible errors and clear legacy location display | C | Implemented in this PR; CI pending; UI-only, no hosted change |
+| <a id="c-70"></a>C-70 | Customer | Apply approved design tokens and shared components repo-wide (auth pages, case pages, staff queue) | C | Planned |
 
 ### Delivery constraints
 

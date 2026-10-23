@@ -44,7 +44,7 @@ Connecting to hosted Supabase and applying reviewed migrations does not require 
 
 ## The controlled case journey
 
-The intended pilot journey has six understandable stages: request received, documents in, document checks, site and map, development options, and report. The current prototype covers case intake, staff assignment/review, private evidence, and customer clarification; maps, feasibility and reports are not yet implemented.
+The intended pilot journey has six understandable stages: request received, documents in, document checks, site and map, development options, and report. The current prototype covers case intake, staff assignment/review, private evidence, and customer clarification; maps, feasibility and reports are not yet implemented. In the case form, customers choose a council and listed area from menus (or mark that their area is not listed), then enter address details. Older requests that predate the structured form show the council and explain that detailed location was not recorded.
 
 A customer may start a case, or authorized staff may assist with recorded consent. A human lead controls assignment; automation may only recommend. Important conclusions require review by a suitably qualified second person, while government or statutory evidence remains a separate authority level.
 

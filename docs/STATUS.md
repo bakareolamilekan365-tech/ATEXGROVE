@@ -22,6 +22,12 @@ These hosted configuration observations do not prove realistic multi-account beh
 - **Hosted:** migration 022 has not been applied. Hosted remains at 001-021.
 - **Not included:** no idle timeout is implemented; the timeout policy remains undecided.
 
+## Current branch work — case-form UX
+
+- **Implemented on `fix/case-form-ux`:** shared listed-value council/area selects with keyboard navigation and hidden-input submission; field-specific accessible validation errors that preserve entries; application-side 10-character address minimum (database minimum remains 3); and explicit wording for legacy cases with no detailed location. No schema, migration, or hosted changes are included.
+- **CI verification:** pending for this branch. Do not treat implementation as CI-verified until the PR checks pass; no new run IDs or counts are available yet.
+- **Hosted:** not applicable to this UI-only change; hosted database state is unchanged.
+
 ## Current repository brand assets
 
 The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`. The mark is used in the staff header and as `src/app/icon.svg`.

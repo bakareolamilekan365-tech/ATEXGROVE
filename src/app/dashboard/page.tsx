@@ -6,6 +6,7 @@ import styles from "@/components/cases/case-workflow.module.css";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { StaffMember, VerificationCase } from "@/types/verification";
+import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 
 export const dynamic = "force-dynamic";
 
@@ -94,21 +95,23 @@ export default async function DashboardPage({
         </div>
       ) : (
         <div className={styles.grid}>
-          {ownCases.map((item) => (
-            <article className={styles.card} key={item.id}>
+          {ownCases.map((item) => {
+            const location = caseLocationDisplay(item.area_name, item.area_lga);
+            return <article className={styles.card} key={item.id}>
               <div className={styles.cardHeader}>
                 <span className={styles.demo}>Demo</span>
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
               <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
-              <h2>{item.area_name ?? "Not recorded"}, {item.area_lga}, Abuja</h2>
+              <h2>{location.heading}</h2>
+              {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
               <p>{item.site_description}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 Received {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}
               </p>
               <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>See case timeline</Link>
             </article>
-          ))}
+          })}
         </div>
       )}
     </main>

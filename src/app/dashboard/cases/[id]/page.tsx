@@ -8,6 +8,7 @@ import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
 import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
+import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 
 export const dynamic = "force-dynamic";
 
@@ -30,13 +31,15 @@ export default async function CustomerCasePage({
   const events = (eventData ?? []) as CaseStatusEvent[];
   const evidence = (evidenceData ?? []) as CaseEvidence[];
   const acceptsEvidence = ["submitted", "assigned", "in_review", "needs_customer_info"].includes(item.workflow_status);
+  const location = caseLocationDisplay(item.area_name, item.area_lga);
 
   return (
     <main className={styles.shell}>
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
-          <h1>{item.area_name ?? "Not recorded"}, {item.area_lga}, Abuja</h1>
+          <h1>{location.heading}</h1>
+          {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />

@@ -9,6 +9,7 @@ import { requireStaff } from "@/lib/auth/guards";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
 import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import type { CaseEvidence, CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
+import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ export default async function OperationsCasePage({
   const evidence = (evidenceData ?? []) as CaseEvidence[];
   const activeAssignment = assignments.find((assignment) => assignment.status === "active");
   const isAssignee = activeAssignment?.assignee_user_id === user.id;
+  const location = caseLocationDisplay(item.area_name, item.area_lga);
 
   let departmentStaff: StaffMember[] = [];
   if (currentStaff.is_lead && currentStaff.department === item.department) {
@@ -57,7 +59,8 @@ export default async function OperationsCasePage({
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{item.department} · Case {item.id.slice(0, 8)}</p>
-          <h1>{item.area_name ?? "Not recorded"}, {item.area_lga}, Abuja</h1>
+          <h1>{location.heading}</h1>
+          {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />

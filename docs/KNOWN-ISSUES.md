@@ -21,6 +21,6 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Upload timing | **Current limitation:** customers can add documents only after the case request is submitted. Upload during case creation is not implemented. | Next: create a draft case, allow uploads, then submit. |
 | Idle session timeout | **Not implemented:** the Supabase session persists in its cookie until it expires or the user signs out. | Timeout policy is an open decision; no idle timeout is claimed. |
 | FCT area names | **Prototype list:** council areas are a starter list, not official. | Owner confirmation is still needed before presenting them as authoritative. |
-| Assignment event visibility, strict council/area input and phone contact | **Implemented in this PR; CI verification pending; not hosted.** | Do not claim these changes as deployed before review and hosted application. |
+| Assignment event visibility, strict council/area input and phone contact | **Implemented in PR #24; CI-verified, not hosted.** | Do not claim these changes as deployed before review and hosted application. |
 
 Operational verification gaps are maintained in [STATUS.md](STATUS.md), not duplicated here.
