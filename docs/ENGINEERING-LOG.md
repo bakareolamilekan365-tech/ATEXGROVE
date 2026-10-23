@@ -172,12 +172,12 @@ Related work: migration 022 and sign-out changes in `fix/assignment-events-locat
 
 ## 2026-10-23 — Case form accepted arbitrary locations and exposed raw validation errors
 
-Related work: `fix/case-form-ux` (UI/tests/docs only; PR pending).
+Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/25) (`fix/case-form-ux`; UI/tests/docs only).
 
-**Problem:** The council and area controls allowed arbitrary text, form errors could expose raw schema messages, and legacy cases with no detailed area could look as if their location were missing rather than simply not recorded.
+**Problem:** The council and listed-area controls accepted arbitrary text, form errors could expose raw schema messages, and legacy cases with no detailed area could look as if their location were missing rather than simply not recorded. Customer-entered area text remains available only through the explicit “My area isn't listed” choice.
 
 **Cause:** Browser datalists suggest values but do not constrain submissions; error rendering used the first schema issue directly; and location headings treated a null area as a literal missing value.
 
-**Fix:** Add a shared keyboard-accessible select that submits only listed values, friendly per-field errors with associated help text and first-invalid focus, preserve entered values on failure, and show council-only headings with an explicit legacy note. Address guidance now enforces a 10-character application minimum while retaining the existing 3-character database constraint. UI tests and documentation are added. CI verification is pending; this branch changes no migrations or hosted schema.
+**Fix:** Add a shared keyboard-accessible select that submits only listed values, friendly per-field errors with associated help text and first-invalid focus, preserve entered values on failure, and show council-only headings with an explicit legacy note. Address guidance now enforces a 10-character application minimum while retaining the existing 3-character database constraint. UI tests and documentation are added. CI run 39944706900 passed lint, typecheck, 39 unit tests, 14 integration tests (3 skipped), security guardrails and production build; database run 39944706867 passed 6 pgTAP suites (191 assertions) on disposable Supabase. The change has no migrations or hosted schema effects.
 
 **Lesson:** Suggestions are not validation. Constrain values at the control and server boundary, keep errors understandable, and distinguish legacy absence from invalid data.
