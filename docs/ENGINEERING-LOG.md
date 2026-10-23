@@ -225,3 +225,23 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Fix:** Replace the sequence in unhosted migration 024 with an RLS-enabled counter table keyed by Africa/Lagos calendar year, with no Data API role grants or policies. The submit RPC increments a year row using a transactional `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`, serializing concurrent submissions for that year. Backfill submitted-or-later cases in deterministic `created_at,id` order within each Africa/Lagos year, excluding owner-discarded drafts; new drafts remain unnumbered and retries preserve their number. Reject `representing_someone` plus `self` in Zod and the create RPC. Label drafts “Saved” on the dashboard and “Draft” on details, and describe creation failures as saving a draft. Document the controlled maintenance window for migration 024's incompatible RPC signatures. Migration 024 remains unhosted; follow-up checks are on PR #27.
 
 **Lesson:** A year in an identifier must also scope its allocator. Keep display language aligned with workflow state, and enforce clear contradictions at both validation boundaries.
+
+## 2026-10-23 — Hosted migration ledger reconciliation
+
+**Problem:** Current documentation still described the hosted database at migration 023 and migration 024 as not hosted.
+
+**Cause:** The repository records and earlier owner confirmations were not refreshed after migration 024 was applied.
+
+**Fix:** A read-only `supabase migration list --linked` check on 2026-10-23 showed migrations `001`–`024` on the linked hosted project. The ledger does not show the exact apply date for 024. Current-state documentation was updated; earlier dated notes that accurately said 024 was not hosted remain as history.
+
+**Lesson:** Re-check the live migration ledger when recording deployment state, and distinguish that observation from CI evidence or the migration's exact deployment date.
+
+## 2026-10-23 — Case timeline and evidence version workflow (migration 025 proposed)
+
+**Problem:** Staff saw a historical draft-upload event headed “Draft — not submitted” after the case was submitted. Customer replies appeared as two response-kind milestones. Replacement choices did not distinguish a separate file from a new version, and an older version could be selected. An upload registration error was reduced to a generic message without a safe server diagnostic.
+
+**Cause:** `register_case_evidence` wrote an unchanged workflow status as `status_change`; the old response RPC gave the fixed transition line and the actual reply the same kind; and the replacement RPC incremented from any predecessor without verifying it was the current leaf. The exact manual registration failure could not be reproduced from the report and was not logged by the old action; the existing form also offered cross-type predecessor choices that the RPC rejects.
+
+**Fix:** Proposed migration 025 adds `document_uploaded`, classifies new uploads as activity, writes the fixed customer-safe reply transition and actual reply as distinct ordered event kinds, and guards a linear replacement chain with a same-case/type/current-leaf check plus a unique successor index. The UI explicitly chooses New document or Replacement version and only offers latest same-type versions. Timeline headings classify legacy upload/reply events at render time without editing their stored history. The server action now logs sanitized failure codes/messages, maps known failure categories to safe customer copy, and attempts Storage cleanup after failed registration. Staff intake values use centralized readable labels. App run [39974685742](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685742) passed lint, typecheck, 53 unit tests, 23 integration tests (3 skipped), guardrails and production build; database run [39974685721](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685721) passed all 8 pgTAP suites (323 assertions). Migration 025 is CI-verified, not hosted.
+
+**Lesson:** Preserve event history but present it by meaning. Keep version replacement linear at both the UI and database boundaries, and log enough sanitized diagnostics to investigate a failure without disclosing storage paths or customer filenames.

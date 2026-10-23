@@ -1,5 +1,5 @@
 begin;
-select plan(59);
+select plan(63);
 
 select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid,text,text,text,text,boolean)', 'EXECUTE'), 'anon cannot execute draft creation');
 select ok(not has_function_privilege('anon', 'public.submit_verification_case(uuid,text,boolean)', 'EXECUTE'), 'anon cannot submit drafts');
@@ -79,6 +79,14 @@ select is((select count(*)::int from public.case_status_events where verificatio
 select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'submitted','submitted draft transitions to submitted');
 select is((select discarded_at from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),null,'submission leaves discarded_at null');
 select throws_ok($$select public.discard_draft_case(current_setting('test.draft_case_id')::uuid)$$,'22023',null,'submitted case cannot be discarded as a draft');
+reset role;
+
+select set_config('request.jwt.claims','{"sub":"c3300000-0000-4000-8000-000000000003","role":"authenticated"}',true);
+set local role authenticated;
+select is((select count(*)::int from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),1,'submitted case becomes visible in the staff queue scope');
+select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and event_kind='document_uploaded' and reason='Title deed copy uploaded'),1,'staff can see authorized historical draft upload as document activity after submission');
+select is((select count(*)::int from public.case_evidence where verification_case_id=current_setting('test.draft_case_id')::uuid),1,'staff can see uploaded evidence metadata only after submission');
+select lives_ok($$select * from public.authorize_case_evidence_download('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'scoped staff can use audited download after submission');
 reset role;
 
 -- Seed states to exercise allowed customer cancellations, including assignment cleanup.

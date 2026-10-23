@@ -7,9 +7,10 @@ import styles from "@/components/cases/case-workflow.module.css";
 import { downloadCaseEvidenceAction } from "@/app/ops/cases/actions";
 import { requireStaff } from "@/lib/auth/guards";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
+import { timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import type { CaseEvidence, CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
+import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand } from "@/lib/verification-cases/intake-labels";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function OperationsCasePage({
   const { id } = await params;
   const { supabase, user, staff: currentStaff } = await requireStaff();
 
-  const [{ data: caseData }, { data: eventData }, { data: assignmentData }, { data: evidenceData }] = await Promise.all([
+  const [{ data: caseData }, { data: eventData, error: eventError }, { data: assignmentData }, { data: evidenceData }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).neq("workflow_status", "draft").maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
     supabase.from("case_assignments").select("id, assignee_user_id, assigned_by_user_id, status, created_at").eq("verification_case_id", id).order("created_at", { ascending: false }),
@@ -77,10 +78,10 @@ export default async function OperationsCasePage({
             <p><strong>Customer:</strong> {item.customer_user_id}</p>
             <p><strong>Contact preference:</strong> {item.contact_preference}</p>
             <h3>Intake claims · Customer's claim, not verified</h3>
-            <p><strong>Intent:</strong> {item.customer_intent ?? "Not recorded"}</p>
-            <p><strong>Relationship to land:</strong> {item.relationship_to_land ?? "Not recorded"}</p>
-            <p><strong>Request for:</strong> {item.acting_for === "self" ? "Myself" : item.acting_for === "another_person" ? `Another person: ${item.principal_name ?? "Not recorded"}` : item.acting_for === "organisation" ? `Organisation: ${item.principal_name ?? "Not recorded"}` : "Not recorded"}</p>
-            <p><strong>Authority confirmation (customer claim, not verified):</strong> {item.authority_confirmed === null ? "Not recorded" : item.authority_confirmed ? "Confirmed by customer" : "Not applicable"}</p>
+            <p><strong>Intent:</strong> {formatCustomerIntent(item.customer_intent)}</p>
+            <p><strong>Relationship to land:</strong> {formatRelationshipToLand(item.relationship_to_land)}</p>
+            <p><strong>Request for:</strong> {formatActingFor(item.acting_for, item.principal_name)}</p>
+            <p><strong>Authority confirmation (customer claim, not verified):</strong> {formatAuthorityConfirmation(item.authority_confirmed, item.acting_for)}</p>
             <p><strong>Area council:</strong> {item.area_lga}</p>
             <p><strong>Area:</strong> {item.area_name ?? "Not recorded"}</p>
             <p><strong>Area list status:</strong> {item.area_is_listed === null ? "Not recorded" : item.area_is_listed ? "Starter list" : "Customer-entered, not in starter list"}</p>
@@ -101,17 +102,19 @@ export default async function OperationsCasePage({
             <p className={styles.muted}>Received from customer — not authenticated. Files are untrusted and download only.</p>
             {evidence.length ? (
               <div className={styles.stack}>
-                {evidence.map((document) => (
-                  <article className={styles.card} key={document.id}>
+                {evidence.map((document) => {
+                  const predecessor = evidence.find((item) => item.id === document.supersedes_evidence_id);
+                  return <article className={styles.card} key={document.id}>
                     <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
                     <p>{document.description}</p>
                     <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
+                    {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}
                     <form action={downloadCaseEvidenceAction}>
                       <input type="hidden" name="evidenceId" value={document.id} />
                       <button className={styles.button} type="submit">Download (60-second access)</button>
                     </form>
                   </article>
-                ))}
+                })}
               </div>
             ) : <p className={styles.empty}>No customer documents added.</p>}
           </section>
@@ -120,10 +123,10 @@ export default async function OperationsCasePage({
             <h2>Append-only timeline</h2>
             <ol className={styles.timeline}>
               {events.map((event) => (
-                <li key={event.id}>
-                  <strong>{caseStatusLabels[event.to_status]}</strong>
+                <li key={event.id} data-kind={event.event_kind}>
+                  <strong>{timelineEventHeading(event)}</strong>
                   <p className={`${styles.eyebrow} ${styles.small}`}>
-                    {timelineEventKindLabel(event.event_kind)}
+                    {timelineEventKindLabel(timelineEventKindForDisplay(event))}
                   </p>
                   <p>{event.reason}</p>
                   <p className={`${styles.muted} ${styles.small}`}>
@@ -135,6 +138,8 @@ export default async function OperationsCasePage({
                 </li>
               ))}
             </ol>
+            {eventError ? <p className={styles.error} role="alert">The timeline could not be loaded. Refresh to try again.</p> : null}
+            {!eventError && events.length === 0 ? <p className={styles.empty}>No timeline activity recorded.</p> : null}
           </section>
         </div>
 

@@ -6,12 +6,13 @@ import { EvidenceChecklist } from "@/components/cases/EvidenceChecklist";
 import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
+import { timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
 import { nextActionLabel } from "@/lib/verification-cases/next-action";
+import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand } from "@/lib/verification-cases/intake-labels";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function CustomerCasePage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: caseData }, { data: eventData }, { data: evidenceData }] = await Promise.all([
+  const [{ data: caseData }, { data: eventData, error: eventError }, { data: evidenceData }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).eq("customer_user_id", user.id).maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).eq("customer_visible", true).order("created_at", { ascending: false }),
     supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
@@ -59,10 +60,10 @@ export default async function CustomerCasePage({
           <p className={styles.muted}>Only updates approved for customer viewing appear here.</p>
           <ol className={styles.timeline}>
             {events.map((event) => (
-              <li key={event.id}>
-                <strong>{caseStatusLabels[event.to_status]}</strong>
+              <li key={event.id} data-kind={event.event_kind}>
+                <strong>{timelineEventHeading(event)}</strong>
                 <p className={`${styles.eyebrow} ${styles.small}`}>
-                  {timelineEventKindLabel(event.event_kind)}
+                  {timelineEventKindLabel(timelineEventKindForDisplay(event))}
                 </p>
                 <p>{event.reason}</p>
                 <time className={`${styles.muted} ${styles.small}`} dateTime={event.created_at}>
@@ -71,6 +72,8 @@ export default async function CustomerCasePage({
               </li>
             ))}
           </ol>
+          {eventError ? <p className={styles.error} role="alert">The timeline could not be loaded. Refresh to try again.</p> : null}
+          {!eventError && events.length === 0 ? <p className={styles.empty}>No timeline activity yet.</p> : null}
         </section>
         <section className={styles.panel}>
           <div className={styles.cardHeader}>
@@ -83,14 +86,16 @@ export default async function CustomerCasePage({
           <p className={styles.muted}>Received from customer — not authenticated.</p>
           {evidence.length ? (
             <div className={styles.stack}>
-              {evidence.map((document) => (
-                <article className={styles.card} key={document.id}>
+              {evidence.map((document) => {
+                const predecessor = evidence.find((item) => item.id === document.supersedes_evidence_id);
+                return <article className={styles.card} key={document.id}>
                   <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
                   <p>{document.description}</p>
                   <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
+                  {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}
                   <span className={styles.demo}>Demo data / not official</span>
                 </article>
-              ))}
+              })}
             </div>
           ) : <p className={styles.empty}>No documents added.</p>}
         </section>
@@ -117,6 +122,11 @@ export default async function CustomerCasePage({
           <p><strong>Area list status:</strong> {item.area_is_listed === null ? "Not recorded" : item.area_is_listed ? "Starter list" : "Customer-entered, not in starter list"}</p>
           <p><strong>Address:</strong> {item.address_line ?? "Not recorded"}</p>
           <p><strong>Contact:</strong> {item.contact_preference}</p>
+          <h3>Your intake details · Your claims, not verified</h3>
+          <p><strong>Intent:</strong> {formatCustomerIntent(item.customer_intent)}</p>
+          <p><strong>Relationship to land:</strong> {formatRelationshipToLand(item.relationship_to_land)}</p>
+          <p><strong>Request for:</strong> {formatActingFor(item.acting_for, item.principal_name)}</p>
+          <p><strong>Authority confirmation:</strong> {formatAuthorityConfirmation(item.authority_confirmed, item.acting_for)}</p>
           <div className={styles.notice}>This workflow coordinates review. It is not government or statutory certification.</div>
         </aside>
       </div>

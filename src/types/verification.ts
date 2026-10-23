@@ -19,6 +19,7 @@ export const caseStatusEventKinds = [
   "customer_message",
   "information_requested",
   "customer_response",
+  "document_uploaded",
 ] as const;
 
 export type CaseStatusEventKind = (typeof caseStatusEventKinds)[number];

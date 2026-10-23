@@ -11,7 +11,8 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Privacy, Terms and cookie pages | **Not implemented.** | Required, with appropriate legal/privacy review, before real customer documents or production use. |
 | Account deletion versus `on delete restrict` | **Open design issue:** evidence/customer references can block Auth-user deletion. | Define retention, anonymization, legal hold and deletion behavior before real use. |
 | Customer retrieval of uploaded evidence | **Not implemented:** customers can upload and see metadata but cannot download their own stored object. | Add an explicitly authorized, audited customer retrieval path in a later reviewed slice. |
-| Unregistered uploads and the 10-file limit | **Known limit:** the count uses registered `case_evidence` rows, so an object whose registration never completes is not counted. | Keep server cleanup and add stronger orphan cleanup/reconciliation when operational needs justify it. |
+| Unregistered uploads and the 10-file limit | **Known limit:** the count uses registered `case_evidence` rows, so an object whose registration never completes is not counted. The server attempts cleanup and logs sanitized failure details. | Keep server cleanup and add stronger orphan cleanup/reconciliation when operational needs justify it. |
+| Staff upload notifications | **Not implemented:** draft uploads do not enter the staff queue or send notifications; the notification function is a placeholder and there is no delivery mechanism. | No notification system is part of the current fix. |
 | Virus scanning | **Unavailable in the current Free-plan slice.** Files are untrusted, allowlisted and download-only. | Add a replaceable malware-scanning integration before real-document use where required. |
 | Role-based onboarding routing | **Undecided / not implemented.** | Keep onboarding neutral until the product decision is recorded; do not infer staff access from platform role. |
 | Login `?next=` handling | **Open:** login currently ignores the requested safe internal destination. | Add validated relative redirect handling; never allow open redirects. |
@@ -21,6 +22,6 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Draft retention | **Open decision:** draft cases and uploaded files, including discarded drafts, are retained. No automatic cleanup or customer deletion of draft evidence exists yet. | Decide retention, deletion, and legal-hold behavior before real customer documents are accepted. |
 | Idle session timeout | **Not implemented:** the Supabase session persists in its cookie until it expires or the user signs out. | Timeout policy is an open decision; no idle timeout is claimed. |
 | FCT area names | **Prototype list:** council areas are a starter list, not official. | Owner confirmation is still needed before presenting them as authoritative. |
-| Assignment event visibility, strict council/area input and phone contact | **Implemented in PR #24; CI-verified, not hosted.** | Do not claim these changes as deployed before review and hosted application. |
+| Assignment event visibility, strict council/area input and phone contact | **Migration 022 hosted** (applied 2026-10-23); PR #24 follow-up code and tests merged. | Hosted state is separate from realistic multi-account operational verification. |
 
 Operational verification gaps are maintained in [STATUS.md](STATUS.md), not duplicated here.

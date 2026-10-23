@@ -12,6 +12,7 @@ import {
   validateEvidenceFile,
   validateEvidenceFileSignature,
 } from "@/lib/case-evidence/validation";
+import { cleanupAfterRegistrationFailure, logEvidenceFailure, storageUploadFailureMessage } from "@/lib/case-evidence/upload-errors";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CASE_SERVICE_SCOPE_NOTICE_VERSION } from "@/lib/verification-cases/service-scope-notice";
 
@@ -43,13 +44,17 @@ export async function uploadCaseEvidenceAction(
   }
 
   const { supabase, user } = await requireAuthenticatedUser();
-  const { data: verificationCase } = await supabase
+  const { data: verificationCase, error: caseLookupError } = await supabase
     .from("verification_cases")
     .select("id, workflow_status")
     .eq("id", parsed.data.caseId)
     .eq("customer_user_id", user.id)
     .maybeSingle();
 
+  if (caseLookupError) {
+    logEvidenceFailure("case_lookup", caseLookupError, [file.name]);
+    return failure("We could not check this case. Refresh the page and try again.");
+  }
   if (!verificationCase) return failure("This case was not found or is not yours.");
   if (!["draft", "submitted", "assigned", "in_review", "needs_customer_info"].includes(verificationCase.workflow_status)) {
     return failure("This case is not accepting documents.");
@@ -59,7 +64,10 @@ export async function uploadCaseEvidenceAction(
     .from("case_evidence")
     .select("id", { count: "exact", head: true })
     .eq("verification_case_id", parsed.data.caseId);
-  if (countError) return failure("We could not check this case's documents.");
+  if (countError) {
+    logEvidenceFailure("quota_check", countError, [file.name]);
+    return failure("We could not check this case's documents. Refresh the page and try again.");
+  }
   if ((count ?? 0) >= MAX_EVIDENCE_FILES_PER_CASE) {
     return failure("This case already has the maximum of 10 files.");
   }
@@ -72,38 +80,57 @@ export async function uploadCaseEvidenceAction(
     file.type,
   );
   const originalFilename = normalizeOriginalFilename(file.name);
-  let admin;
+  let uploadError: unknown | null = null;
   try {
-    admin = createSupabaseAdminClient();
-  } catch {
-    return failure("Document upload is not configured on the server.");
+    const result = await supabase.storage
+      .from("documents")
+      .upload(storagePath, file, { contentType: file.type, upsert: false });
+    uploadError = result.error;
+  } catch (error) {
+    uploadError = error;
+  }
+  if (uploadError) {
+    logEvidenceFailure("storage_upload", uploadError, [file.name, originalFilename, storagePath]);
+    return failure(storageUploadFailureMessage(uploadError));
   }
 
-  const { error: uploadError } = await supabase.storage
-    .from("documents")
-    .upload(storagePath, file, { contentType: file.type, upsert: false });
-  if (uploadError) return failure("The file could not be uploaded. Check its type and size.");
-
-  const { error: registrationError } = await supabase.rpc("register_case_evidence", {
-    p_evidence_id: evidenceId,
-    p_case_id: parsed.data.caseId,
-    p_evidence_type: parsed.data.evidenceType,
-    p_description: parsed.data.description,
-    p_storage_path: storagePath,
-    p_original_filename: originalFilename,
-    p_mime_type: file.type,
-    p_size_bytes: file.size,
-    p_supersedes_evidence_id: parsed.data.supersedesEvidenceId || null,
-  });
+  let registrationError: unknown | null = null;
+  try {
+    const result = await supabase.rpc("register_case_evidence", {
+      p_evidence_id: evidenceId,
+      p_case_id: parsed.data.caseId,
+      p_evidence_type: parsed.data.evidenceType,
+      p_description: parsed.data.description,
+      p_storage_path: storagePath,
+      p_original_filename: originalFilename,
+      p_mime_type: file.type,
+      p_size_bytes: file.size,
+      p_supersedes_evidence_id: parsed.data.supersedesEvidenceId || null,
+    });
+    registrationError = result.error;
+  } catch (error) {
+    registrationError = error;
+  }
 
   if (registrationError) {
-    await admin.storage.from("documents").remove([storagePath]);
-    return failure("The document could not be registered. Please try again.");
+    const message = await cleanupAfterRegistrationFailure(
+      registrationError,
+      storagePath,
+      [file.name, originalFilename],
+      async () => {
+        const admin = createSupabaseAdminClient();
+        return admin.storage.from("documents").remove([storagePath]);
+      },
+    );
+    return failure(message);
   }
 
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
-  return { error: null, success: "Document added." };
+  return {
+    error: null,
+    success: parsed.data.supersedesEvidenceId ? "Replacement version added to the document history." : "New document added as Version 1.",
+  };
 }
 
 export async function submitDraftCaseAction(formData: FormData): Promise<void> {
