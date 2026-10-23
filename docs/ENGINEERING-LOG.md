@@ -150,7 +150,7 @@ Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 Related work: migration 022 and sign-out changes in `fix/assignment-events-location-and-contact` (PR #24).
 
-**Problem:** Assignment notes could be shown directly to customers, case locations were free text, contact phone details had no explicit consent boundary, and the application had no visible sign-out control.
+**Problem:** Assignment notes could be shown directly to customers, the case form did not constrain council and area input to its structured choices, contact phone details had no explicit consent boundary, and the application had no visible sign-out control.
 
 **Cause:** The original assignment action exposed an optional visibility toggle; location and contact fields were not structured; and the app relied on cookie expiry without an explicit user action to end the session.
 
@@ -169,3 +169,15 @@ Related work: migration 022 and sign-out changes in `fix/assignment-events-locat
 **Lesson:** Separate audiences in the data model, validate structured fields at both application and database boundaries, keep contact details out of audit/event text, and provide an explicit session-exit path without suggesting an unapproved timeout policy.
 
 **CI evidence (2026-10-23):** CI run 39909627609 passed 36 unit tests, 14 integration tests (3 skipped), lint, typecheck, security guardrails and production build. Database security run 39909627678 passed all six pgTAP suites (191 assertions) on a disposable Supabase stack. This verifies the branch in CI only; migration 022 has not been applied to the hosted project.
+
+## 2026-10-23 — Case form accepted arbitrary locations and exposed raw validation errors
+
+Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/25) (`fix/case-form-ux`; UI/tests/docs only).
+
+**Problem:** The council and listed-area controls accepted arbitrary text, form errors could expose raw schema messages, and legacy cases with no detailed area could look as if their location were missing rather than simply not recorded. Customer-entered area text remains available only through the explicit “My area isn't listed” choice.
+
+**Cause:** Browser datalists suggest values but do not constrain submissions; error rendering used the first schema issue directly; and location headings treated a null area as a literal missing value.
+
+**Fix:** Add a shared keyboard-accessible select that submits only listed values, friendly per-field errors with associated help text and first-invalid focus, preserve entered values on failure, and show council-only headings with an explicit legacy note. Address guidance now enforces a 10-character application minimum while retaining the existing 3-character database constraint. UI tests and documentation are added. CI run 39944706900 passed lint, typecheck, 39 unit tests, 14 integration tests (3 skipped), security guardrails and production build; database run 39944706867 passed 6 pgTAP suites (191 assertions) on disposable Supabase. The change has no migrations or hosted schema effects.
+
+**Lesson:** Suggestions are not validation. Constrain values at the control and server boundary, keep errors understandable, and distinguish legacy absence from invalid data.

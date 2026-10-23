@@ -12,7 +12,7 @@ export const newVerificationCaseSchema = z.object({
   areaLga: z.enum(fctAreaCouncils.map((council) => council.name) as [string, ...string[]]),
   areaName: z.string().trim().min(2).max(120),
   areaIsListed: z.boolean(),
-  addressLine: z.string().trim().min(3).max(500),
+  addressLine: z.string().trim().min(10, "Enter at least 10 characters for the address.").max(500, "Keep the address under 500 characters."),
   notes: z
     .string()
     .trim()

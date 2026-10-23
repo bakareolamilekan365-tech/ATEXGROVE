@@ -111,6 +111,8 @@ Slice 1 permits one active lead per department. Staff rows are provisioned only 
 
 Customer case creation uses an idempotency key generated when the request form is rendered. Replaying the same key with the same normalized request returns the existing case; materially different request data with that key is rejected. Migration 022 recreates the `create_verification_case` RPC with arguments `p_site_description`, `p_area_lga`, `p_area_name`, `p_area_is_listed`, `p_address_line`, `p_customer_notes`, `p_contact_preference`, `p_contact_phone`, `p_contact_phone_consent`, and `p_idempotency_key`. It accepts only the six FCT councils and known starter areas when `area_is_listed=true`; the UI labels those areas as a non-official starter list. Phone numbers are normalized to `+234...`; email preference requires null phone and false consent. The function does not copy phone data to events or audit metadata. Staff-assisted creation, its consent record and related actor/channel metadata remain later work. `current_stage` is journey progress; it must not be overloaded as verification authority or legal status. A case does not require a parcel or listing. Customer and actor Auth references currently use restrictive deletion behavior; retention, anonymization and account-deletion handling require an explicit policy before customer deletion is offered.
 
+The current case-form UX requires Address details to contain at least 10 characters (maximum 500) in application validation; the database minimum remains 3 for compatibility. This UI-only rule does not change the schema.
+
 ### case_assignments (Slice 1 repository implementation)
 
 - id

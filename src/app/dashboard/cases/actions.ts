@@ -3,8 +3,18 @@
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import { newVerificationCaseSchema } from "@/lib/verification-cases/validation";
+import { mapCaseFormIssues, type CaseFieldErrors } from "@/lib/verification-cases/form-errors";
 
-export type CaseFormState = { error: string | null };
+export type CaseFormValues = Record<string, string>;
+export type CaseFormState = { error: string | null; fieldErrors?: CaseFieldErrors; values?: CaseFormValues; firstInvalidField?: string | null };
+
+function submittedValues(formData: FormData): CaseFormValues {
+  const fields = ["areaLga", "areaName", "areaIsListed", "addressLine", "siteDescription", "notes", "contactPreference", "contactPhone"];
+  return Object.fromEntries([
+    ...fields.map((field) => [field, String(formData.get(field) ?? "")]),
+    ["contactPhoneConsent", formData.get("contactPhoneConsent") === "on" ? "on" : ""],
+  ]);
+}
 
 export async function createVerificationCaseAction(
   _previousState: CaseFormState,
@@ -24,7 +34,13 @@ export async function createVerificationCaseAction(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Check the form." };
+    const mapped = mapCaseFormIssues(parsed.error.issues);
+    return {
+      error: mapped.formError,
+      fieldErrors: mapped.fieldErrors,
+      values: submittedValues(formData),
+      firstInvalidField: Object.keys(mapped.fieldErrors)[0] ?? null,
+    };
   }
 
   const { supabase } = await requireAuthenticatedUser();
@@ -46,7 +62,7 @@ export async function createVerificationCaseAction(
 
   if (error || !caseId) {
     return {
-      error: "We could not submit this request. Check the details and try again.",
+      error: "We could not submit this request. Please try again. Your entered details are still here.",
     };
   }
 
