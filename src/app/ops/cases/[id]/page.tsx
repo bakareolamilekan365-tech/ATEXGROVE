@@ -28,7 +28,7 @@ export default async function OperationsCasePage({
   const { supabase, user, staff: currentStaff } = await requireStaff();
 
   const [{ data: caseData }, { data: eventData }, { data: assignmentData }, { data: evidenceData }] = await Promise.all([
-    supabase.from("verification_cases").select("*").eq("id", id).maybeSingle(),
+    supabase.from("verification_cases").select("*").eq("id", id).neq("workflow_status", "draft").maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
     supabase.from("case_assignments").select("id, assignee_user_id, assigned_by_user_id, status, created_at").eq("verification_case_id", id).order("created_at", { ascending: false }),
     supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),

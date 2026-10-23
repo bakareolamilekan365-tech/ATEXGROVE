@@ -181,3 +181,13 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Fix:** Add a shared keyboard-accessible select that submits only listed values, friendly per-field errors with associated help text and first-invalid focus, preserve entered values on failure, and show council-only headings with an explicit legacy note. Address guidance now enforces a 10-character application minimum while retaining the existing 3-character database constraint. UI tests and documentation are added. CI run 39944706900 passed lint, typecheck, 39 unit tests, 14 integration tests (3 skipped), security guardrails and production build; database run 39944706867 passed 6 pgTAP suites (191 assertions) on disposable Supabase. The change has no migrations or hosted schema effects.
 
 **Lesson:** Suggestions are not validation. Constrain values at the control and server boundary, keep errors understandable, and distinguish legacy absence from invalid data.
+
+## 2026-10-23 — Draft-first uploads and customer cancellation
+
+**Problem:** Customers could attach evidence only after submitting a case, and they had no customer-controlled way to discard a draft or cancel an open request.
+
+**Cause:** Case creation immediately entered the staff-visible workflow, while evidence eligibility and the Storage insert policy excluded the existing `draft` status.
+
+**Fix:** Migration 023 creates new cases as private drafts with idempotent request keys and no initial customer-visible event; adds owner-only submit, discard and open-case cancellation RPCs; permits draft evidence under existing size/type/signature/path/quota rules; and excludes active drafts plus discarded-draft history from staff RLS and audited downloads. The customer UI supports draft continuation, optional uploads, submission, discard and cancellation. Application checks passed locally; pgTAP is pending GitHub Actions because Docker is unavailable locally. Migration 023 is not hosted.
+
+**Lesson:** A draft is a privacy boundary, not just a label. Apply visibility consistently to case rows, events, evidence metadata, Storage objects and privileged download paths. Retain uploaded files until a reviewed retention policy exists.

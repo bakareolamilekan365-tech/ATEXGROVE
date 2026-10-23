@@ -4,7 +4,7 @@ import type {
 } from "@/types/verification";
 
 export const caseStatusLabels: Record<VerificationCaseStatus, string> = {
-  draft: "Draft",
+  draft: "Draft — not submitted",
   submitted: "Received — not yet verified",
   assigned: "Assigned — not yet verified",
   in_review: "In review — not yet verified",

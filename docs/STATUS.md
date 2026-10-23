@@ -32,6 +32,13 @@ These hosted configuration observations do not prove realistic multi-account beh
 
 The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`. The mark is used in the staff header and as `src/app/icon.svg`.
 
+## Current branch work — draft-first case uploads and customer cancellation
+
+- **Implemented on `feat/draft-case-with-uploads`:** migration 023 changes new requests to start as private drafts, allows the customer to add evidence before submission, and adds submit, discard-draft and open-case cancellation RPCs and UI. Staff scope excludes active drafts and discarded-draft history, including their events and evidence; evidence downloads remain audited. Existing evidence rules are preserved.
+- **CI verification:** pending final GitHub Actions runs. Do not infer CI verification from local checks.
+- **Hosted:** migration 023 has not been applied. Hosted remains at migrations 001-021; migration 022 is also not hosted.
+- **Retention:** discarded draft records and uploaded files are kept; retention/cleanup and customer deletion of draft evidence are not implemented.
+
 ## Implemented product slices
 
 ### Slice 1 — verification case workflow

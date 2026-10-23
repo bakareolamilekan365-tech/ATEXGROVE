@@ -1,6 +1,6 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-22
+**Status date:** 2026-10-23
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
 
@@ -18,7 +18,7 @@ This list distinguishes current gaps from planned work. It is not a production-r
 | Data API grants for new public tables | **Upcoming platform change:** from 2026-10-30, Supabase stops automatically granting Data API access to newly created tables in `public`. Existing tables are unaffected. | Every new-table migration must grant `SELECT` explicitly to `authenticated` only, grant `service_role` access only as needed, grant no access to `anon`, and keep writes behind secured RPCs. RLS remains required and separate from grants. |
 | Final logo application assets | **Resolved:** owner-confirmed logo, mark and wordmark SVGs are in `public/logo`; the mark is used in the staff header and as the favicon. | No open action. |
 | Customer and staff roles on one account | **By design:** one account may be both a customer and staff member; the identities are kept in separate tables. Customer and staff screens must keep their data contexts separate. | Keep dual-role accounts in regression tests. |
-| Upload timing | **Current limitation:** customers can add documents only after the case request is submitted. Upload during case creation is not implemented. | Next: create a draft case, allow uploads, then submit. |
+| Draft retention | **Open decision:** draft cases and uploaded files, including discarded drafts, are retained. No automatic cleanup or customer deletion of draft evidence exists yet. | Decide retention, deletion, and legal-hold behavior before real customer documents are accepted. |
 | Idle session timeout | **Not implemented:** the Supabase session persists in its cookie until it expires or the user signs out. | Timeout policy is an open decision; no idle timeout is claimed. |
 | FCT area names | **Prototype list:** council areas are a starter list, not official. | Owner confirmation is still needed before presenting them as authoritative. |
 | Assignment event visibility, strict council/area input and phone contact | **Implemented in PR #24; CI-verified, not hosted.** | Do not claim these changes as deployed before review and hosted application. |

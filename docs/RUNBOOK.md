@@ -88,6 +88,8 @@ For a migration that drops an RPC signature used by the current app, deploy in t
 
 Migrations `021` and `022` replace RPC signatures: `021` drops the old `create_verification_case` signature; `022` drops the previous `create_verification_case` and `assign_verification_case` signatures. An older app build still calling those signatures will fail after the corresponding migration is applied. Apply the migration only to the intended environment after the compatible code is ready; migration 022 is CI-verified but is not hosted.
 
+Migration `023_draft_case_with_uploads.sql` also drops and replaces the current ten-argument `create_verification_case` signature. Deployment order for an incompatible RPC change is: merge the compatible code, apply the reviewed migration to the intended project, then run the new app build. An older app build will fail against 023. Migration 023 is not hosted; do not apply it before review and deployment approval.
+
 ### Migration 022 location preflight
 
 Before adding the council check, migration 022 normalizes only the known legacy value `Kwali LGA` to `Kwali`, then runs a preflight over `verification_cases`. Clean data passes; a `Kwali LGA` row passes after that normalization. Any other unsupported value (including NULL) aborts the migration before the check is added. The exception lists each distinct offending value and its row count and instructs the operator to normalize it through a reviewed migration or manual fix before retrying. Do not infer or apply any other mapping. After a successful migration, the pgTAP suite verifies clean data and the normalized `Kwali` value. If the preflight aborts, review the reported values and resolve them explicitly before retrying.

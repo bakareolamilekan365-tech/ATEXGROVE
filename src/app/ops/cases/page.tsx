@@ -23,6 +23,7 @@ export default async function CaseQueuePage({
   let query = supabase
     .from("verification_cases")
     .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, created_at, updated_at")
+    .neq("workflow_status", "draft")
     .order("created_at", { ascending: false });
   if (status) query = query.eq("workflow_status", status);
   if (department) query = query.eq("department", department);

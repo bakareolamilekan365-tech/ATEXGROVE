@@ -65,11 +65,14 @@ Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3
 | <a id="p-57"></a>P-57 | Professional | Full professional directory/marketplace after verification and access controls | F | Planned |
 | <a id="l-58"></a>L-58 | Later | Wider construction, property, finance and urban-intelligence modules | F | Planned; workflows need definition |
 | <a id="c-59"></a>C-59 | Customer | Required-items request within the case workflow | B | Planned; not started |
-| <a id="c-60"></a>C-60 | Customer | Upload documents while creating a case (create draft, upload, then submit) | A — immediately after migration 022 | Planned; not started; uses the existing `draft` status |
+| <a id="c-60"></a>C-60 | Customer | Upload documents while creating a case (create draft, upload, then submit) | A — immediately after migration 022 | Implemented on current branch; migration 023 not hosted; CI pending |
 | <a id="c-61"></a>C-61 | Customer | Prevent duplicate cases when a submitted request is replayed | Completed — 021 | Done; migration 021 hosted (applied 2026-10-21) |
 | <a id="c-62"></a>C-62 | Customer | Distinguish a customer response from an information request | Completed — 021 | Done; migration 021 hosted (applied 2026-10-21) |
 | <a id="c-63"></a>C-63 | Customer | Sign out from customer and staff workspaces using a POST action | Current PR | Implemented; CI-verified in run 39909627609; not hosted |
 | <a id="c-64"></a>C-64 | Customer | Decide whether an idle session timeout is needed | Decision | Not decided; no idle timeout exists today |
+| <a id="c-71"></a>C-71 | Customer | Cancel an open verification request and optionally explain why | Current PR | Implemented on current branch; migration 023 not hosted; CI pending |
+| <a id="c-72"></a>C-72 | Customer | Define retention and cleanup for discarded drafts and their evidence | Decision | Not decided; 023 keeps drafts and files |
+| <a id="c-73"></a>C-73 | Customer | Let customers delete evidence attached to their own draft | F | Planned; draft evidence is retained for now |
 | <a id="s-a"></a>S-a | Staff/admin | Staff conflict declarations and prevention of assigning a case to its own customer; separate staff conflict declaration from automatic assignment checks | B — Slice 3 | Planned; current assignment RPC has no conflict-of-interest check |
 | <a id="s-b"></a>S-b | Staff/admin | Search, filter and sort the staff case queue | F | Planned |
 | <a id="s-c"></a><a id="s-31"></a><a id="s-70"></a>S-c | Staff/admin | Case and assignment due dates, overdue flags/reminders, and internal service targets (not legal guarantees) | F | Planned |

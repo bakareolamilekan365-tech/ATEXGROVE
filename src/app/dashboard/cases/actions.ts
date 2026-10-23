@@ -66,5 +66,5 @@ export async function createVerificationCaseAction(
     };
   }
 
-  redirect("/dashboard?request=submitted");
+  redirect(`/dashboard/cases/${caseId}?draft=created`);
 }

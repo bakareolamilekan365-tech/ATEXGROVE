@@ -3,12 +3,14 @@ import { notFound, redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
 import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
+import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
 import { caseStatusLabels, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
+import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +32,7 @@ export default async function CustomerCasePage({
   const item = caseData as VerificationCase;
   const events = (eventData ?? []) as CaseStatusEvent[];
   const evidence = (evidenceData ?? []) as CaseEvidence[];
-  const acceptsEvidence = ["submitted", "assigned", "in_review", "needs_customer_info"].includes(item.workflow_status);
+  const customerActions = customerCaseActions(item.workflow_status);
   const location = caseLocationDisplay(item.area_name, item.area_lga);
 
   return (
@@ -44,6 +46,7 @@ export default async function CustomerCasePage({
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />
           </div>
+          {item.workflow_status === "draft" ? <p className={styles.notice}>This request is saved as a draft. Staff cannot see it until you submit it.</p> : null}
         </div>
         <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard">Back to dashboard</Link>
       </div>
@@ -89,9 +92,9 @@ export default async function CustomerCasePage({
             </div>
           ) : <p className={styles.empty}>No documents added.</p>}
         </section>
-        {acceptsEvidence ? (
+        {customerActions.canUploadEvidence ? (
           <section className={styles.panel}>
-            <h2>Add document</h2>
+            <h2>{item.workflow_status === "draft" ? "Add documents before submitting" : "Add document"}</h2>
             <EvidenceUploadForm
               caseId={item.id}
               existingEvidence={evidence.map((document) => ({
@@ -103,6 +106,7 @@ export default async function CustomerCasePage({
             />
           </section>
         ) : null}
+        <CustomerCaseControls caseId={item.id} status={item.workflow_status} />
         {item.workflow_status === "needs_customer_info" ? (
           <section className={styles.panel}>
             <h2>Respond to the review team</h2>

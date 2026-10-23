@@ -47,6 +47,8 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 Merged main contains five pgTAP suites with 166 planned assertions. This migration 022 branch has six suites; Database security run [39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) reports `Files=6, Tests=191` and passed on a disposable Supabase stack. CI run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) reports 36 unit tests and 14 integration tests (3 skipped). Disposable CI does not verify the linked hosted project or realistic hosted-user sessions; migration 022 remains not hosted.
 
+The current migration 023 branch adds a seventh pgTAP suite for draft privacy, evidence, submission, discard and cancellation. Local application checks pass; pgTAP is pending the disposable GitHub Actions database run because Docker is unavailable locally. Do not infer an assertion total or hosted state before the workflow reports it; see [STATUS.md](STATUS.md).
+
 Test the same decisions at the server and database boundaries:
 
 - unauthenticated and unauthorized users
@@ -72,7 +74,7 @@ E2E cases should include permission-denied, not-found, loading, empty, timeout/f
 
 ### 3a. Domain and abuse regression cases
 
-Cover verification status transitions, provenance preservation, invalid/oversized/malicious uploads, forged or conflicting evidence, duplicate/retried operations, idempotency where applicable, rate-limit behavior, provider failure and timeout handling, and malicious/untrusted AI or document input. Feasibility tests must prove deterministic calculations and scenario reproducibility.
+Cover verification status transitions including `draft -> submitted`, customer `draft -> cancelled` and customer cancellation from open states; provenance preservation; invalid/oversized/malicious uploads; draft staff isolation for cases, events, evidence and downloads; forged or conflicting evidence; duplicate/retried operations; idempotency where applicable; rate-limit behavior; provider failure and timeout handling; and malicious/untrusted AI or document input. Feasibility tests must prove deterministic calculations and scenario reproducibility.
 
 Authentication recovery tests should cover the generic forgot-password response, safe callback redirects, expired/invalid links and authenticated password updates. Onboarding tests should cover profile persistence beyond role selection and role-aware dashboard authorization. Storage tests must prove private-by-default access and deny path/filename substitution.
 
