@@ -17,24 +17,26 @@ insert into public.staff_members(user_id, department, is_lead, active) values
 
 select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
-select is(public.create_verification_case(
+select lives_ok($$select public.create_verification_case(
  'DEMO DATA / NOT OFFICIAL sample plot near Kuje market','Kuje','Kuje',true,
  'Near Kuje market road','Synthetic request','email',null,false,
- '11111111-1111-4111-8111-111111111111'),
- (select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),
- 'creation returns its case id');
-select is((select workflow_status from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),'draft','new request is a draft');
-select is((select count(*)::int from public.case_status_events where verification_case_id=(select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111') and customer_visible),0,'draft creation writes no customer-visible event');
-select is((select count(*)::int from public.audit_logs where action='verification_case.draft_created' and entity_id=(select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111')),1,'draft creation is audited once');
-select is(public.create_verification_case(
- 'DEMO DATA / NOT OFFICIAL sample plot near Kuje market','Kuje','Kuje',true,
- 'Near Kuje market road','Synthetic request','email',null,false,
- '11111111-1111-4111-8111-111111111111'),
- (select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),
- 'creation replay returns the same draft');
-select is((select count(*)::int from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),1,'idempotency key creates one case');
-select is((select count(*)::int from public.audit_logs where action='verification_case.draft_created' and entity_id=(select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111')),1,'replay does not duplicate draft audit');
+ '11111111-1111-4111-8111-111111111111')$$,'customer can create a draft through the RPC');
 select set_config('test.draft_case_id',(select id::text from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),true);
+select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'draft','new request is a draft');
+select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and customer_visible),0,'draft creation writes no customer-visible event');
+reset role;
+select is((select count(*)::int from public.audit_logs where action='verification_case.draft_created' and entity_id=current_setting('test.draft_case_id')::uuid),1,'draft creation is audited once');
+set local role authenticated;
+select is(public.create_verification_case(
+ 'DEMO DATA / NOT OFFICIAL sample plot near Kuje market','Kuje','Kuje',true,
+ 'Near Kuje market road','Synthetic request','email',null,false,
+ '11111111-1111-4111-8111-111111111111'),
+ current_setting('test.draft_case_id')::uuid,
+ 'creation replay returns the same draft');
+select is((select count(*)::int from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),1,'idempotency key creates one case');
+reset role;
+select is((select count(*)::int from public.audit_logs where action='verification_case.draft_created' and entity_id=current_setting('test.draft_case_id')::uuid),1,'replay does not duplicate draft audit');
+set local role authenticated;
 
 -- Customer can upload/register evidence while the case is still a draft.
 select lives_ok($$insert into storage.objects(bucket_id,name,owner_id) values
@@ -66,15 +68,15 @@ reset role;
 
 select set_config('request.jwt.claims','{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}',true);
 set local role authenticated;
-select throws_ok($$select public.submit_verification_case((select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'))$$,'42501',null,'another customer cannot submit draft');
+select throws_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'42501',null,'another customer cannot submit draft');
 reset role;
 select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
-select lives_ok($$select public.submit_verification_case((select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'))$$,'owner submits draft');
-select lives_ok($$select public.submit_verification_case((select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'))$$,'submit replay succeeds');
-select is((select count(*)::int from public.case_status_events where verification_case_id=(select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111') and reason='Request submitted by customer.'),1,'submit writes one fixed customer event');
-select is((select workflow_status from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),'submitted','submitted draft transitions to submitted');
-select throws_ok($$select public.discard_draft_case((select id from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'))$$,'22023',null,'submitted case cannot be discarded as a draft');
+select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'owner submits draft');
+select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'submit replay succeeds');
+select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and reason='Request submitted by customer.'),1,'submit writes one fixed customer event');
+select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'submitted','submitted draft transitions to submitted');
+select throws_ok($$select public.discard_draft_case(current_setting('test.draft_case_id')::uuid)$$,'22023',null,'submitted case cannot be discarded as a draft');
 reset role;
 
 -- Seed states to exercise allowed customer cancellations, including assignment cleanup.
@@ -92,6 +94,7 @@ values('33333333-3333-4333-8333-333333333333','d4400000-0000-4000-8000-000000000
 
 select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
+select throws_ok($$select public.cancel_verification_case('88888888-8888-4888-8888-888888888888','')$$,'22023',null,'draft cannot use open-case cancellation');
 select lives_ok($$select public.discard_draft_case('88888888-8888-4888-8888-888888888888')$$,'owner discards a draft');
 select is((select workflow_status from public.verification_cases where id='88888888-8888-4888-8888-888888888888'),'cancelled','discard marks draft cancelled');
 select lives_ok($$select public.cancel_verification_case('22222222-2222-4222-8222-222222222222','No longer needed')$$,'customer can cancel submitted case');
@@ -100,11 +103,10 @@ select lives_ok($$select public.cancel_verification_case('44444444-4444-4444-844
 select lives_ok($$select public.cancel_verification_case('55555555-5555-4555-8555-555555555555','')$$,'customer can cancel needs-information case');
 select throws_ok($$select public.cancel_verification_case('66666666-6666-4666-8666-666666666666','')$$,'22023',null,'closed case cannot be cancelled');
 select throws_ok($$select public.cancel_verification_case('77777777-7777-4777-8777-777777777777','')$$,'22023',null,'cancelled case cannot be cancelled again');
-select throws_ok($$select public.cancel_verification_case('11111111-1111-4111-8111-111111111111','')$$,'22023',null,'draft cannot use open-case cancellation');
+reset role;
 select is((select status from public.case_assignments where verification_case_id='33333333-3333-4333-8333-333333333333'),'cancelled','cancelling ends active assignment');
 select is((select count(*)::int from public.case_status_events where verification_case_id='22222222-2222-4222-8222-222222222222' and reason='You cancelled this request.' and customer_visible and event_kind='status_change'),1,'customer cancellation writes fixed visible event');
 select is((select reason from public.case_status_events where verification_case_id='22222222-2222-4222-8222-222222222222' and event_kind='staff_note'),'No longer needed','cancellation reason is a private staff note');
-reset role;
 
 select set_config('request.jwt.claims','{"sub":"c3300000-0000-4000-8000-000000000003","role":"authenticated"}',true);
 set local role authenticated;
