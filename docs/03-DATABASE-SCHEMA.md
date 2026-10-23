@@ -72,7 +72,7 @@ Audit records are required for important mutations, verification decisions, docu
 
 The first commercial workflow starts with a verification case, not a marketplace listing. A case may be created from site/request details before any `land_parcels` record exists. Any later parcel/listing link must be optional and follow-on.
 
-The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is CI-verified but not hosted. Migration `023` is implemented on the current branch and not hosted; current verification status is in [STATUS.md](STATUS.md). Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
+The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is CI-verified but not hosted. Migration `023` is CI-verified but not hosted; see [STATUS.md](STATUS.md) for its run links and counts. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
 
 ### staff_members (Slice 1 repository implementation)
 

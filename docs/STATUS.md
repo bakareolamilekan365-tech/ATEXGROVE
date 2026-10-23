@@ -35,7 +35,7 @@ The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`.
 ## Current branch work — draft-first case uploads and customer cancellation
 
 - **Implemented on `feat/draft-case-with-uploads`:** migration 023 changes new requests to start as private drafts, allows the customer to add evidence before submission, and adds submit, discard-draft and open-case cancellation RPCs and UI. Staff scope excludes active drafts and discarded-draft history, including their events and evidence; evidence downloads remain audited. Existing evidence rules are preserved.
-- **CI verification:** pending final GitHub Actions runs. Do not infer CI verification from local checks.
+- **CI-verified, not hosted:** [CI run 39947770243](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39947770243) passed lint, typecheck, 40 unit tests, 17 integration tests (3 skipped), security guardrails and production build. [Database security run 39947770295](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39947770295) applied migrations through 023 on a disposable Supabase stack and passed all seven pgTAP suites (238 assertions).
 - **Hosted:** migration 023 has not been applied. Hosted remains at migrations 001-021; migration 022 is also not hosted.
 - **Retention:** discarded draft records and uploaded files are kept; retention/cleanup and customer deletion of draft evidence are not implemented.
 
