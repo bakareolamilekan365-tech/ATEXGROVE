@@ -1,7 +1,7 @@
 -- Behavioural coverage for migration 021.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(28);
+select plan(29);
 
 select ok(
   exists (
@@ -291,12 +291,12 @@ select is(
     where verification_case_id = (
       select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'
     )
-      and reason = 'Customer provided the requested information.'
-      and event_kind = 'customer_response'
+      and reason = 'Your case is now in review.'
+      and event_kind = 'status_change'
       and customer_visible
   ),
   1,
-  'customer response writes the fixed visible response line and kind'
+  'customer response writes one separate fixed status transition'
 );
 select is(
   (
@@ -310,6 +310,22 @@ select is(
   ),
   1,
   'customer response preserves the customer text as a response event'
+);
+select ok(
+  (
+    select status_event.created_at < response_event.created_at
+    from public.case_status_events status_event
+    join public.case_status_events response_event
+      on response_event.verification_case_id = status_event.verification_case_id
+    where status_event.verification_case_id = (
+      select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'
+    )
+      and status_event.reason = 'Your case is now in review.'
+      and status_event.event_kind = 'status_change'
+      and response_event.reason = 'Synthetic customer clarification.'
+      and response_event.event_kind = 'customer_response'
+  ),
+  'status transition precedes the customer response in timeline time'
 );
 select is(
   (

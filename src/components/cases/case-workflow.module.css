@@ -180,6 +180,8 @@
 .timeline li::before { content: ""; position: absolute; left: -0.45rem; top: 0.1rem; width: 0.75rem; height: 0.75rem; border-radius: 50%; background: #0048b0; }
 .timeline li:last-child { padding-bottom: 0; }
 .timeline p { margin: 0.3rem 0; }
+.timeline li[data-kind="document_uploaded"] { border-left-color: #eadfc8; }
+.timeline li[data-kind="customer_response"]::before { background: #23735f; }
 
 .filterRow { justify-content: flex-start; margin-bottom: 1.2rem; }
 .filterRow label { min-width: 180px; font-weight: 700; }

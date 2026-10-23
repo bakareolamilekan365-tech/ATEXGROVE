@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 2.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(55);
+select plan(71);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.case_evidence'::regclass), 'case_evidence has RLS enabled');
 select ok(not (select public from storage.buckets where id = 'documents'), 'documents bucket is private');
@@ -67,13 +67,106 @@ select lives_ok(
 reset role;
 
 select is((select count(*)::int from public.case_evidence where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'registration writes the evidence row');
-select is((select count(*)::int from public.case_status_events where reason = 'Document added: Title deed copy'), 1, 'registration writes the customer-visible event');
+select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and event_kind = 'document_uploaded'), 1, 'registration writes a customer-visible document activity event');
+select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and from_status = to_status), 1, 'document activity records context without claiming a status transition');
 select is((select count(*)::int from public.audit_logs where action = 'case_evidence.created' and entity_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'registration writes the audit row');
 select is(
   (select source || ':' || review_state || ':' || is_demo_data::text || ':' || version::text from public.case_evidence where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
   'customer_supplied:received_unreviewed:true:1',
   'evidence starts customer-supplied, unreviewed, demo-labelled and versioned'
 );
+
+-- Seed one evidence row in customer B's case so cross-case predecessor checks
+-- can be exercised while customer A still owns the target case.
+insert into storage.objects (bucket_id, name, owner_id) values
+  ('documents', 'documents/cases/22222222-2222-4222-8222-222222222222/44444444-4444-4444-8444-444444444444/other-case.pdf', 'b2200000-0000-4000-8000-000000000002');
+insert into public.case_evidence (
+  id, verification_case_id, uploaded_by_user_id, evidence_type, description,
+  storage_path, original_filename, mime_type, size_bytes
+) values (
+  '44444444-4444-4444-8444-444444444444', '22222222-2222-4222-8222-222222222222',
+  'b2200000-0000-4000-8000-000000000002', 'title_deed_copy', 'Synthetic case B predecessor',
+  'documents/cases/22222222-2222-4222-8222-222222222222/44444444-4444-4444-8444-444444444444/other-case.pdf',
+  'case-b.pdf', 'application/pdf', 100
+);
+
+-- Replacement versions form one linear chain: each new version points to the
+-- current leaf and increments by exactly one.
+select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select lives_ok($$insert into storage.objects(bucket_id,name,owner_id) values
+  ('documents','documents/cases/11111111-1111-4111-8111-111111111111/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/version2.pdf','a1100000-0000-4000-8000-000000000001')$$,
+  'owner can upload a replacement object');
+select lives_ok($$select public.register_case_evidence(
+  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','11111111-1111-4111-8111-111111111111',
+  'title_deed_copy','Synthetic corrected deed v2',
+  'documents/cases/11111111-1111-4111-8111-111111111111/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/version2.pdf',
+  'synthetic-title-v2.pdf','application/pdf',1024,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  'owner can register version 2 against version 1');
+reset role;
+select is((select version from public.case_evidence where id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),2,'replacement of version 1 receives version 2');
+select is((select supersedes_evidence_id from public.case_evidence where id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,'version 2 links to its exact predecessor');
+
+select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select lives_ok($$insert into storage.objects(bucket_id,name,owner_id) values
+  ('documents','documents/cases/11111111-1111-4111-8111-111111111111/11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa/version3.pdf','a1100000-0000-4000-8000-000000000001')$$,
+  'owner can upload the next replacement object');
+select lives_ok($$select public.register_case_evidence(
+  '11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa','11111111-1111-4111-8111-111111111111',
+  'title_deed_copy','Synthetic corrected deed v3',
+  'documents/cases/11111111-1111-4111-8111-111111111111/11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa/version3.pdf',
+  'synthetic-title-v3.pdf','application/pdf',1024,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')$$,
+  'owner can register version 3 against version 2');
+reset role;
+select is((select version from public.case_evidence where id='11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),3,'replacement of version 2 receives version 3');
+select is((select supersedes_evidence_id from public.case_evidence where id='11111111-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,'version 3 links to version 2');
+select throws_ok($$insert into public.case_evidence (
+  id,verification_case_id,uploaded_by_user_id,evidence_type,description,storage_path,
+  original_filename,mime_type,size_bytes,version,supersedes_evidence_id
+) values (
+  '77777777-7777-4777-8777-777777777777','11111111-1111-4111-8111-111111111111',
+  'a1100000-0000-4000-8000-000000000001','title_deed_copy','Synthetic branch attempt',
+  'documents/cases/11111111-1111-4111-8111-111111111111/77777777-7777-4777-8777-777777777777/branch.pdf',
+  'branch.pdf','application/pdf',100,2,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+)$$,'23505',null,'database invariant rejects a second successor for one evidence version');
+
+insert into storage.objects (bucket_id, name, owner_id) values
+  ('documents', 'documents/cases/11111111-1111-4111-8111-111111111111/33333333-3333-4333-8333-333333333333/stale.pdf', 'a1100000-0000-4000-8000-000000000001'),
+  ('documents', 'documents/cases/11111111-1111-4111-8111-111111111111/55555555-5555-4555-8555-555555555555/cross-case.pdf', 'a1100000-0000-4000-8000-000000000001'),
+  ('documents', 'documents/cases/11111111-1111-4111-8111-111111111111/88888888-8888-4888-8888-888888888888/wrong-type.pdf', 'a1100000-0000-4000-8000-000000000001');
+select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok($$select public.register_case_evidence(
+  '33333333-3333-4333-8333-333333333333','11111111-1111-4111-8111-111111111111',
+  'title_deed_copy','Stale replacement attempt',
+  'documents/cases/11111111-1111-4111-8111-111111111111/33333333-3333-4333-8333-333333333333/stale.pdf',
+  'stale.pdf','application/pdf',100,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  '23505', 'This version already has a replacement; select the latest version', 'a predecessor with a successor cannot start a second branch');
+select throws_ok($$select public.register_case_evidence(
+  '55555555-5555-4555-8555-555555555555','11111111-1111-4111-8111-111111111111',
+  'title_deed_copy','Cross-case predecessor attempt',
+  'documents/cases/11111111-1111-4111-8111-111111111111/55555555-5555-4555-8555-555555555555/cross-case.pdf',
+  'cross-case.pdf','application/pdf',100,'44444444-4444-4444-8444-444444444444')$$,
+  '22023', 'Superseded evidence must belong to this case', 'a replacement cannot reference another case evidence');
+select throws_ok($$select public.register_case_evidence(
+  '88888888-8888-4888-8888-888888888888','11111111-1111-4111-8111-111111111111',
+  'receipt','Wrong-type replacement attempt',
+  'documents/cases/11111111-1111-4111-8111-111111111111/88888888-8888-4888-8888-888888888888/wrong-type.pdf',
+  'wrong-type.pdf','application/pdf',100,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  '22023', 'A replacement must keep the same evidence type', 'a replacement must retain its document type');
+reset role;
+select is((select count(*)::int from public.case_evidence where id in ('33333333-3333-4333-8333-333333333333','55555555-5555-4555-8555-555555555555','88888888-8888-4888-8888-888888888888')),0,'rejected replacement attempts create no evidence rows');
+
+select set_config('request.jwt.claims', '{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok($$select public.register_case_evidence(
+  '66666666-6666-4666-8666-666666666666','11111111-1111-4111-8111-111111111111',
+  'title_deed_copy','Unauthorized replacement',
+  'documents/cases/11111111-1111-4111-8111-111111111111/33333333-3333-4333-8333-333333333333/stale.pdf',
+  'unauthorized.pdf','application/pdf',100,'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  '42501', 'Only the case customer can add evidence', 'another customer cannot replace evidence even with a valid predecessor');
+reset role;
 
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
@@ -156,7 +249,7 @@ select throws_ok(
 );
 reset role;
 select is((select count(*)::int from public.case_evidence where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'), 0, 'failed registration leaves no evidence row');
-select is((select count(*)::int from public.case_status_events where reason = 'Document added: Other' and actor_user_id = 'b2200000-0000-4000-8000-000000000002'), 0, 'failed registration leaves no event');
+select is((select count(*)::int from public.case_status_events where reason = 'Other uploaded' and actor_user_id = 'b2200000-0000-4000-8000-000000000002'), 0, 'failed registration leaves no document activity event');
 select is((select count(*)::int from public.audit_logs where entity_id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'), 0, 'failed registration leaves no audit row');
 
 insert into public.case_evidence (
@@ -166,7 +259,7 @@ insert into public.case_evidence (
 select gen_random_uuid(), '11111111-1111-4111-8111-111111111111', 'a1100000-0000-4000-8000-000000000001',
   'other', 'Synthetic count fixture', 'documents/cases/11111111-1111-4111-8111-111111111111/' || gen_random_uuid()::text || '/fixture.pdf',
   'fixture.pdf', 'application/pdf', 20
-from generate_series(1, 9);
+from generate_series(1, 7);
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
 select throws_ok(

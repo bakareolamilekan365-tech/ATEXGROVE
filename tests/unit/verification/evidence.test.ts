@@ -9,6 +9,8 @@ import {
   normalizeOriginalFilename,
   validateEvidenceFile,
 } from "@/lib/case-evidence/validation";
+import { latestReplaceableEvidence } from "@/lib/case-evidence/versioning";
+import { cleanupAfterRegistrationFailure, evidenceRegistrationFailureMessage, storageUploadFailureMessage } from "@/lib/case-evidence/upload-errors";
 
 vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: vi.fn(),
@@ -50,6 +52,46 @@ describe("case evidence validation", () => {
     );
     expect(path).toBe("documents/cases/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333.pdf");
     expect(path).not.toContain("seller");
+  });
+});
+
+describe("evidence replacement choices and safe errors", () => {
+  const history = [
+    { id: "v1", evidence_type: "title_deed_copy" as const, version: 1, original_filename: "deed-v1.pdf", supersedes_evidence_id: null },
+    { id: "v2", evidence_type: "title_deed_copy" as const, version: 2, original_filename: "deed-v2.pdf", supersedes_evidence_id: "v1" },
+    { id: "plan1", evidence_type: "survey_plan_copy" as const, version: 1, original_filename: "plan.pdf", supersedes_evidence_id: null },
+  ];
+
+  it("offers only the current leaf for the selected document type", () => {
+    expect(latestReplaceableEvidence(history, "title_deed_copy").map((item) => item.id)).toEqual(["v2"]);
+    expect(latestReplaceableEvidence(history, "survey_plan_copy").map((item) => item.id)).toEqual(["plan1"]);
+    expect(latestReplaceableEvidence(history, "receipt")).toEqual([]);
+  });
+
+  it("maps known storage and registration categories to safe customer messages", () => {
+    expect(storageUploadFailureMessage({ statusCode: "413", message: "payload too large" })).toContain("10 MB");
+    expect(storageUploadFailureMessage({ statusCode: "415" })).toContain("PDF, JPG or PNG");
+    expect(evidenceRegistrationFailureMessage({ code: "23505" })).toContain("latest version");
+    expect(evidenceRegistrationFailureMessage({ code: "42501" })).toContain("case");
+    expect(evidenceRegistrationFailureMessage({ code: "XX000", message: "secret database detail" })).toBe("The document could not be registered. Please try again.");
+  });
+
+  it("attempts cleanup after failed registration and sanitizes server diagnostics", async () => {
+    const remove = vi.fn().mockResolvedValue({ error: null });
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const message = await cleanupAfterRegistrationFailure(
+      { code: "23505", message: "duplicate for documents/cases/11111111-1111-4111-8111-111111111111/file.pdf" },
+      "documents/cases/11111111-1111-4111-8111-111111111111/file.pdf",
+      ["private-name.pdf"],
+      remove,
+    );
+    expect(remove).toHaveBeenCalledOnce();
+    expect(message).toContain("latest version");
+    expect(log).toHaveBeenCalledOnce();
+    const diagnostic = JSON.stringify(log.mock.calls);
+    expect(diagnostic).not.toContain("private-name.pdf");
+    expect(diagnostic).not.toContain("11111111-1111-4111-8111-111111111111");
+    log.mockRestore();
   });
 });
 
