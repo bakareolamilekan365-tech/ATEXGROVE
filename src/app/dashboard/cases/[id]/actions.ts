@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import {
   buildEvidenceStoragePath,
@@ -49,7 +50,7 @@ export async function uploadCaseEvidenceAction(
     .maybeSingle();
 
   if (!verificationCase) return failure("This case was not found or is not yours.");
-  if (!["submitted", "assigned", "in_review", "needs_customer_info"].includes(verificationCase.workflow_status)) {
+  if (!["draft", "submitted", "assigned", "in_review", "needs_customer_info"].includes(verificationCase.workflow_status)) {
     return failure("This case is not accepting documents.");
   }
 
@@ -102,6 +103,39 @@ export async function uploadCaseEvidenceAction(
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
   return { error: null, success: "Document added." };
+}
+
+export async function submitDraftCaseAction(formData: FormData): Promise<void> {
+  const caseId = String(formData.get("caseId") ?? "");
+  const { supabase } = await requireAuthenticatedUser();
+  const { error } = await supabase.rpc("submit_verification_case", { p_case_id: caseId });
+  if (error) throw new Error("This draft could not be submitted. Refresh and try again.");
+  revalidatePath("/dashboard");
+  redirect(`/dashboard/cases/${caseId}`);
+}
+
+export async function discardDraftCaseAction(formData: FormData): Promise<void> {
+  const caseId = String(formData.get("caseId") ?? "");
+  const { supabase } = await requireAuthenticatedUser();
+  const { error } = await supabase.rpc("discard_draft_case", { p_case_id: caseId });
+  if (error) throw new Error("This draft could not be discarded. Refresh and try again.");
+  revalidatePath("/dashboard");
+  redirect(`/dashboard/cases/${caseId}`);
+}
+
+export async function cancelVerificationCaseAction(formData: FormData): Promise<void> {
+  const caseId = String(formData.get("caseId") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  if (reason.length > 2000) throw new Error("The reason must be 2,000 characters or fewer.");
+  const { supabase } = await requireAuthenticatedUser();
+  const { error } = await supabase.rpc("cancel_verification_case", {
+    p_case_id: caseId,
+    p_reason: reason,
+  });
+  if (error) throw new Error("This request could not be cancelled. Refresh and try again.");
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/cases/${caseId}`);
+  redirect(`/dashboard/cases/${caseId}`);
 }
 
 export async function customerRespondToCaseAction(

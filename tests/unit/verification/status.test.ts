@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
 import {
   availableCaseTransitions,
   canTransitionVerificationCase,
@@ -42,6 +43,23 @@ describe("verification case status transitions", () => {
     expect(caseStatusLabels.submitted).toBe("Received — not yet verified");
     expect(caseStatusLabels.submitted.toLowerCase()).not.toBe("verified");
     expect(caseStatusLabels.closed).toBe("Closed — no verification result issued");
+  });
+
+  it("labels drafts clearly and exposes only valid customer actions", () => {
+    expect(caseStatusLabels.draft).toBe("Draft — not submitted");
+    expect(customerCaseActions("draft")).toEqual({
+      canUploadEvidence: true,
+      canSubmitDraft: true,
+      canDiscardDraft: true,
+      canCancel: false,
+    });
+    expect(customerCaseActions("needs_customer_info").canCancel).toBe(true);
+    expect(customerCaseActions("closed")).toEqual({
+      canUploadEvidence: false,
+      canSubmitDraft: false,
+      canDiscardDraft: false,
+      canCancel: false,
+    });
   });
 });
 

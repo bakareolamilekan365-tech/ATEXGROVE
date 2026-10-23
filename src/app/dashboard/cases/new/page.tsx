@@ -25,7 +25,7 @@ export default async function NewVerificationCasePage() {
       </div>
       <section className={styles.panel} aria-labelledby="request-form-heading">
         <h2 id="request-form-heading">Tell us about the site</h2>
-        <p className={styles.muted}>No parcel or marketplace listing is required. Documents are added after the request is submitted.</p>
+          <p className={styles.muted}>No parcel or marketplace listing is required. Save the request as a draft, then add documents before submitting it.</p>
         <NewCaseForm idempotencyKey={idempotencyKey} />
       </section>
     </main>

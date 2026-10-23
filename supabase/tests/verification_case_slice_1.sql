@@ -45,14 +45,15 @@ select lives_ok(
       null, false,
       'a1111111-1111-4111-8111-111111111111'
     )$$,
-  'customer can create a submitted verification case through the RPC'
+  'customer can create a verification case as a draft through the RPC'
 );
+select public.submit_verification_case((select id from pg_temp.slice_1_case_ids));
 reset role;
 
 select is(
   (select workflow_status from public.verification_cases where id = (select id from pg_temp.slice_1_case_ids)),
   'submitted',
-  'new case is submitted'
+  'submitted draft is now submitted'
 );
 select is(
   (select area_is_listed from public.verification_cases where id = (select id from pg_temp.slice_1_case_ids)),
@@ -62,7 +63,7 @@ select is(
 select is(
   (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids)),
   1,
-  'case creation records the initial status event atomically'
+  'request submission records its customer-safe status event atomically'
 );
 
 select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);

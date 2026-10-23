@@ -94,6 +94,7 @@ insert into pg_temp.migration_021_results values (
     '99999999-9999-4999-8999-999999999999'
   )
 );
+select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'));
 insert into pg_temp.migration_021_results values (
   'customer-a-replay',
   public.create_verification_case(
@@ -159,13 +160,13 @@ select is(
 select is(
   (
     select count(*)::int from public.audit_logs
-    where action = 'verification_case.created'
+    where action = 'verification_case.draft_created'
       and entity_id = (
         select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'
       )
   ),
   1,
-  'replaying a key creates only one creation audit record'
+  'replaying a key creates only one draft-creation audit record'
 );
 select is(
   (
@@ -175,7 +176,7 @@ select is(
     )
   ),
   'status_change',
-  'the initial case event is a status change'
+  'submission writes a fixed status-change event'
 );
 
 select set_config('request.jwt.claims', '{"sub":"bb200000-0000-4000-8000-000000000002","role":"authenticated"}', true);
@@ -192,6 +193,7 @@ insert into pg_temp.migration_021_results values (
     '99999999-9999-4999-8999-999999999999'
   )
 );
+select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'));
 reset role;
 
 select isnt(

@@ -6,20 +6,20 @@
 
 ## Current hosted state
 
-- **Current / hosted:** Supabase migrations `001`-`021` are recorded on the linked hosted project. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21.
+- **Current / hosted:** Supabase migrations `001`-`022` are recorded on the linked hosted project. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` was applied on 2026-10-23.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.
 - **Current / hosted:** `storage.objects` has exactly one Atexgrove policy for the `documents` bucket: authenticated customers may insert into an owned, eligible case path. There is no authenticated object SELECT, UPDATE or DELETE policy.
 - **Current / hosted:** staff downloads must first pass the audited `authorize_case_evidence_download` RPC. Only the server-side admin client, using the server-only service-role credential, creates the 60-second signed download URL.
 
 These hosted configuration observations do not prove realistic multi-account behavior through the application.
 
-## Current branch work — migration 022 and sign out
+## Migration 022 — implemented, CI-verified and hosted
 
 - **Implemented on `fix/assignment-events-location-and-contact`:** migration 022 replaces assignment notes with a fixed customer event plus a private staff note; adds structured FCT council/area/address fields and optional consented phone contact; and adds POST sign-out for customer/staff views. Protected responses are marked `private, no-store`.
 - **Follow-up fixes in PR #24:** migration 022 normalizes the legacy `Kwali LGA` council value before adding its `NOT VALID` check, and assignment now blocks both assigning a case to its customer and a customer acting as the assigning lead. A unit test checks that the SQL and TypeScript starter-area lists stay identical; old cases tolerate missing area/address values.
 - **Local verification on 2026-10-23:** lint, typecheck, 36 unit tests, 14 integration tests (3 credential-gated skips), security guardrails and production build passed. The six pgTAP suites (191 assertions) passed in disposable Supabase CI; Docker is not installed locally.
-- **CI-verified, not hosted:** [CI run 39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) passed lint, typecheck, 36 unit tests, 14 integration tests (3 skipped), guardrails and production build. [Database security run 39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) successfully started Supabase and passed all six pgTAP suites (191 assertions).
-- **Hosted:** migration 022 has not been applied. Hosted remains at 001-021.
+- **CI evidence:** [CI run 39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) passed lint, typecheck, 36 unit tests, 14 integration tests (3 skipped), guardrails and production build. [Database security run 39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) successfully started Supabase and passed all six pgTAP suites (191 assertions). Migration 022 was separately applied to hosted Supabase as recorded below.
+- **Hosted:** migration 022 was applied to hosted Supabase on 2026-10-23. Current hosted migration state is `001`–`022`.
 - **Not included:** no idle timeout is implemented; the timeout policy remains undecided.
 
 ## Current branch work — case-form UX
@@ -31,6 +31,13 @@ These hosted configuration observations do not prove realistic multi-account beh
 ## Current repository brand assets
 
 The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`. The mark is used in the staff header and as `src/app/icon.svg`.
+
+## Current branch work — draft-first case uploads and customer cancellation
+
+- **Implemented on `feat/draft-case-with-uploads`:** migration 023 changes new requests to start as private drafts, allows the customer to add evidence before submission, and adds submit, discard-draft and open-case cancellation RPCs and UI. Staff scope excludes active drafts and owner-discarded drafts through the structured `discarded_at` marker, including their events and evidence; evidence downloads remain audited. `discarded_at` is nullable and means only that the customer discarded an unsubmitted draft. Ordinary customer cancellation and submission leave it null. Discarded draft records and evidence remain retained pending a separate retention/deletion decision.
+- **CI-verified, not hosted:** [CI run 39950544017](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544017) passed lint, typecheck, 40 unit tests, 17 integration tests (3 skipped), security guardrails and production build. [Database security run 39950544756](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544756) applied migrations through 023 on a disposable Supabase stack and passed all seven pgTAP suites (250 assertions).
+- **Hosted:** migration 023 has not been applied. Hosted remains at migrations `001`–`022`.
+- **Retention:** discarded draft records and uploaded files are kept; retention/cleanup and customer deletion of draft evidence are not implemented.
 
 ## Implemented product slices
 
@@ -55,7 +62,7 @@ The latest green workflows associated with the current merged `main` changes are
 - [CI run 39584206476](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206476) - lint, typecheck, unit tests, integration tests, security guardrails and production build passed for PR #21.
 - [Database security run 39584206434](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206434) - migrations through `021` and all pgTAP suites passed in a disposable Supabase environment. That CI run was not itself the hosted apply; migration `021` was separately applied on 2026-10-21.
 
-Latest merged-main evidence is 31 passing unit tests, 13 passing integration tests with 3 hosted-credential tests intentionally skipped, and 166 pgTAP assertions across five suites. On this branch, CI run 39909627609 passed 36 unit tests and 14 integration tests (3 skipped), while run 39909627678 passed all 191 assertions across six pgTAP suites. Automated disposable-environment evidence is not hosted-environment verification. Migration 022 remains not hosted.
+Latest merged-main evidence is 31 passing unit tests, 13 passing integration tests with 3 hosted-credential tests intentionally skipped, and 166 pgTAP assertions across five suites. The historical migration-022 branch checks recorded above passed 36 unit tests and 14 integration tests (3 skipped), and all 191 assertions across six pgTAP suites. Automated disposable-environment evidence is not hosted-environment verification; migration 022 was separately applied to hosted Supabase on 2026-10-23. Migration 023 remains CI-verified, not hosted.
 
 ## Accepted hosted advisor items
 

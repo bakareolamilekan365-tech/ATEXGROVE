@@ -28,11 +28,11 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21); migration 022 is implemented in this PR but is not hosted.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), and migration 022 is hosted (applied 2026-10-23). Migration 023 is implemented on the current branch and CI-verified, not hosted. See docs/STATUS.md for current CI evidence.
 
 ## Private files
 
-The hosted system has private document storage connected to verification cases. Customers can add allowed evidence files only after the request is submitted; staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. Migration 021 prevents a refresh or retry from creating a duplicate when it repeats the same request; it was applied to hosted Supabase on 2026-10-21.
+The prototype flow lets a customer save a request as a draft, add optional allowed evidence, then submit it. Staff cannot see a draft, its timeline or its evidence until it is submitted. Customers can discard a draft or cancel an open request; uploaded files are retained privately, including on cancellation, until a retention rule is decided. Staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. Migration 021 prevents a refresh or retry from creating a duplicate when it repeats the same request; it was applied to hosted Supabase on 2026-10-21. Migration 023 is CI-verified in runs 39948240236 and 39948240244, but is not hosted; see STATUS.md.
 
 The pilot begins with synthetic or properly redacted evidence. Before real documents are accepted, Atexgrove needs approved terms and privacy information, explicit consent, minimum-necessary access, a retention/deletion process, an incident process and appropriate professional review of those rules.
 
@@ -40,7 +40,7 @@ Important evidence will use versions rather than silent replacement. If a custom
 
 ## Testing and deployment
 
-Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions has run migrations through 021 and automated allow/deny tests in a temporary environment. Hosted migration history is 001-021; migration 022 in this PR is not hosted. Separate hosted-user testing is still required.
+Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. Hosted migration history is 001-022; migration 022 was applied 2026-10-23 and migration 023 remains not hosted. Separate hosted-user testing is still required.
 
 ## The controlled case journey
 

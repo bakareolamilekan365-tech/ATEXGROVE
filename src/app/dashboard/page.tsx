@@ -109,7 +109,9 @@ export default async function DashboardPage({
               <p className={`${styles.muted} ${styles.small}`}>
                 Received {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}
               </p>
-              <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>See case timeline</Link>
+              <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>
+                {item.workflow_status === "draft" ? "Continue" : "See case timeline"}
+              </Link>
             </article>
           })}
         </div>
