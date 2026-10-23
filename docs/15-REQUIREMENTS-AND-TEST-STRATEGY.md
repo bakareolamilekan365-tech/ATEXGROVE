@@ -45,7 +45,7 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 ### 2a. Database/RLS and authorization tests
 
-Merged main contains five pgTAP suites with 166 planned assertions. This migration 022 branch has six suites with 188 planned assertions; Database security run [39869566394](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39869566394) passed them on a disposable Supabase stack. Local Docker is unavailable. Disposable CI does not verify the linked hosted project or realistic hosted-user sessions; migration 022 remains not hosted.
+Merged main contains five pgTAP suites with 166 planned assertions. This migration 022 branch has six suites; Database security run [39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) reports `Files=6, Tests=191` and passed on a disposable Supabase stack. CI run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) reports 36 unit tests and 14 integration tests (3 skipped). Disposable CI does not verify the linked hosted project or realistic hosted-user sessions; migration 022 remains not hosted.
 
 Test the same decisions at the server and database boundaries:
 

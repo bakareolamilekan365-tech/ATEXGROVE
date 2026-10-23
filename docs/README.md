@@ -55,6 +55,6 @@ The original master prompt can remain as a product-vision document. These files 
 
 ## Status
 
-**Status date: 2026-10-22.** Hosted Supabase is at migrations `001`-`021`; migration 021 was applied 2026-10-21. The verification case workflow and private evidence slice are implemented. Migration 022 and sign-out are implemented on the current PR branch, but CI verification is pending and migration 022 is not hosted. Check [STATUS.md](STATUS.md) for the evidence-backed distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
+**Status date: 2026-10-23.** Hosted Supabase is at migrations `001`-`021`; migration 021 was applied 2026-10-21. The verification case workflow and private evidence slice are implemented. Migration 022 and sign-out are implemented and CI-verified on the current PR branch (36 unit tests, 14 integration tests with 3 skips, and 191 pgTAP assertions); migration 022 is not hosted. Check [STATUS.md](STATUS.md) for the evidence-backed distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
 
 Historical sections in `17-PROJECT-AUDIT.md` retain the status that was true on their stated dates. Use the latest dated audit addendum and the implementation itself for current status.
