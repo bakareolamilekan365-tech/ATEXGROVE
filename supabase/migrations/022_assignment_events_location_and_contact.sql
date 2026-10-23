@@ -15,6 +15,37 @@ update public.verification_cases
 set area_lga = 'Kwali'
 where area_lga = 'Kwali LGA';
 
+-- Stop rather than guessing how any other legacy council label should map.
+do $area_lga_preflight$
+declare
+  offending_values text;
+begin
+  select string_agg(
+    format(
+      '%s (%s row%s)',
+      case when area_lga is null then '<NULL>' else quote_literal(area_lga) end,
+      row_count,
+      case when row_count = 1 then '' else 's' end
+    ),
+    ', ' order by area_lga nulls first
+  )
+  into offending_values
+  from (
+    select area_lga, count(*) as row_count
+    from public.verification_cases
+    where area_lga is null
+       or area_lga not in ('AMAC', 'Bwari', 'Gwagwalada', 'Kuje', 'Kwali', 'Abaji')
+    group by area_lga
+  ) as unsupported_area_lga;
+
+  if offending_values is not null then
+    raise exception
+      'Migration 022 preflight failed: unsupported area_lga values remain: %. Normalize them by a reviewed migration or manual fix before retrying.',
+      offending_values;
+  end if;
+end;
+$area_lga_preflight$;
+
 alter table public.verification_cases
   add constraint verification_cases_area_lga_fct_council_check
   check (area_lga in ('AMAC', 'Bwari', 'Gwagwalada', 'Kuje', 'Kwali', 'Abaji'))

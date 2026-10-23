@@ -162,7 +162,7 @@ Related work: migration 022 and sign-out changes in `fix/assignment-events-locat
 
 **Cause:** The constraint was introduced without normalizing the known legacy value first; assignment authorization checked department-lead scope and assignee activity, but not customer/assignee conflicts.
 
-**Fix:** Normalize `Kwali LGA` to `Kwali` before adding the `NOT VALID` constraint; reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. CI runs 39869566337 and 39869566394 passed; migration 022 remains unhosted pending review.
+**Fix:** Normalize only `Kwali LGA` to `Kwali`, then preflight all remaining distinct council values before adding the `NOT VALID` constraint. Any unrecognized value aborts with its row count and requires a reviewed migration or manual correction; no mapping is guessed. Reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. The earlier green runs 39869566337 and 39869566394 predate this preflight follow-up; verification for the new preflight is pending. Migration 022 remains unhosted pending review.
 
 **Lesson:** Even `NOT VALID` checks constrain later updates to old rows. Normalize known legacy values before adding them, and test conflict-of-interest rules at the database boundary.
 

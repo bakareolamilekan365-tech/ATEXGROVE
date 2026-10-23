@@ -50,8 +50,13 @@ describe("new verification case validation", () => {
     const typedAreas = fctAreaCouncils.map(({ name, areas }) => [name, [...areas]]);
 
     expect(sqlAreas).toEqual(typedAreas);
-    expect(migration.indexOf("where area_lga = 'Kwali LGA'"))
-      .toBeLessThan(migration.indexOf("add constraint verification_cases_area_lga_fct_council_check"));
+    const normalizationAt = migration.indexOf("where area_lga = 'Kwali LGA'");
+    const preflightAt = migration.indexOf("do $area_lga_preflight$");
+    const constraintAt = migration.indexOf("add constraint verification_cases_area_lga_fct_council_check");
+    expect(normalizationAt).toBeLessThan(preflightAt);
+    expect(preflightAt).toBeLessThan(constraintAt);
+    expect(migration).toContain("Normalize them by a reviewed migration or manual fix before retrying.");
+    expect(migration).toContain("case when area_lga is null then '<NULL>' else quote_literal(area_lga) end");
   });
 
   it("validates listed locations and permits explicitly unlisted areas", () => {

@@ -1,6 +1,39 @@
 -- Behavioural coverage for migration 022. Runs on disposable local/CI Supabase only.
 begin;
-select plan(13);
+select plan(16);
+
+-- The migration has already normalized the sole approved legacy label. This
+-- proves clean rows pass and that the normalized Kwali value is accepted. A
+-- separate migration failure fixture is documented in docs/RUNBOOK.md because
+-- a failing migration aborts before pgTAP can execute in the same reset.
+select is(
+  (
+    select count(*)::int from public.verification_cases
+    where area_lga is null
+       or area_lga not in ('AMAC', 'Bwari', 'Gwagwalada', 'Kuje', 'Kwali', 'Abaji')
+  ),
+  0,
+  'migration 022 preflight passes when existing data contains only supported councils'
+);
+create temporary table migration_022_preflight_fixture (area_lga text);
+insert into migration_022_preflight_fixture (area_lga) values ('Kwali LGA');
+update migration_022_preflight_fixture
+set area_lga = 'Kwali'
+where area_lga = 'Kwali LGA';
+select is(
+  (select area_lga from migration_022_preflight_fixture),
+  'Kwali',
+  'the known legacy Kwali LGA label is normalized before preflight'
+);
+select is(
+  (
+    select count(*)::int from migration_022_preflight_fixture
+    where area_lga is null
+       or area_lga not in ('AMAC', 'Bwari', 'Gwagwalada', 'Kuje', 'Kwali', 'Abaji')
+  ),
+  0,
+  'the preflight accepts a legacy Kwali LGA row after the migration normalizes it to Kwali'
+);
 
 select ok(
   not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)', 'EXECUTE'),
