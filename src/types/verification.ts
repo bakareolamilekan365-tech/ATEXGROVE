@@ -43,6 +43,7 @@ export type VerificationCase = {
   workflow_status: VerificationCaseStatus;
   assigned_lead_user_id: string | null;
   idempotency_key: string | null;
+  discarded_at: string | null;
   is_demo_data: boolean;
   created_at: string;
   updated_at: string;

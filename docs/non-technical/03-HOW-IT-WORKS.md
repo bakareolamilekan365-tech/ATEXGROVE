@@ -28,7 +28,7 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21). Migration 022 is CI-verified but not hosted; migration 023 is implemented on the current branch and not hosted. See docs/STATUS.md for current CI evidence.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), and migration 022 is hosted (applied 2026-10-23). Migration 023 is implemented on the current branch and CI-verified, not hosted. See docs/STATUS.md for current CI evidence.
 
 ## Private files
 
@@ -40,7 +40,7 @@ Important evidence will use versions rather than silent replacement. If a custom
 
 ## Testing and deployment
 
-Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. Hosted migration history is 001-021; migrations 022 and 023 are not hosted. Separate hosted-user testing is still required.
+Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. Hosted migration history is 001-022; migration 022 was applied 2026-10-23 and migration 023 remains not hosted. Separate hosted-user testing is still required.
 
 ## The controlled case journey
 

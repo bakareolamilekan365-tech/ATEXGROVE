@@ -4,7 +4,7 @@ This folder explains Atexgrove for founders, partners, advisers, future team mem
 
 The files in the parent `docs/` folder remain the detailed source of truth. These versions explain the same direction in simpler language and must never be used to exaggerate what has been built.
 
-**Status date: 2026-10-23.** Hosted Supabase is at migrations `001`-`021` (021 applied 2026-10-21). The case workflow and private evidence slice are implemented. Migration 022 and sign-out are implemented and CI-verified on the current PR branch; all 191 database assertions passed, but migration 022 is not hosted. See the technical [STATUS.md](../STATUS.md) for run links and open operational checks.
+**Status date: 2026-10-23.** Hosted Supabase is at migrations `001`-`022` (021 applied 2026-10-21; 022 applied 2026-10-23). The case workflow, private evidence slice, structured location/contact fields and assignment event controls are implemented and hosted. Draft-first uploads in migration 023 are implemented on the current PR branch and CI-verified, not hosted. See the technical [STATUS.md](../STATUS.md) for run links and open operational checks.
 
 ## Suggested reading order
 

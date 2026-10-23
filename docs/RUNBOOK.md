@@ -86,7 +86,7 @@ Use the **Sign out** button in the customer dashboard or staff workspace, then s
 
 For a migration that drops an RPC signature used by the current app, deploy in this order: **merge the compatible code first, apply the migration second, then run the new app build**. Do not run an older app build against the new schema during the transition.
 
-Migrations `021` and `022` replace RPC signatures: `021` drops the old `create_verification_case` signature; `022` drops the previous `create_verification_case` and `assign_verification_case` signatures. An older app build still calling those signatures will fail after the corresponding migration is applied. Apply the migration only to the intended environment after the compatible code is ready; migration 022 is CI-verified but is not hosted.
+Migrations `021` and `022` replace RPC signatures: `021` drops the old `create_verification_case` signature; `022` drops the previous `create_verification_case` and `assign_verification_case` signatures. An older app build still calling those signatures will fail after the corresponding migration is applied. Migration 022 was applied to hosted Supabase on 2026-10-23; current hosted state is migrations `001`–`022`. Apply future migrations only to the intended environment after the compatible code is ready.
 
 Migration `023_draft_case_with_uploads.sql` also drops and replaces the current ten-argument `create_verification_case` signature. Deployment order for an incompatible RPC change is: merge the compatible code, apply the reviewed migration to the intended project, then run the new app build. An older app build will fail against 023. Migration 023 is not hosted; do not apply it before review and deployment approval.
 

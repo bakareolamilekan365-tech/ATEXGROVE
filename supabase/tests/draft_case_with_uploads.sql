@@ -1,5 +1,5 @@
 begin;
-select plan(47);
+select plan(59);
 
 select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)', 'EXECUTE'), 'anon cannot execute draft creation');
 select ok(not has_function_privilege('anon', 'public.submit_verification_case(uuid)', 'EXECUTE'), 'anon cannot submit drafts');
@@ -23,6 +23,7 @@ select lives_ok($$select public.create_verification_case(
  '11111111-1111-4111-8111-111111111111')$$,'customer can create a draft through the RPC');
 select set_config('test.draft_case_id',(select id::text from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),true);
 select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'draft','new request is a draft');
+select is((select discarded_at from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),null,'new draft starts with no discarded timestamp');
 select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and customer_visible),0,'draft creation writes no customer-visible event');
 reset role;
 select is((select count(*)::int from public.audit_logs where action='verification_case.draft_created' and entity_id=current_setting('test.draft_case_id')::uuid),1,'draft creation is audited once');
@@ -76,6 +77,7 @@ select lives_ok($$select public.submit_verification_case(current_setting('test.d
 select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'submit replay succeeds');
 select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and reason='Request submitted by customer.'),1,'submit writes one fixed customer event');
 select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'submitted','submitted draft transitions to submitted');
+select is((select discarded_at from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),null,'submission leaves discarded_at null');
 select throws_ok($$select public.discard_draft_case(current_setting('test.draft_case_id')::uuid)$$,'22023',null,'submitted case cannot be discarded as a draft');
 reset role;
 
@@ -91,10 +93,17 @@ insert into public.verification_cases(id,customer_user_id,created_by_user_id,sit
  ('99999999-9999-4999-8999-999999999999','a1100000-0000-4000-8000-000000000001','a1100000-0000-4000-8000-000000000001','DEMO DATA / NOT OFFICIAL pre-existing case','Kuje',null,null,null,'email','submitted');
 insert into public.case_assignments(verification_case_id,assignee_user_id,assigned_by_user_id,status)
 values('33333333-3333-4333-8333-333333333333','d4400000-0000-4000-8000-000000000004','c3300000-0000-4000-8000-000000000003','active');
+insert into storage.objects(bucket_id,name,owner_id) values
+ ('documents','documents/cases/88888888-8888-4888-8888-888888888888/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee/discarded.pdf','a1100000-0000-4000-8000-000000000001');
+insert into public.case_evidence(id,verification_case_id,uploaded_by_user_id,evidence_type,description,storage_path,original_filename,mime_type,size_bytes)
+values('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','88888888-8888-4888-8888-888888888888','a1100000-0000-4000-8000-000000000001','other','Synthetic discarded draft file','documents/cases/88888888-8888-4888-8888-888888888888/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee/discarded.pdf','discarded.pdf','application/pdf',100);
 
 select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
 select throws_ok($$select public.cancel_verification_case('88888888-8888-4888-8888-888888888888','')$$,'22023',null,'draft cannot use open-case cancellation');
+select set_config('request.jwt.claims','{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}',true);
+select throws_ok($$select public.discard_draft_case('88888888-8888-4888-8888-888888888888')$$,'42501',null,'another customer cannot discard the owner draft');
+select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 select lives_ok($$select public.discard_draft_case('88888888-8888-4888-8888-888888888888')$$,'owner discards a draft');
 select is((select workflow_status from public.verification_cases where id='88888888-8888-4888-8888-888888888888'),'cancelled','discard marks draft cancelled');
 select lives_ok($$select public.cancel_verification_case('22222222-2222-4222-8222-222222222222','No longer needed')$$,'customer can cancel submitted case');
@@ -104,6 +113,11 @@ select lives_ok($$select public.cancel_verification_case('55555555-5555-4555-855
 select throws_ok($$select public.cancel_verification_case('66666666-6666-4666-8666-666666666666','')$$,'22023',null,'closed case cannot be cancelled');
 select throws_ok($$select public.cancel_verification_case('77777777-7777-4777-8777-777777777777','')$$,'22023',null,'cancelled case cannot be cancelled again');
 reset role;
+select ok((select discarded_at is not null from public.verification_cases where id='88888888-8888-4888-8888-888888888888'),'discarding a draft sets discarded_at');
+select is((select count(*)::int from public.case_status_events where verification_case_id='88888888-8888-4888-8888-888888888888' and reason='This draft was discarded.' and customer_visible),1,'discard timeline keeps its customer-facing line');
+update public.case_status_events set reason='Timeline copy changed in regression test'
+where verification_case_id='88888888-8888-4888-8888-888888888888' and from_status='draft' and to_status='cancelled';
+select is((select discarded_at from public.verification_cases where id='22222222-2222-4222-8222-222222222222'),null,'ordinary customer cancellation leaves discarded_at null');
 select is((select status from public.case_assignments where verification_case_id='33333333-3333-4333-8333-333333333333'),'cancelled','cancelling ends active assignment');
 select is((select count(*)::int from public.case_status_events where verification_case_id='22222222-2222-4222-8222-222222222222' and reason='You cancelled this request.' and customer_visible and event_kind='status_change'),1,'customer cancellation writes fixed visible event');
 select is((select reason from public.case_status_events where verification_case_id='22222222-2222-4222-8222-222222222222' and event_kind='staff_note'),'No longer needed','cancellation reason is a private staff note');
@@ -112,6 +126,16 @@ select set_config('request.jwt.claims','{"sub":"c3300000-0000-4000-8000-00000000
 set local role authenticated;
 select is((select count(*)::int from public.verification_cases where id='88888888-8888-4888-8888-888888888888'),0,'staff cannot see a discarded draft');
 select is((select count(*)::int from public.case_status_events where verification_case_id='88888888-8888-4888-8888-888888888888'),0,'staff cannot see discarded-draft events');
+select is((select count(*)::int from public.case_evidence where verification_case_id='88888888-8888-4888-8888-888888888888'),0,'staff cannot see discarded-draft evidence');
+select throws_ok($$select * from public.authorize_case_evidence_download('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee')$$,'42501',null,'staff audited download of discarded-draft evidence is denied');
+select is((select count(*)::int from public.verification_cases where id='22222222-2222-4222-8222-222222222222'),1,'lead can still see an ordinarily cancelled case');
+reset role;
+
+select set_config('request.jwt.claims','{"sub":"d4400000-0000-4000-8000-000000000004","role":"authenticated"}',true);
+set local role authenticated;
+select is((select count(*)::int from public.verification_cases where id='88888888-8888-4888-8888-888888888888'),0,'other staff cannot see a discarded draft');
+select is((select count(*)::int from public.case_evidence where verification_case_id='88888888-8888-4888-8888-888888888888'),0,'other staff cannot see discarded-draft evidence');
+select throws_ok($$select * from public.authorize_case_evidence_download('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee')$$,'42501',null,'other staff cannot download discarded-draft evidence');
 reset role;
 
 select set_config('request.jwt.claims','{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}',true);

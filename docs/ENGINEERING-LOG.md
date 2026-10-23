@@ -190,4 +190,16 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 **Fix:** Migration 023 creates new cases as private drafts with idempotent request keys and no initial customer-visible event; adds owner-only submit, discard and open-case cancellation RPCs; permits draft evidence under existing size/type/signature/path/quota rules; and excludes active drafts plus discarded-draft history from staff RLS and audited downloads. The customer UI supports draft continuation, optional uploads, submission, discard and cancellation. CI run [39948240236](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240236) passed 40 unit tests and 17 integration tests (3 skipped), lint, typecheck, guardrails and build; database run [39948240244](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240244) passed all seven pgTAP suites (238 assertions) on a disposable Supabase stack. Migration 023 is not hosted.
 
+## 2026-10-23 — Hosted migration 022 and structured discarded-draft authorization
+
+**Problem:** Current-state documentation still described hosted migration history as `001`–`021`, although migration 022 was applied to hosted Supabase on 2026-10-23. Separately, migration 023's staff authorization inferred a discarded draft by matching the customer-facing event reason, coupling permissions to presentation text that could be changed.
+
+**Cause:** Deployment status was not propagated across the docs after the hosted apply, and discarded-draft state had no dedicated database field.
+
+**Fix:** Record hosted state as `001`–`022` (022 applied 2026-10-23) while keeping 023 CI-verified, not hosted. Migration 023 adds nullable `verification_cases.discarded_at`: only `discard_draft_case` sets it; new drafts, submissions and ordinary customer cancellations leave it null. Staff access checks this structured marker rather than event text. Tests cover active and discarded draft isolation from leads and other staff, denied evidence downloads, owner-only cancellation/discard, and continued staff visibility of an ordinarily cancelled case. Discarded draft rows and files remain retained pending a separate retention/deletion decision.
+
+**Lesson:** Keep hosted deployment facts separate from CI results, and make authorization depend on structured state—not user-facing event copy.
+
+**CI evidence for this update:** App run [39950544017](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544017) passed lint, typecheck, 40 unit tests, 17 integration tests (3 skipped), security guardrails and production build. Database run [39950544756](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544756) passed seven pgTAP suites (250 assertions) in a disposable Supabase environment. Migration 023 remains not hosted.
+
 **Lesson:** A draft is a privacy boundary, not just a label. Apply visibility consistently to case rows, events, evidence metadata, Storage objects and privileged download paths. Retain uploaded files until a reviewed retention policy exists.

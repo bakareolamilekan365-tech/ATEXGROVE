@@ -20,7 +20,7 @@ Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3
 | <a id="c-12"></a>C-12 | Customer | Account trust/status view that keeps email, phone, identity, organization and professional states separate | D | Planned |
 | <a id="c-13"></a>C-13 | Customer | Capture the customer’s reason for requesting verification | A | Planned |
 | <a id="c-14"></a>C-14 | Customer | Capture claimed relationship to the land without treating it as proof | A | Planned |
-| <a id="c-15"></a>C-15 | Customer | Structured Abuja/FCT council, starter area and site details | A | Implemented; CI-verified in runs 39909627609 and 39909627678; not hosted |
+| <a id="c-15"></a>C-15 | Customer | Structured Abuja/FCT council, starter area and site details | A | Implemented; CI-verified in runs 39909627609 and 39909627678; migration 022 hosted 2026-10-23 |
 | <a id="c-16"></a>C-16 | Customer | Human-readable case reference instead of UUID fragments | A | Planned |
 | <a id="c-17"></a>C-17 | Customer | Record case-scope service consent and clear authority limitations before submission | A | Planned; minimal case-scope consent record is in scope |
 | <a id="c-18"></a>C-18 | Customer | Show the six-stage case progress journey in the product | B | Planned |
@@ -65,12 +65,12 @@ Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3
 | <a id="p-57"></a>P-57 | Professional | Full professional directory/marketplace after verification and access controls | F | Planned |
 | <a id="l-58"></a>L-58 | Later | Wider construction, property, finance and urban-intelligence modules | F | Planned; workflows need definition |
 | <a id="c-59"></a>C-59 | Customer | Required-items request within the case workflow | B | Planned; not started |
-| <a id="c-60"></a>C-60 | Customer | Upload documents while creating a case (create draft, upload, then submit) | A — immediately after migration 022 | Implemented; CI-verified in runs [39948240236](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240236) and [39948240244](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240244); migration 023 not hosted |
+| <a id="c-60"></a>C-60 | Customer | Upload documents while creating a case (create draft, upload, then submit) | A — immediately after migration 022 | Implemented; CI-verified in runs [39950544017](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544017) and [39950544756](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544756); migration 023 not hosted |
 | <a id="c-61"></a>C-61 | Customer | Prevent duplicate cases when a submitted request is replayed | Completed — 021 | Done; migration 021 hosted (applied 2026-10-21) |
 | <a id="c-62"></a>C-62 | Customer | Distinguish a customer response from an information request | Completed — 021 | Done; migration 021 hosted (applied 2026-10-21) |
 | <a id="c-63"></a>C-63 | Customer | Sign out from customer and staff workspaces using a POST action | Current PR | Implemented; CI-verified in run 39909627609; not hosted |
 | <a id="c-64"></a>C-64 | Customer | Decide whether an idle session timeout is needed | Decision | Not decided; no idle timeout exists today |
-| <a id="c-71"></a>C-71 | Customer | Cancel an open verification request and optionally explain why | Current PR | Implemented; CI-verified in runs [39948240236](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240236) and [39948240244](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240244); migration 023 not hosted |
+| <a id="c-71"></a>C-71 | Customer | Cancel an open verification request and optionally explain why | Current PR | Implemented; CI-verified in runs [39950544017](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544017) and [39950544756](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544756); migration 023 not hosted |
 | <a id="c-72"></a>C-72 | Customer | Define retention and cleanup for discarded drafts and their evidence | Decision | Not decided; 023 keeps drafts and files |
 | <a id="c-73"></a>C-73 | Customer | Let customers delete evidence attached to their own draft | F | Planned; draft evidence is retained for now |
 | <a id="s-a"></a>S-a | Staff/admin | Staff conflict declarations and prevention of assigning a case to its own customer; separate staff conflict declaration from automatic assignment checks | B — Slice 3 | Planned; current assignment RPC has no conflict-of-interest check |
@@ -85,8 +85,8 @@ Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3
 | <a id="p-e"></a><a id="p-24"></a><a id="p-25"></a><a id="p-26"></a>P-e / P-24–P-26 | Professional | Deliverable acceptance, version history, scope/capacity sign-off and internal QA before customer completion | F | Planned |
 | <a id="p-f"></a>P-f | Professional | Professional work dashboard and individual activity history | F | Planned |
 | <a id="p-g"></a>P-g | Professional | Professional fees and invoices, coordinated with later payments | F | Planned |
-| <a id="s-60"></a>S-60 | Staff/admin | Assignment creates one fixed customer update and one private staff note | Current PR | Implemented; CI-verified in runs 39909627609 and 39909627678; not hosted |
-| <a id="c-65"></a>C-65 | Customer | Optional consented Nigerian contact number for phone/WhatsApp case contact | Current PR | Implemented; CI-verified in runs 39909627609 and 39909627678; not hosted |
+| <a id="s-60"></a>S-60 | Staff/admin | Assignment creates one fixed customer update and one private staff note | Current PR | Implemented; CI-verified in runs 39909627609 and 39909627678; migration 022 hosted 2026-10-23 |
+| <a id="c-65"></a>C-65 | Customer | Optional consented Nigerian contact number for phone/WhatsApp case contact | Current PR | Implemented; CI-verified in runs 39909627609 and 39909627678; migration 022 hosted 2026-10-23 |
 | <a id="c-66"></a>C-66 | Customer | Owner-confirmed Atexgrove mark, logo and wordmark | Completed | Done (merged) |
 | <a id="c-67"></a>C-67 | Customer | Revisit a repo-wide blue palette change | Decision | Undecided; revisit later |
 | <a id="c-68"></a>C-68 | Customer | Loading skeletons and accessible keyboard shortcuts | C | Planned; shortcuts require modifier or opt-out/remap control |

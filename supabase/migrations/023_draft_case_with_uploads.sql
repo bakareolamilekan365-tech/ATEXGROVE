@@ -1,6 +1,11 @@
 -- Draft-first customer intake, scoped visibility, and customer cancellation.
 -- Forward-only: migrations 001-022 are historical and remain unchanged.
 
+-- Structured marker for a customer-discarded, unsubmitted draft. Ordinary
+-- customer cancellations and draft submissions leave this null.
+alter table public.verification_cases
+  add column discarded_at timestamptz;
+
 -- The helper is the common defense for staff reads of cases, assignments,
 -- events, evidence, and the audited download RPC. Customers retain owner access.
 create or replace function public.staff_can_access_verification_case(target_case_id uuid)
@@ -18,16 +23,7 @@ as $$
       where sm.user_id = (select auth.uid())
         and sm.active
         and vc.workflow_status <> 'draft'
-        and not (
-          vc.workflow_status = 'cancelled'
-          and exists (
-            select 1 from public.case_status_events discarded
-            where discarded.verification_case_id = vc.id
-              and discarded.from_status = 'draft'
-              and discarded.to_status = 'cancelled'
-              and discarded.reason = 'This draft was discarded.'
-          )
-        )
+        and vc.discarded_at is null
         and (
           (sm.is_lead and sm.department = vc.department)
           or exists (
@@ -221,7 +217,9 @@ begin
   if not found then raise exception 'Verification case not found' using errcode = 'P0002'; end if;
   if case_row.customer_user_id <> actor_id then raise exception 'Only the case customer can discard this draft' using errcode = '42501'; end if;
   if case_row.workflow_status <> 'draft' then raise exception 'Only a draft can be discarded' using errcode = '22023'; end if;
-  update public.verification_cases set workflow_status = 'cancelled' where id = p_case_id;
+  update public.verification_cases
+  set workflow_status = 'cancelled', discarded_at = now()
+  where id = p_case_id;
   insert into public.case_status_events(verification_case_id, actor_user_id, from_status, to_status, reason, customer_visible, event_kind)
   values(p_case_id, actor_id, 'draft', 'cancelled', 'This draft was discarded.', true, 'status_change');
   insert into public.audit_logs(actor_user_id, action, entity_type, entity_id, metadata)
