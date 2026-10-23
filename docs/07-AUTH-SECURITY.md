@@ -8,6 +8,10 @@ The prototype uses Supabase Auth, PostgreSQL Row Level Security (RLS) and server
 
 ## Authentication
 
+### Case consent and customer claims
+
+Migration 024 records acceptance of the versioned `case_service_scope` notice in `case_consents` only from the owner-checked submit RPC. Authenticated clients have SELECT only; RLS allows the customer who accepted and staff with existing case-scoped access; anon has no grant and direct writes are revoked. The case number sequence is private and has no Data API grants. Intent, relationship-to-land, representation and authority-confirmation values are customer claims, not proof of ownership, identity, authority or government status; staff UI must preserve that label. Legacy rows remain null rather than receiving inferred claims. The service-scope notice is draft wording and not legally reviewed.
+
 ### Current prototype
 
 - Supabase Auth provides the identity provider.

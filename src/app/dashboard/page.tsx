@@ -7,6 +7,7 @@ import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { StaffMember, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
+import { nextActionLabel } from "@/lib/verification-cases/next-action";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function DashboardPage({
       .maybeSingle(),
     supabase
       .from("verification_cases")
-      .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, created_at, updated_at")
+      .select("id, case_number, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, discarded_at, customer_intent, relationship_to_land, acting_for, principal_name, authority_confirmed, created_at, updated_at")
       .eq("customer_user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -102,10 +103,11 @@ export default async function DashboardPage({
                 <span className={styles.demo}>Demo</span>
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
-              <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
+              <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
               <h2>{location.heading}</h2>
               {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
               <p>{item.site_description}</p>
+              <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 Received {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}
               </p>

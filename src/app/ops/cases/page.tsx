@@ -22,7 +22,7 @@ export default async function CaseQueuePage({
 
   let query = supabase
     .from("verification_cases")
-    .select("id, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, created_at, updated_at")
+    .select("id, case_number, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, customer_intent, relationship_to_land, acting_for, principal_name, authority_confirmed, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, created_at, updated_at")
     .neq("workflow_status", "draft")
     .order("created_at", { ascending: false });
   if (status) query = query.eq("workflow_status", status);
@@ -74,7 +74,7 @@ export default async function CaseQueuePage({
                 <span className={styles.demo}>Demo</span>
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
-              <p className={styles.eyebrow}>{item.department} · {item.id.slice(0, 8)}</p>
+              <p className={styles.eyebrow}>{item.department} · {item.case_number ?? "Not recorded"}</p>
               <h2>{item.area_lga}, Abuja</h2>
               <p>{item.site_description}</p>
               <p className={`${styles.muted} ${styles.small}`}>Customer {item.customer_user_id.slice(0, 8)}</p>

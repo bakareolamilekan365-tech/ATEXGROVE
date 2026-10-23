@@ -15,6 +15,11 @@ const validRequest = {
   contactPreference: "email",
   contactPhone: "",
   contactPhoneConsent: false,
+  customerIntent: "buying",
+  relationshipToLand: "buyer",
+  actingFor: "self",
+  principalName: "",
+  authorityConfirmed: false,
 } as const;
 
 describe("new verification case validation", () => {
@@ -71,5 +76,21 @@ describe("new verification case validation", () => {
     expect(newVerificationCaseSchema.safeParse({ ...validRequest, contactPreference: "whatsapp", contactPhone: "+2348012345678", contactPhoneConsent: true }).success).toBe(true);
     expect(newVerificationCaseSchema.safeParse({ ...validRequest, contactPreference: "phone", contactPhone: "08012345678", contactPhoneConsent: false }).success).toBe(false);
     expect(newVerificationCaseSchema.safeParse({ ...validRequest, contactPreference: "email", contactPhone: "08012345678" }).success).toBe(false);
+  });
+
+  it("requires a principal and authority confirmation only when acting for another party", () => {
+    expect(newVerificationCaseSchema.safeParse({ ...validRequest, actingFor: "another_person", principalName: "Synthetic Principal", authorityConfirmed: true }).success).toBe(true);
+    expect(newVerificationCaseSchema.safeParse({ ...validRequest, actingFor: "another_person", principalName: "", authorityConfirmed: true }).success).toBe(false);
+    expect(newVerificationCaseSchema.safeParse({ ...validRequest, actingFor: "organisation", principalName: "Demo Company", authorityConfirmed: false }).success).toBe(false);
+    expect(newVerificationCaseSchema.safeParse({ ...validRequest, actingFor: "self", principalName: "Unexpected", authorityConfirmed: false }).success).toBe(false);
+  });
+
+  it("keeps the 024 case-number backfill ordered and limited to submitted cases", () => {
+    const migration = readFileSync(resolve(process.cwd(), "supabase/migrations/024_case_intake_and_consent.sql"), "utf8");
+    expect(migration).toContain("row_number() over (order by created_at, id)");
+    expect(migration).toContain("where workflow_status in ('submitted', 'assigned', 'in_review', 'needs_customer_info', 'closed', 'cancelled')");
+    expect(migration).toContain("and discarded_at is null");
+    expect(migration).toContain("create sequence public.verification_case_number_seq");
+    expect(migration).toContain("revoke all on sequence public.verification_case_number_seq from public, anon, authenticated, service_role");
   });
 });

@@ -44,6 +44,12 @@ export type VerificationCase = {
   assigned_lead_user_id: string | null;
   idempotency_key: string | null;
   discarded_at: string | null;
+  customer_intent: "buying" | "own_or_occupy" | "developing" | "representing_someone" | "other" | null;
+  relationship_to_land: "buyer" | "owner" | "occupier" | "developer" | "agent_or_representative" | "other" | null;
+  acting_for: "self" | "another_person" | "organisation" | null;
+  principal_name: string | null;
+  authority_confirmed: boolean | null;
+  case_number: string | null;
   is_demo_data: boolean;
   created_at: string;
   updated_at: string;

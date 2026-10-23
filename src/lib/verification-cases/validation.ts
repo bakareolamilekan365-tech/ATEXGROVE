@@ -20,19 +20,30 @@ export const newVerificationCaseSchema = z.object({
   contactPreference: z.enum(["email", "phone", "whatsapp"]),
   contactPhone: z.string().trim().max(24),
   contactPhoneConsent: z.boolean(),
+  customerIntent: z.enum(["buying", "own_or_occupy", "developing", "representing_someone", "other"]),
+  relationshipToLand: z.enum(["buyer", "owner", "occupier", "developer", "agent_or_representative", "other"]),
+  actingFor: z.enum(["self", "another_person", "organisation"]),
+  principalName: z.string().trim().max(200),
+  authorityConfirmed: z.boolean(),
 }).superRefine((data, ctx) => {
   if (data.areaIsListed && !listedAreasFor(data.areaLga).includes(data.areaName)) {
     ctx.addIssue({ code: "custom", path: ["areaName"], message: "Choose an area from the starter list or select that it is not listed." });
   }
   if (data.contactPreference === "email") {
     if (data.contactPhone || data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhone"], message: "Phone details are only used for phone or WhatsApp contact." });
-    return;
+  } else {
+    const normalized = data.contactPhone.replace(/[\s()-]/g, "");
+    if (!/^(?:0[789]\d{9}|\+234[789]\d{9})$/.test(normalized)) {
+      ctx.addIssue({ code: "custom", path: ["contactPhone"], message: "Enter a valid Nigerian mobile number." });
+    }
+    if (!data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhoneConsent"], message: "Please give consent to use this number for your request." });
   }
-  const normalized = data.contactPhone.replace(/[\s()-]/g, "");
-  if (!/^(?:0[789]\d{9}|\+234[789]\d{9})$/.test(normalized)) {
-    ctx.addIssue({ code: "custom", path: ["contactPhone"], message: "Enter a valid Nigerian mobile number." });
+  if (data.actingFor === "self") {
+    if (data.principalName || data.authorityConfirmed) ctx.addIssue({ code: "custom", path: ["actingFor"], message: "For a request for yourself, leave representation details blank." });
+  } else {
+    if (data.principalName.length < 1) ctx.addIssue({ code: "custom", path: ["principalName"], message: "Enter the person or organisation this request is for." });
+    if (!data.authorityConfirmed) ctx.addIssue({ code: "custom", path: ["authorityConfirmed"], message: "Confirm that you are authorised to submit this request." });
   }
-  if (!data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhoneConsent"], message: "Please give consent to use this number for your request." });
 });
 
 export const assignmentSchema = z.object({

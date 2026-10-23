@@ -13,6 +13,7 @@ import {
   validateEvidenceFileSignature,
 } from "@/lib/case-evidence/validation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { CASE_SERVICE_SCOPE_NOTICE_VERSION } from "@/lib/verification-cases/service-scope-notice";
 
 export type EvidenceActionState = { error: string | null; success: string | null };
 
@@ -107,8 +108,14 @@ export async function uploadCaseEvidenceAction(
 
 export async function submitDraftCaseAction(formData: FormData): Promise<void> {
   const caseId = String(formData.get("caseId") ?? "");
+  const accepted = formData.get("serviceScopeAccepted") === "on";
+  if (!accepted) throw new Error("Accept the service-scope notice before submitting.");
   const { supabase } = await requireAuthenticatedUser();
-  const { error } = await supabase.rpc("submit_verification_case", { p_case_id: caseId });
+  const { error } = await supabase.rpc("submit_verification_case", {
+    p_case_id: caseId,
+    p_notice_version: String(formData.get("noticeVersion") ?? CASE_SERVICE_SCOPE_NOTICE_VERSION),
+    p_accepted: accepted,
+  });
   if (error) throw new Error("This draft could not be submitted. Refresh and try again.");
   revalidatePath("/dashboard");
   redirect(`/dashboard/cases/${caseId}`);

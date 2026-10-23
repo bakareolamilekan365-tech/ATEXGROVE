@@ -58,7 +58,7 @@ export default async function OperationsCasePage({
     <main className={styles.shell}>
       <div className={styles.headerRow}>
         <div>
-          <p className={styles.eyebrow}>{item.department} · Case {item.id.slice(0, 8)}</p>
+          <p className={styles.eyebrow}>{item.department} · {item.case_number ?? "Not recorded"}</p>
           <h1>{location.heading}</h1>
           {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
@@ -76,6 +76,11 @@ export default async function OperationsCasePage({
             <h2>{item.site_description}</h2>
             <p><strong>Customer:</strong> {item.customer_user_id}</p>
             <p><strong>Contact preference:</strong> {item.contact_preference}</p>
+            <h3>Intake claims · Customer's claim, not verified</h3>
+            <p><strong>Intent:</strong> {item.customer_intent ?? "Not recorded"}</p>
+            <p><strong>Relationship to land:</strong> {item.relationship_to_land ?? "Not recorded"}</p>
+            <p><strong>Request for:</strong> {item.acting_for === "self" ? "Myself" : item.acting_for === "another_person" ? `Another person: ${item.principal_name ?? "Not recorded"}` : item.acting_for === "organisation" ? `Organisation: ${item.principal_name ?? "Not recorded"}` : "Not recorded"}</p>
+            <p><strong>Authority confirmation (customer claim, not verified):</strong> {item.authority_confirmed === null ? "Not recorded" : item.authority_confirmed ? "Confirmed by customer" : "Not applicable"}</p>
             <p><strong>Area council:</strong> {item.area_lga}</p>
             <p><strong>Area:</strong> {item.area_name ?? "Not recorded"}</p>
             <p><strong>Area list status:</strong> {item.area_is_listed === null ? "Not recorded" : item.area_is_listed ? "Starter list" : "Customer-entered, not in starter list"}</p>
