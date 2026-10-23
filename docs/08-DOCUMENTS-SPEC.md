@@ -4,7 +4,7 @@
 
 Documents are sensitive assets connected to users, organizations, verification cases, later land parcels and projects. The Phase 2 primary resource scope is the verification case; a case and its evidence must not require an existing marketplace parcel. This specification defines the target controls without claiming that every lifecycle stage is implemented today.
 
-**Current hosted state:** migration `019` configures case-scoped private evidence in the private `documents` bucket; it is recorded on hosted Supabase. **Current repository state:** migration `021` adds an idempotency key to case creation and explicit timeline event kinds, including a distinct customer response. PR #21 is merged and passed disposable Supabase CI, but migration `021` has not been applied to hosted Supabase. Slice 2 adds customer upload/listing, immutable metadata and version lineage, staff-only audited signed downloads, and a customer response path. Evidence review/authentication, staff uploads, malware scanning, retention policy and automated analysis remain **Planned/Future**.
+**Current hosted state:** migration `019` configures case-scoped private evidence in the private `documents` bucket; it is recorded on hosted Supabase. Migration `021` adds idempotent case creation and explicit timeline event kinds; it is hosted (applied 2026-10-21). Migration `022` adds location/contact fields and the assignment event pair, and is implemented on the current PR branch; CI verification is pending and it is not hosted. Slice 2 adds customer upload/listing, immutable metadata and version lineage, staff-only audited signed downloads, and a customer response path. Customers can currently upload only after a request has been submitted. Evidence review/authentication, staff uploads, malware scanning, retention policy and automated analysis remain **Planned/Future**.
 
 ## Supported Slice 2 types
 
@@ -120,6 +120,10 @@ Storing a document does not make it legally authoritative. GIS or scanned bounda
 
 Document access follows minimum-necessary principles. The architecture should support scoped organization/project access, reviewer assignment, explicit download permission, retention/deletion decisions and auditability. Retention periods, deletion exceptions and legal holds are jurisdiction- and policy-dependent and require appropriate domain/legal input.
 
+### Planned external-professional handling
+
+This is **Planned**, not implemented. No external professional receives general case access. Each engagement is per assignment, limited to selected evidence, time-limited, revocable and audited at document-open/download level. A sharing package should contain only the evidence chosen for that assignment. Record any applicable professional agreement and confidentiality terms before access, and define handling/deletion of professional copies when the assignment ends. See [P-31](BACKLOG.md#p-31), [P-d](BACKLOG.md#p-d), [P-50](BACKLOG.md#p-50) and [X-51](BACKLOG.md#x-51).
+
 ## AI document analysis (Future)
 
 AI extraction or analysis is not required for the current prototype and must not process real controlled-pilot documents. The initial pilot uses synthetic or properly redacted evidence. If AI is added later, it should run asynchronously through a background job and an `AIProvider` adapter. Uploaded files and extracted text are untrusted input. AI output is advisory, must include confidence/uncertainty, must not invent missing facts or impersonate legal/professional/official authority, and requires human or professional review before consequential status changes.
@@ -139,6 +143,6 @@ Long-running work should expose durable states such as queued, running, succeede
 
 ## Current prototype boundary
 
-The hosted boundary includes migration `019` and the case-scoped private evidence controls. The repository also includes migration `021`, which makes case creation idempotent for matching requests and distinguishes information requests from customer responses in the event timeline. PR #21 passed disposable-environment migration and pgTAP CI and was merged; migration `021` remains **NOT HOSTED** pending separate review and explicit deployment approval. The application includes case evidence upload/listing, customer clarification response, server-side validation, transactional registration/event/audit RPC, staff access audit and short-lived download action.
+The hosted boundary includes migration `019` and the case-scoped private evidence controls. Migration `021`, hosted since 2026-10-21, makes case creation idempotent for matching requests and distinguishes information requests from customer responses in the event timeline. Migration `022` is implemented on the current PR branch to add location/contact fields and fixed/private assignment event handling; CI verification is pending and it is **NOT HOSTED**. Customers can upload/list evidence only after submitting the request. The application includes customer clarification response, server-side validation, transactional registration/event/audit RPC, staff access audit and short-lived download action.
 
 Slice 2 still does not include document authentication, findings, reviewer decisions, staff uploads, full project/organization authorization, malware scanning, privileged-operator immutability, jurisdiction-specific retention/deletion, background processing or AI analysis. A received file is not “verified”, “approved” or “valid”. Hosted cross-user object isolation with realistic authenticated sessions remains a separate operational gate after approved deployment.

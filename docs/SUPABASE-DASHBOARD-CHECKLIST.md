@@ -7,7 +7,7 @@ These are settings in the Supabase dashboard, not in the repo. Tick and date eac
 - [ ] **PRO PLAN REMINDER:** leaked-password protection is available on Supabase Pro and above. While this prototype remains on Free, record the advisor warning as an accepted plan limitation; do not block the prototype or imply that the control is enabled.
 - [ ] Auth URL configuration: site URL and allowed redirect URLs include the implemented `/auth/callback` and password-recovery destinations; verify both flows end to end.
 - [x] 2026-10-14: no service-role key or `.env.local` is tracked by git; `.env.local` is ignored. Rotate any privileged credential that has been shared outside approved secret storage.
-- [ ] Run both pgTAP suites in an isolated Docker-capable environment or GitHub Actions and record the exact passing run.
-- [x] 2026-10-14: migrations `015`-`017` are recorded in the hosted migration history.
+- [x] 2026-10-23: all six pgTAP suites (191 assertions) passed on disposable Supabase CI, [run 39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678). Migration 022 is not hosted.
+- [x] 2026-10-21: hosted migration history contains `001`-`021`; migration 021 was applied 2026-10-21. Migration 022 is not hosted.
 - [x] 2026-10-14: re-ran Supabase security and performance advisors after deployment; unresolved findings are recorded in the latest audit addendum.
 - [ ] Resolve or explicitly accept every remaining advisor finding before claiming foundation verification or production readiness.

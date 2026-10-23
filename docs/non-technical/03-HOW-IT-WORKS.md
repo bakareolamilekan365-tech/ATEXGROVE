@@ -14,6 +14,8 @@ Supabase confirms who is signed in. Atexgrove then uses its own records to decid
 
 Choosing an account type such as “professional” is only a user claim. It does not prove identity, professional registration, authority, or verification status.
 
+One account can be both a customer and a staff member by design. These roles are stored separately, and the customer and staff areas show separate views. Signing out is available in both workspaces. There is no idle sign-out timer today; the session lasts until its Supabase cookie expires or the person signs out.
+
 ## Information storage
 
 The working prototype currently supports:
@@ -26,11 +28,11 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21); migration 022 is implemented in this PR but is not hosted.
 
 ## Private files
 
-The hosted system has private document storage connected to verification cases. Customers can add allowed evidence files to their own eligible cases; staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. The new case form also prevents a refresh or retry from creating a duplicate when it repeats the same request; reusing its key for different request details is rejected. These idempotency changes are merged and passed temporary CI, but migration 021 is not yet applied to hosted Supabase.
+The hosted system has private document storage connected to verification cases. Customers can add allowed evidence files only after the request is submitted; staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. Migration 021 prevents a refresh or retry from creating a duplicate when it repeats the same request; it was applied to hosted Supabase on 2026-10-21.
 
 The pilot begins with synthetic or properly redacted evidence. Before real documents are accepted, Atexgrove needs approved terms and privacy information, explicit consent, minimum-necessary access, a retention/deletion process, an incident process and appropriate professional review of those rules.
 
@@ -38,7 +40,7 @@ Important evidence will use versions rather than silent replacement. If a custom
 
 ## Testing and deployment
 
-Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions has run the migrations and automated allow/deny tests successfully through migration 021 in a temporary environment. The hosted database is still at migration 020, and separate hosted-user testing is still required.
+Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions has run migrations through 021 and automated allow/deny tests in a temporary environment. Hosted migration history is 001-021; migration 022 in this PR is not hosted. Separate hosted-user testing is still required.
 
 ## The controlled case journey
 

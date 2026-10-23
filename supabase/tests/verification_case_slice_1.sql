@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 1.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(51);
+select plan(60);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.staff_members'::regclass), 'staff_members has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid = 'public.verification_cases'::regclass), 'verification_cases has RLS enabled');
@@ -12,8 +12,8 @@ select ok(not has_function_privilege('anon', 'public.organization_actor_role(uui
 select ok(not has_function_privilege('anon', 'public.is_active_staff()', 'EXECUTE'), 'is_active_staff is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.is_department_lead(text)', 'EXECUTE'), 'is_department_lead is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.staff_can_access_verification_case(uuid)', 'EXECUTE'), 'case access helper is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,text,uuid)', 'EXECUTE'), 'case creation RPC is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.assign_verification_case(uuid,uuid,text,boolean)', 'EXECUTE'), 'assignment RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)', 'EXECUTE'), 'case creation RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.assign_verification_case(uuid,uuid,text)', 'EXECUTE'), 'assignment RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.transition_verification_case(uuid,text,text,text)', 'EXECUTE'), 'transition RPC is not callable by anon');
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
@@ -39,8 +39,10 @@ select lives_ok(
     select public.create_verification_case(
       'DEMO DATA / NOT OFFICIAL plot near Kuje town centre',
       'Kuje',
+      'Kuje', true, 'Near Kuje town centre',
       'Synthetic pilot request only.',
       'email',
+      null, false,
       'a1111111-1111-4111-8111-111111111111'
     )$$,
   'customer can create a submitted verification case through the RPC'
@@ -51,6 +53,11 @@ select is(
   (select workflow_status from public.verification_cases where id = (select id from pg_temp.slice_1_case_ids)),
   'submitted',
   'new case is submitted'
+);
+select is(
+  (select area_is_listed from public.verification_cases where id = (select id from pg_temp.slice_1_case_ids)),
+  true,
+  'new listed-area case records true rather than a legacy null'
 );
 select is(
   (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids)),
@@ -83,11 +90,41 @@ set local role authenticated;
 select is((select count(*)::int from public.verification_cases), 1, 'department lead can read the department case');
 reset role;
 
+select set_config('request.jwt.claims', '{"sub":"c3000000-0000-0000-0000-000000000003","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok(
+  format(
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
+    (select id from pg_temp.slice_1_case_ids),
+    'a1000000-0000-0000-0000-000000000001',
+    'Customer cannot review own case'
+  ),
+  '42501',
+  'Case customer cannot be assigned to their own case',
+  'lead cannot assign a case to its customer'
+);
+reset role;
+
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select throws_ok(
+  format(
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
+    (select id from pg_temp.slice_1_case_ids),
+    'd4000000-0000-0000-0000-000000000004',
+    'Customer self-assignment attempt'
+  ),
+  '42501',
+  'Case customer cannot assign their own case',
+  'case customer cannot act as the assigning lead'
+);
+reset role;
+
 select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.assign_verification_case(%L::uuid, %L::uuid, %L, false)',
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'd4000000-0000-0000-0000-000000000004',
     'Self assignment attempt'
@@ -102,7 +139,7 @@ select set_config('request.jwt.claims', '{"sub":"e5000000-0000-0000-0000-0000000
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.assign_verification_case(%L::uuid, %L::uuid, %L, false)',
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'e5000000-0000-0000-0000-000000000005',
     'Cross department assignment attempt'
@@ -117,7 +154,7 @@ select set_config('request.jwt.claims', '{"sub":"c3000000-0000-0000-0000-0000000
 set local role authenticated;
 select lives_ok(
   format(
-    'select public.assign_verification_case(%L::uuid, %L::uuid, %L, false)',
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'd4000000-0000-0000-0000-000000000004',
     'Assigned manually for initial review.'
@@ -131,10 +168,26 @@ select is(
   'assigned',
   'assignment moves the case to assigned in the same transaction'
 );
+select is(
+  (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids)),
+  3,
+  'assignment writes one customer event and one private staff note'
+);
+select is(
+  (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids) and reason = 'A reviewer has been assigned to your case.' and customer_visible and event_kind = 'status_change'),
+  1,
+  'assignment customer event always uses fixed safe text'
+);
+select is(
+  (select count(*)::int from public.case_status_events where verification_case_id = (select id from pg_temp.slice_1_case_ids) and reason = 'Assigned manually for initial review.' and not customer_visible and event_kind = 'staff_note'),
+  1,
+  'assignment lead note is private to staff'
+);
 
 select set_config('request.jwt.claims', '{"sub":"d4000000-0000-0000-0000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
 select is((select count(*)::int from public.verification_cases), 1, 'active assignee can read the assigned case');
+select is((select count(*)::int from public.case_status_events where reason = 'Assigned manually for initial review.' and event_kind = 'staff_note'), 1, 'active assignee can read the private assignment note');
 select throws_ok(
   format(
     'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
@@ -174,7 +227,7 @@ select throws_ok(
   null,
   'status events cannot be deleted'
 );
-select is((select count(*)::int from public.case_status_events), 4, 'status move writes separate customer status and staff-note events');
+select is((select count(*)::int from public.case_status_events), 5, 'status move writes separate customer status and staff-note events');
 select is(
   (select count(*)::int from public.case_status_events where reason = 'Your case is now in review.' and customer_visible and event_kind = 'status_change'),
   1,
@@ -306,7 +359,9 @@ select is(
 
 select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_status_events), 6, 'customer sees fixed status events and the explicit customer message only');
+select is((select count(*)::int from public.case_status_events), 7, 'customer sees fixed status events and the explicit customer message only');
+select is((select count(*)::int from public.case_status_events where reason = 'A reviewer has been assigned to your case.' and event_kind = 'status_change'), 1, 'customer sees the fixed assignment update');
+select is((select count(*)::int from public.case_status_events where reason = 'Assigned manually for initial review.' and event_kind = 'staff_note'), 0, 'customer cannot see the lead assignment note');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"b2000000-0000-0000-0000-000000000002","role":"authenticated"}', true);
@@ -340,14 +395,14 @@ select throws_ok(
   'anonymous user cannot select case status events'
 );
 select throws_ok(
-  $$select public.create_verification_case('Anonymous plot description', 'Kuje', null, 'email', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  $$select public.create_verification_case('Anonymous plot description', 'Kuje', 'Kuje', true, 'Near Kuje', null, 'email', null, false, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
   '42501',
   null,
   'anonymous user cannot call case creation RPC'
 );
 select throws_ok(
   format(
-    'select public.assign_verification_case(%L::uuid, %L::uuid, %L, false)',
+    'select public.assign_verification_case(%L::uuid, %L::uuid, %L)',
     (select id from pg_temp.slice_1_case_ids),
     'd4000000-0000-0000-0000-000000000004',
     'Anonymous assignment'

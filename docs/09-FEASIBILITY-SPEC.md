@@ -46,6 +46,10 @@ External cost, market, regulatory or professional data is **Future**. If introdu
 
 Long-running report generation or bulk scenario work may become an asynchronous/background job. AI may help explain a result in the future, but it must not silently alter authoritative calculation inputs or formulas; consequential conclusions require human/professional review.
 
+## Planned professional review record
+
+For Phase 2 / Slice 3 verification workflow or Phase 3 report review, staff may attach a minimal professional review record containing reviewer name, discipline, credential relied on, source and check date, assigned scope, and decision ([P-30](BACKLOG.md#p-30)). Label it “recorded by Atexgrove, not independently verified”; it is a staff-recorded description, not proof of current credentials, and requires no external professional login. No case documents may be shared outside the platform until the case-specific consent record and real-user readiness gate are in place ([P-32](BACKLOG.md#p-32)).
+
 ## Requirements
 - Explain assumptions
 - Round display values consistently

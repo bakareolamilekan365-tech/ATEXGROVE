@@ -11,7 +11,7 @@
 
 ## Prototype boundary
 
-The API areas below describe logical boundaries; they are not a promise that every conceptual REST route exists. The current repository implements a verification-case workflow through Next.js server actions and secured Supabase RPCs rather than a complete REST API. Customer case creation requires a signed-in user and a form-generated UUID idempotency key: the same key and same normalized request returns the existing case, while reusing the key with materially different data is rejected (migration `021`, merged and CI-verified, not yet hosted). Case creation does not require a marketplace listing or existing parcel. Planning, approvals, construction, billing, public land discovery/GIS and AI endpoints remain later work until implemented and tested.
+The API areas below describe logical boundaries; they are not a promise that every conceptual REST route exists. The current repository implements a verification-case workflow through Next.js server actions and secured Supabase RPCs rather than a complete REST API. Customer case creation requires a signed-in user and a form-generated UUID idempotency key: the same key and same normalized request returns the existing case, while reusing the key with materially different data is rejected (migration `021`, hosted since 2026-10-21). Migration 022 expands the RPC inputs to `p_site_description`, `p_area_lga`, `p_area_name`, `p_area_is_listed`, `p_address_line`, `p_customer_notes`, `p_contact_preference`, `p_contact_phone`, `p_contact_phone_consent`, `p_idempotency_key`; it validates councils and listed areas and normalizes a consented Nigerian phone number. Migration 022 is implemented on the current PR branch, CI verification pending and not hosted. Case creation does not require a marketplace listing or existing parcel. Planning, approvals, construction, billing, public land discovery/GIS and AI endpoints remain later work until implemented and tested.
 
 ## Request security pipeline
 
@@ -52,6 +52,8 @@ The exact implementation may use Next.js server actions rather than route handle
 These names are conceptual and may be adapted to the existing Next.js modular-monolith architecture. Case creation accepts customer/request, jurisdiction and site details directly. Any later `land_parcel` or listing relationship is optional and must not become a hidden prerequisite.
 
 Each case boundary must enforce authentication, server-side authorization, object-level authorization, validated state transitions, RLS, audit events for sensitive operations and safe errors. Staff-assisted creation also records customer, staff actor, channel and consent. Assignment is confirmed by a human lead; automation may recommend but must not silently assign or approve.
+
+In migration 022, `assign_verification_case(uuid, uuid, text)` writes exactly one fixed customer-visible `status_change` and one private `staff_note`; the customer-visible text is “A reviewer has been assigned to your case.” The assignment note is never exposed to customers. The sign-out server action is submitted through a POST form, calls Supabase `signOut({ scope: "local" })`, and redirects to `/login`. No idle timeout exists; its policy remains undecided.
 
 ### Later-phase boundaries (Planned/Future)
 

@@ -33,6 +33,9 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 - [ ] Ownership, organization membership, project membership, permissions and scope are checked server-side.
 - [ ] Platform role, discipline, organization/project role, subscription and entitlement remain distinct.
 - [ ] Separated administrative responsibilities prevent unrestricted “God Admin” access.
+- [ ] **Planned — Slice 3:** staff conflict declaration and independent professional correction/review controls ([S-a](BACKLOG.md#s-a), [P-28](BACKLOG.md#p-28), [P-33](BACKLOG.md#p-33)).
+- [ ] **Planned — before real users:** authorized staff lifecycle, action-level permission matrix, temporary elevation/review, sensitive-action approval and audited override ([S-61](BACKLOG.md#s-61), [S-62](BACKLOG.md#s-62), [S-44](BACKLOG.md#s-44), [S-45](BACKLOG.md#s-45), [S-46](BACKLOG.md#s-46), [S-48](BACKLOG.md#s-48), [S-49](BACKLOG.md#s-49)).
+- [ ] **Planned — before real users:** processor/vendor register and data-access boundaries ([X-42](BACKLOG.md#x-42), [X-47](BACKLOG.md#x-47)).
 
 ## RLS and security
 
@@ -54,16 +57,17 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 - [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — Slice 2:** customers can add up to 10 synthetic PDF/JPEG/PNG files to an owned open case; metadata and timeline/audit records are transactionally registered and evidence versions are immutable.
 - [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — Slice 2:** case-scoped staff retrieval is audited and uses a 60-second attachment URL created by the server-only admin client; authenticated clients have no direct object-read policy.
 - [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — Slice 2:** a case owner can respond from `needs_customer_info` and resume `in_review`; evidence can be added before the response.
-- [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — migration 021:** replaying a customer idempotency key with the same request returns the existing case; conflicting request data is rejected. Event kinds distinguish status changes, staff notes, information requests, customer messages and customer responses. Migration `021` is merged but not hosted.
+- [x] **IMPLEMENTED / AUTOMATED VERIFIED IN TEMPORARY CI — migration 021:** replaying a customer idempotency key with the same request returns the existing case; conflicting request data is rejected. Event kinds distinguish status changes, staff notes, information requests, customer messages and customer responses. Migration `021` is hosted (applied 2026-10-21).
 - [x] **AUTOMATED VERIFIED IN TEMPORARY CI — migration 021:** pgTAP covers idempotent replay, conflicting payload rejection, cross-customer keys, function privileges, event kinds and customer visibility. See [STATUS.md](STATUS.md) for current run evidence and hosted boundary.
-- [x] **DEPLOYED — Slice 2 schema:** migration `019` is recorded on hosted Supabase as of 2026-10-20. Migration `020` is also hosted; migration `021` is not. The real application upload/download journey and realistic hosted multi-account isolation remain unverified.
+- [x] **DEPLOYED — Slice 2 schema:** migration `019` is recorded on hosted Supabase as of 2026-10-20; migration `020` is hosted; migration `021` was applied 2026-10-21. Migration `022` is implemented and CI-verified, but not hosted. The real application upload/download journey and realistic hosted multi-account isolation remain unverified.
+- [x] **CI-VERIFIED, NOT HOSTED — Migration 022 / sign out:** fixed customer-safe assignment event plus private staff note; council preflight and FCT location/contact fields; POST local sign out with protected-route redirect and no-store response. CI run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) passed app checks; database run [39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) passed 191 pgTAP assertions. No idle timeout is implemented.
 - [ ] Verification records have explicit type, status, evidence, source, reviewer, authority and dates.
 - [ ] Authority hierarchy is visible; internal review is not represented as official certification.
 - [ ] Documents use private storage, authorization before retrieval, validation and controlled access.
 - [ ] Version lineage is preserved; important evidence is not silently overwritten.
 - [ ] Draft/Submitted/Under Review/Approved/Rejected/Archived transitions are validated and audited.
 
-**Current automated counts:** 31 unit tests pass; 13 integration tests pass and 3 hosted-credential tests are intentionally skipped; five pgTAP files plan 164 assertions. Current green workflow links and the distinction between disposable CI and hosted verification are maintained in [STATUS.md](STATUS.md).
+**Current merged-main counts:** 31 unit tests; 13 integration tests with 3 hosted-credential tests intentionally skipped; five pgTAP files plan 166 assertions. **Migration 022 branch:** CI run 39909627609 passed 36 unit tests and 14 integration tests (3 skipped); database run 39909627678 passed 191 assertions across six pgTAP files. The database CI used a disposable Supabase stack; migration 022 remains not hosted. See [STATUS.md](STATUS.md) for hosted-versus-CI boundaries.
 
 **Known Slice 2 limits:** no malware scanning is available in this free-plan cut, so files remain untrusted, download-only and limited to PDF/JPEG/PNG with server-side file-signature checks. Customers cannot retrieve their own uploaded files yet. The 10-file limit counts registered evidence rows; uploads that never complete registration are not counted, which is a known free-plan limitation despite server cleanup after a failed registration. Evidence is customer-supplied and unauthenticated. Real customer documents remain prohibited pending the privacy/legal readiness gate. Evidence review/findings, staff uploads, handover/escalation and preparer/approver separation remain later work. The privileged `service_role`/database-operator path can still perform exceptional maintenance and must be controlled and audited.
 
@@ -90,6 +94,8 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 - [ ] Project membership/roles and organization scope are enforced.
 - [ ] Professionals can be associated with projects without turning discipline into permission.
 - [ ] Project documents and activity use the same access and audit rules.
+- [ ] **Planned — before real users:** professional firm/identity records, assignment scope, selected-document access, expiry/revocation, document-level audit, agreement and retention handling ([P-12](BACKLOG.md#p-12), [P-31](BACKLOG.md#p-31), [P-d](BACKLOG.md#p-d), [P-50](BACKLOG.md#p-50), [X-51](BACKLOG.md#x-51)).
+- [ ] **Planned — Slice 3 and later:** professional context, case conflict declarations, review/correction, deliverable acceptance/versioning and replacement/disengagement ([P-10](BACKLOG.md#p-10), [P-11](BACKLOG.md#p-11), [P-33](BACKLOG.md#p-33), [P-24](BACKLOG.md#p-24), [P-28](BACKLOG.md#p-28), [P-60](BACKLOG.md#p-60)).
 
 ## Admin
 

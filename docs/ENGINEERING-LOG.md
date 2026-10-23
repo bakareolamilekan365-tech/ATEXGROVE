@@ -130,7 +130,7 @@ Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 **Cause:** Case creation had no customer-scoped idempotency key or database constraint to recognize a retried submission.
 
-**Fix:** Migration `021_case_creation_idempotency_and_response_event.sql` adds a unique customer/key index. The creation RPC returns the existing case only when the normalized request matches; materially different request data with the same key is rejected. pgTAP verifies matching replay, conflicting replay, and that the original case remains unchanged. The migration passed disposable CI and was merged, but has not been applied to hosted Supabase.
+**Fix:** Migration `021_case_creation_idempotency_and_response_event.sql` adds a unique customer/key index. The creation RPC returns the existing case only when the normalized request matches; materially different request data with the same key is rejected. pgTAP verifies matching replay, conflicting replay, and that the original case remains unchanged. Migration 021 was applied to hosted Supabase on 2026-10-21.
 
 **Lesson:** Make retries safe at the database boundary, and bind an idempotency key to the original request rather than silently treating every reuse as a replay.
 
@@ -142,6 +142,30 @@ Related work: [PR #21](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 **Cause:** Timeline events had no explicit event kind, so their display depended on text and status fields that represented different actions.
 
-**Fix:** Migration `021` adds a constrained `event_kind` and classifies historical events. Customer responses now include a fixed customer-safe status line plus a separate response event; staff-only notes remain hidden from customers. The behavior is covered by pgTAP and application tests. Migration `021` is merged and CI-verified but not hosted.
+**Fix:** Migration `021` adds a constrained `event_kind` and classifies historical events. Customer responses now include a fixed customer-safe status line plus a separate response event; staff-only notes remain hidden from customers. The behavior is covered by pgTAP and application tests. Migration 021 was applied to hosted Supabase on 2026-10-21.
 
 **Lesson:** Give events explicit meaning and audience. Do not infer the kind of interaction from free-form text, and test both customer-visible and staff-only views.
+
+## 2026-10-22 — Assignment notes, location input and session exit need explicit safeguards
+
+Related work: migration 022 and sign-out changes in `fix/assignment-events-location-and-contact` (PR #24).
+
+**Problem:** Assignment notes could be shown directly to customers, case locations were free text, contact phone details had no explicit consent boundary, and the application had no visible sign-out control.
+
+**Cause:** The original assignment action exposed an optional visibility toggle; location and contact fields were not structured; and the app relied on cookie expiry without an explicit user action to end the session.
+
+**Fix:** Migration 022 is implemented on this branch to write a fixed customer-safe assignment event plus a private staff note, add council/area/address and consented phone fields, and keep phone values out of events and audit metadata. A POST server action signs out the local Supabase session and redirects to login; protected responses use `private, no-store`. New tests and documentation cover the flow. CI run 39909627609 and database-security run 39909627678 passed; migration 022 is not hosted. No idle timeout is implemented; its policy remains undecided.
+
+### PR #24 follow-up — legacy location, preflight and assignment conflict checks (updated 2026-10-23)
+
+**Problem:** A legacy `Kwali LGA` value could conflict with migration 022's new area-council constraint, and the assignment RPC did not prevent a case customer from being assigned their own case or acting as the assigning lead. The UI also needed explicit null fallbacks for newly added location columns on older rows.
+
+**Cause:** The constraint was introduced without normalizing the known legacy value first; assignment authorization checked department-lead scope and assignee activity, but not customer/assignee conflicts.
+
+**Fix:** Normalize only `Kwali LGA` to `Kwali`, then preflight all remaining distinct council values before adding the `NOT VALID` constraint. Any unrecognized value aborts with its row count and requires a reviewed migration or manual correction; no mapping is guessed. Reject both assignment conflict cases and cover them with pgTAP allow/deny assertions. Add a unit guard comparing SQL and TypeScript starter-area lists, retain null-safe detail-page fallbacks, correct backlog tiers, and update status/test-count documentation. CI run 39909627609 passed application checks; database-security run 39909627678 passed all six pgTAP suites (191 assertions). Migration 022 remains not hosted pending review.
+
+**Lesson:** Even `NOT VALID` checks constrain later updates to old rows. Normalize known legacy values before adding them, and test conflict-of-interest rules at the database boundary.
+
+**Lesson:** Separate audiences in the data model, validate structured fields at both application and database boundaries, keep contact details out of audit/event text, and provide an explicit session-exit path without suggesting an unapproved timeout policy.
+
+**CI evidence (2026-10-23):** CI run 39909627609 passed 36 unit tests, 14 integration tests (3 skipped), lint, typecheck, security guardrails and production build. Database security run 39909627678 passed all six pgTAP suites (191 assertions) on a disposable Supabase stack. This verifies the branch in CI only; migration 022 has not been applied to the hosted project.

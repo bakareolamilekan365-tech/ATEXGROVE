@@ -3,6 +3,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import styles from "@/components/cases/case-workflow.module.css";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
+import { signOutAction } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ export default async function OperationsLayout({
           <Link className={styles.link} href="/ops/cases">My queue</Link>
           <Link className={styles.link} href="/dashboard">Customer dashboard</Link>
         </nav>
+        <span className={styles.roleBadge}>Staff</span>
+        <form action={signOutAction}><button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Sign out</button></form>
       </header>
       {children}
     </>

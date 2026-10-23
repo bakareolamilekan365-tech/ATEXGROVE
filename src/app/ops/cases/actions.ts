@@ -6,7 +6,6 @@ import { requireLead, requireStaff } from "@/lib/auth/guards";
 import { createAuthorizedEvidenceDownload } from "@/lib/case-evidence/download";
 import {
   assignmentSchema,
-  checkboxValue,
   statusTransitionSchema,
 } from "@/lib/verification-cases/validation";
 
@@ -22,7 +21,6 @@ export async function assignVerificationCaseAction(
     caseId: formData.get("caseId"),
     assigneeUserId: formData.get("assigneeUserId"),
     note: formData.get("note"),
-    customerVisible: checkboxValue(formData.get("customerVisible")),
   });
 
   if (!parsed.success) {
@@ -34,7 +32,6 @@ export async function assignVerificationCaseAction(
     p_case_id: parsed.data.caseId,
     p_assignee_user_id: parsed.data.assigneeUserId,
     p_note: parsed.data.note,
-    p_customer_visible: parsed.data.customerVisible,
   });
 
   if (error) {

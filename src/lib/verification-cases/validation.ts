@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { verificationCaseStatuses } from "@/types/verification";
+import { fctAreaCouncils, listedAreasFor } from "@/lib/verification-cases/abuja-locations";
 
 export const newVerificationCaseSchema = z.object({
   idempotencyKey: z.string().uuid("Refresh the page and try again."),
@@ -8,16 +9,30 @@ export const newVerificationCaseSchema = z.object({
     .trim()
     .min(10, "Describe the plot in at least 10 characters.")
     .max(2000, "Keep the plot description under 2,000 characters."),
-  areaLga: z
-    .string()
-    .trim()
-    .min(2, "Enter an Abuja area or LGA.")
-    .max(120, "Keep the area or LGA under 120 characters."),
+  areaLga: z.enum(fctAreaCouncils.map((council) => council.name) as [string, ...string[]]),
+  areaName: z.string().trim().min(2).max(120),
+  areaIsListed: z.boolean(),
+  addressLine: z.string().trim().min(3).max(500),
   notes: z
     .string()
     .trim()
     .max(4000, "Keep notes under 4,000 characters."),
   contactPreference: z.enum(["email", "phone", "whatsapp"]),
+  contactPhone: z.string().trim().max(24),
+  contactPhoneConsent: z.boolean(),
+}).superRefine((data, ctx) => {
+  if (data.areaIsListed && !listedAreasFor(data.areaLga).includes(data.areaName)) {
+    ctx.addIssue({ code: "custom", path: ["areaName"], message: "Choose an area from the starter list or select that it is not listed." });
+  }
+  if (data.contactPreference === "email") {
+    if (data.contactPhone || data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhone"], message: "Phone details are only used for phone or WhatsApp contact." });
+    return;
+  }
+  const normalized = data.contactPhone.replace(/[\s()-]/g, "");
+  if (!/^(?:0[789]\d{9}|\+234[789]\d{9})$/.test(normalized)) {
+    ctx.addIssue({ code: "custom", path: ["contactPhone"], message: "Enter a valid Nigerian mobile number." });
+  }
+  if (!data.contactPhoneConsent) ctx.addIssue({ code: "custom", path: ["contactPhoneConsent"], message: "Please give consent to use this number for your request." });
 });
 
 export const assignmentSchema = z.object({
@@ -28,7 +43,6 @@ export const assignmentSchema = z.object({
     .trim()
     .min(2, "Add a short assignment note.")
     .max(2000, "Keep the assignment note under 2,000 characters."),
-  customerVisible: z.boolean(),
 });
 
 export const statusTransitionSchema = z.object({

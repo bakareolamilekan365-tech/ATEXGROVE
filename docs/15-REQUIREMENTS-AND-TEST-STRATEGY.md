@@ -45,7 +45,7 @@ Integration coverage should include provider timeouts/outages, bounded retries, 
 
 ### 2a. Database/RLS and authorization tests
 
-The repository contains four pgTAP suites under `supabase/tests/`, and `.github/workflows/db-tests.yml` starts a temporary Supabase stack and runs them. Current counts and the latest green database-security run are maintained in [STATUS.md](STATUS.md); disposable CI does not verify the linked hosted project or realistic hosted-user sessions.
+Merged main contains five pgTAP suites with 166 planned assertions. This migration 022 branch has six suites; Database security run [39909627678](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627678) reports `Files=6, Tests=191` and passed on a disposable Supabase stack. CI run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609) reports 36 unit tests and 14 integration tests (3 skipped). Disposable CI does not verify the linked hosted project or realistic hosted-user sessions; migration 022 remains not hosted.
 
 Test the same decisions at the server and database boundaries:
 

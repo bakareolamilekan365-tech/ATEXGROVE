@@ -25,7 +25,7 @@ The authentication boundary must account for:
 - session expiration and explicit revocation
 - safe redirect and callback handling
 
-Logout completeness and session-revocation administration remain **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
+Local sign-out is **Implemented on the current PR branch** through a POST action; CI verification is pending and it is not hosted functionality. Administrative session revocation remains **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
 
 ### Current implementation and security evidence
 
@@ -179,3 +179,7 @@ AI document or data analysis is **Future** and should run through an isolated pr
 ## Privacy and regulatory awareness
 
 Security design should minimize personal data, restrict access, preserve auditability and support deliberate retention/deletion. Future compliance work must consider applicable Nigerian data-protection requirements, third-party processors, international transfers where relevant, consumer protection, land/planning/building administration, professional regulation and payment regulation. This document is architectural guidance, not legal advice; legal and domain-professional review remains necessary.
+
+## Planned vendor and processor controls
+
+These controls are **Planned**, not implemented. Maintain a register of third-party data processors/providers and their approval state, and document the specific data each is permitted to receive. Do not grant a provider broader access merely because it supplies one service. See [X-42](BACKLOG.md#x-42), [X-47](BACKLOG.md#x-47), [V-40](BACKLOG.md#v-40) and [V-41](BACKLOG.md#v-41). Any new application table must use explicit grants: authenticated SELECT only, no `anon` grant, and only the narrowly required server/service permissions.

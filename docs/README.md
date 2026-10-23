@@ -40,6 +40,12 @@ All synthetic records must be clearly labelled **DEMO DATA / NOT OFFICIAL**.
 17. `16-DESIGN-AND-INTEGRATION-PLAN.md`
 18. `17-PROJECT-AUDIT.md`
 19. `18-PROTOTYPE-FLOW-AND-DELIVERY-MAP.md`
+20. `STATUS.md` — current implementation, CI evidence and hosted state
+21. `RUNBOOK.md` — operator and local-development procedures
+22. `KNOWN-ISSUES.md` — current product and operational gaps
+23. `BACKLOG.md` — owner-request intake and triage
+24. `RELEASE-PLAN.md` — planned hosting/release approach
+25. `ENGINEERING-LOG.md` — dated problems, fixes and lessons
 
 ## Important
 
@@ -49,6 +55,6 @@ The original master prompt can remain as a product-vision document. These files 
 
 ## Status
 
-As of 2026-10-16, PRs #9 and #10 are merged into `main` and the hosted Supabase migration history contains `001` through `017`. Read-only verification confirms the private `documents` bucket, its SELECT/INSERT/UPDATE/DELETE policies, and RLS on `profiles`, `organizations`, `organization_members`, and `audit_logs`. General CI and the database-security workflow have passed; the latter executed pgTAP in a temporary Supabase environment. Hosted Auth confirmation/recovery, hosted cross-user document isolation, remaining advisor findings, the `organization_actor_role` anonymous execute fix, complete user journeys and production readiness remain open. Verification cases, reports, GIS, projects, professionals and feasibility remain planned rather than implemented.
+**Status date: 2026-10-23.** Hosted Supabase is at migrations `001`-`021`; migration 021 was applied 2026-10-21. The verification case workflow and private evidence slice are implemented. Migration 022 and sign-out are implemented and CI-verified on the current PR branch (36 unit tests, 14 integration tests with 3 skips, and 191 pgTAP assertions); migration 022 is not hosted. Check [STATUS.md](STATUS.md) for the evidence-backed distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
 
 Historical sections in `17-PROJECT-AUDIT.md` retain the status that was true on their stated dates. Use the latest dated audit addendum and the implementation itself for current status.
