@@ -8,6 +8,10 @@ The prototype uses Supabase Auth, PostgreSQL Row Level Security (RLS) and server
 
 ## Authentication
 
+### Case consent and customer claims
+
+Migration 024 records acceptance of the versioned `case_service_scope` notice in `case_consents` only from the owner-checked submit RPC. Authenticated clients have SELECT only; RLS allows the customer who accepted and staff with existing case-scoped access; anon has no grant and direct writes are revoked. The case number sequence is private and has no Data API grants. Intent, relationship-to-land, representation and authority-confirmation values are customer claims, not proof of ownership, identity, authority or government status; staff UI must preserve that label. Legacy rows remain null rather than receiving inferred claims. The service-scope notice is draft wording and not legally reviewed.
+
 ### Current prototype
 
 - Supabase Auth provides the identity provider.
@@ -25,7 +29,7 @@ The authentication boundary must account for:
 - session expiration and explicit revocation
 - safe redirect and callback handling
 
-Local sign-out is **Implemented on the current PR branch** through a POST action; CI verification is pending and it is not hosted functionality. Administrative session revocation remains **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
+Local sign-out is **Implemented on main** through a POST action and was CI-verified in app run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609); deployment/realistic session behavior is a separate operational check. Administrative session revocation remains **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
 
 ### Current implementation and security evidence
 

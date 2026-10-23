@@ -12,7 +12,7 @@ select ok(not has_function_privilege('anon', 'public.organization_actor_role(uui
 select ok(not has_function_privilege('anon', 'public.is_active_staff()', 'EXECUTE'), 'is_active_staff is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.is_department_lead(text)', 'EXECUTE'), 'is_department_lead is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.staff_can_access_verification_case(uuid)', 'EXECUTE'), 'case access helper is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)', 'EXECUTE'), 'case creation RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid,text,text,text,text,boolean)', 'EXECUTE'), 'case creation RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.assign_verification_case(uuid,uuid,text)', 'EXECUTE'), 'assignment RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.transition_verification_case(uuid,text,text,text)', 'EXECUTE'), 'transition RPC is not callable by anon');
 
@@ -43,11 +43,12 @@ select lives_ok(
       'Synthetic pilot request only.',
       'email',
       null, false,
-      'a1111111-1111-4111-8111-111111111111'
+      'a1111111-1111-4111-8111-111111111111',
+      'buying', 'buyer', 'self', null, false
     )$$,
   'customer can create a verification case as a draft through the RPC'
 );
-select public.submit_verification_case((select id from pg_temp.slice_1_case_ids));
+select public.submit_verification_case((select id from pg_temp.slice_1_case_ids),'case-service-scope-v1',true);
 reset role;
 
 select is(
@@ -396,7 +397,7 @@ select throws_ok(
   'anonymous user cannot select case status events'
 );
 select throws_ok(
-  $$select public.create_verification_case('Anonymous plot description', 'Kuje', 'Kuje', true, 'Near Kuje', null, 'email', null, false, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,
+  $$select public.create_verification_case('Anonymous plot description', 'Kuje', 'Kuje', true, 'Near Kuje', null, 'email', null, false, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'buying', 'buyer', 'self', null, false)$$,
   '42501',
   null,
   'anonymous user cannot call case creation RPC'

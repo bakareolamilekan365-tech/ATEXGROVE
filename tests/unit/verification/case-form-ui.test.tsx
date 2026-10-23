@@ -20,7 +20,13 @@ describe("case form UI helpers", () => {
   });
 
   it("maps schema issues to field-specific plain messages, never raw schema text", () => {
-    const result = newVerificationCaseSchema.safeParse({ areaLga: "Not a council", areaName: "", addressLine: "short" });
+    const baseRequest = {
+      idempotencyKey: "11111111-1111-4111-8111-111111111111", siteDescription: "A valid plot description",
+      areaLga: "Kuje", areaName: "Kuje", areaIsListed: true, addressLine: "Plot 1, near Kuje market",
+      notes: "", contactPreference: "email", contactPhone: "", contactPhoneConsent: false,
+      customerIntent: "buying", relationshipToLand: "buyer", actingFor: "self", principalName: "", authorityConfirmed: false,
+    };
+    const result = newVerificationCaseSchema.safeParse({ ...baseRequest, areaLga: "Not a council", areaName: "", addressLine: "short" });
     expect(result.success).toBe(false);
     if (result.success) return;
     const mapped = mapCaseFormIssues(result.error.issues);
@@ -29,11 +35,7 @@ describe("case form UI helpers", () => {
     expect(mapped.fieldErrors.addressLine).toContain("at least 10 characters");
     expect(JSON.stringify(mapped)).not.toMatch(/Invalid option|expected|received/i);
 
-    const emailWithPhone = newVerificationCaseSchema.safeParse({
-      idempotencyKey: "11111111-1111-4111-8111-111111111111", siteDescription: "A valid plot description",
-      areaLga: "Kuje", areaName: "Kuje", areaIsListed: true, addressLine: "Plot 1, near Kuje market",
-      notes: "", contactPreference: "email", contactPhone: "08012345678", contactPhoneConsent: false,
-    });
+    const emailWithPhone = newVerificationCaseSchema.safeParse({ ...baseRequest, contactPhone: "08012345678" });
     expect(emailWithPhone.success).toBe(false);
     if (!emailWithPhone.success) {
       const emailMapped = mapCaseFormIssues(emailWithPhone.error.issues);

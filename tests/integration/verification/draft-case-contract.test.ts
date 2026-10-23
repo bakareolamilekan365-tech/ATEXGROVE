@@ -5,6 +5,7 @@ const migration = readFileSync("supabase/migrations/023_draft_case_with_uploads.
 const caseActions = readFileSync("src/app/dashboard/cases/[id]/actions.ts", "utf8");
 const caseControls = readFileSync("src/components/cases/CustomerCaseControls.tsx", "utf8");
 const createAction = readFileSync("src/app/dashboard/cases/actions.ts", "utf8");
+const intakeMigration = readFileSync("supabase/migrations/024_case_intake_and_consent.sql", "utf8");
 
 describe("draft case application/database contract", () => {
   it("starts idempotent requests as drafts and keeps creation event-free", () => {
@@ -19,6 +20,14 @@ describe("draft case application/database contract", () => {
     expect(caseActions).toContain('rpc("discard_draft_case"');
     expect(caseActions).toContain('rpc("cancel_verification_case"');
     expect(caseActions).toContain("p_reason: reason");
+  });
+
+  it("replaces RPC signatures and writes explicit scope consent on submit", () => {
+    expect(intakeMigration).toContain("drop function public.create_verification_case(");
+    expect(intakeMigration).toContain("drop function public.submit_verification_case(uuid)");
+    expect(intakeMigration).toContain("insert into public.case_consents");
+    expect(caseActions).toContain("p_notice_version:");
+    expect(caseActions).toContain("p_accepted: accepted");
   });
 
   it("presents draft submit/discard and open-case cancel controls", () => {

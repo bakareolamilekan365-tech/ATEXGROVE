@@ -30,6 +30,8 @@ Principle: ROLE is not VERIFICATION is not PERMISSION.
 The pilot has no established staff team yet. The founder/CTO may act as lead/operator, but the design must preserve separate responsibilities instead of creating an unrestricted admin shortcut.
 
 - Customers may create cases; authorized staff may create assisted cases with customer consent and a recorded actor/channel.
+- Case-intake intent, claimed land relationship, principal/representative details and authority confirmation are self-reported claims, not proof or verification. Preserve the explicit “Customer's claim, not verified” label for staff-facing views; do not infer missing legacy claims. [C-08](BACKLOG.md#c-08), [C-09](BACKLOG.md#c-09), [C-13](BACKLOG.md#c-13), [C-14](BACKLOG.md#c-14).
+- The case service-scope consent is recorded by the submission RPC with a notice version and timestamp, not by direct client table writes. The current notice text is draft wording and not legally reviewed. A complete consent framework and lawyer-reviewed language remain a D readiness gate. [C-04](BACKLOG.md#c-04), [C-17](BACKLOG.md#c-17).
 - A human lead confirms assignments. Automation may recommend an assignee but cannot silently assign or approve a case.
 - An assignee may decline when overloaded, with the reason recorded.
 - Consequential conclusions require a second, discipline-appropriate reviewer: for example, a registered surveyor for survey matters, a qualified Nigerian legal practitioner for legal/title interpretation, or an appropriately qualified planner for planning matters.

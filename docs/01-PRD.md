@@ -54,6 +54,10 @@ Show role-specific summary cards, recent activity, active cases and useful actio
 
 ### Verification
 - Case creation that does not require an existing land listing or parcel
+- Customer intake records intent, claimed relationship to land, who the request is for and an authority confirmation when acting for another party; these are customer claims, not proof ([C-08](BACKLOG.md#c-08), [C-09](BACKLOG.md#c-09), [C-13](BACKLOG.md#c-13), [C-14](BACKLOG.md#c-14)).
+- Submission records acceptance of the versioned case service-scope notice and allocates a human-readable case reference ([C-16](BACKLOG.md#c-16), [C-17](BACKLOG.md#c-17)).
+- The pilot notice says Atexgrove coordinates verification work and does not create legal title, cadastral confirmation or government approval; synthetic or redacted information only. It is clearly marked draft wording, not legally reviewed.
+- Customer dashboards state who needs to act next ([C-19](BACKLOG.md#c-19)); evidence guidance explains common document purposes without implying every item is required ([C-20](BACKLOG.md#c-20)).
 - Customer-created and authorized staff-assisted cases
 - Six-stage workflow: Request received, Documents in, Document checks, Site and map, Development options, Report
 - Human-led assignment/handover and capacity-aware acceptance/decline

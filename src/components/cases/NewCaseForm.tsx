@@ -9,8 +9,8 @@ import styles from "./case-workflow.module.css";
 
 const initialState: CaseFormState = { error: null };
 const councilOptions: SelectOption[] = fctAreaCouncils.map(({ name }) => ({ value: name, label: name }));
-type Values = { areaLga: string; areaName: string; areaIsListed: boolean; addressLine: string; siteDescription: string; notes: string; contactPreference: string; contactPhone: string; contactPhoneConsent: boolean };
-const emptyValues: Values = { areaLga: "", areaName: "", areaIsListed: true, addressLine: "", siteDescription: "", notes: "", contactPreference: "email", contactPhone: "", contactPhoneConsent: false };
+type Values = { areaLga: string; areaName: string; areaIsListed: boolean; addressLine: string; siteDescription: string; notes: string; contactPreference: string; contactPhone: string; contactPhoneConsent: boolean; customerIntent: string; relationshipToLand: string; actingFor: string; principalName: string; authorityConfirmed: boolean };
+const emptyValues: Values = { areaLga: "", areaName: "", areaIsListed: true, addressLine: "", siteDescription: "", notes: "", contactPreference: "email", contactPhone: "", contactPhoneConsent: false, customerIntent: "", relationshipToLand: "", actingFor: "self", principalName: "", authorityConfirmed: false };
 
 export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: string }>) {
   const idempotencyKeyRef = useRef(idempotencyKey);
@@ -27,6 +27,9 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
         siteDescription: state.values.siteDescription ?? "", notes: state.values.notes ?? "",
         contactPreference: state.values.contactPreference ?? "email", contactPhone: state.values.contactPhone ?? "",
         contactPhoneConsent: state.values.contactPhoneConsent === "on",
+        customerIntent: state.values.customerIntent ?? "", relationshipToLand: state.values.relationshipToLand ?? "",
+        actingFor: state.values.actingFor ?? "self", principalName: state.values.principalName ?? "",
+        authorityConfirmed: state.values.authorityConfirmed === "on",
       });
     }
     if (state.firstInvalidField) document.getElementById(state.firstInvalidField)?.focus();
@@ -39,6 +42,41 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
   return (
     <form action={action} className={styles.form}>
       <input type="hidden" name="idempotencyKey" value={idempotencyKeyRef.current} />
+      <div className={styles.field}>
+        <label htmlFor="customerIntent">What are you asking us to help with?</label>
+        <select id="customerIntent" name="customerIntent" value={values.customerIntent} onChange={(event) => update("customerIntent", event.target.value)} required aria-invalid={Boolean(errors.customerIntent) || undefined}>
+          <option value="" disabled>Choose one</option>
+          <option value="buying">Buying land</option><option value="own_or_occupy">I own or occupy the land</option>
+          <option value="developing">Developing the land</option><option value="representing_someone">Representing someone</option><option value="other">Other</option>
+        </select>
+        {fieldError("customerIntent", errors.customerIntent)}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="relationshipToLand">What is your relationship to the land?</label>
+        <select id="relationshipToLand" name="relationshipToLand" value={values.relationshipToLand} onChange={(event) => update("relationshipToLand", event.target.value)} required aria-invalid={Boolean(errors.relationshipToLand) || undefined}>
+          <option value="" disabled>Choose one</option><option value="buyer">Buyer</option><option value="owner">Owner</option>
+          <option value="occupier">Occupier</option><option value="developer">Developer</option><option value="agent_or_representative">Agent or representative</option><option value="other">Other</option>
+        </select>
+        <p className={styles.muted}>This is your claim about your relationship, not proof of ownership.</p>
+        {fieldError("relationshipToLand", errors.relationshipToLand)}
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="actingFor">Who is this request for?</label>
+        <select id="actingFor" name="actingFor" value={values.actingFor} onChange={(event) => { update("actingFor", event.target.value); update("principalName", ""); update("authorityConfirmed", false); }} required aria-invalid={Boolean(errors.actingFor) || undefined}>
+          <option value="self">Myself</option><option value="another_person">Another person</option><option value="organisation">An organisation</option>
+        </select>
+        {values.actingFor !== "self" ? <>
+          <label htmlFor="principalName">Person or organisation name</label>
+          <input id="principalName" name="principalName" value={values.principalName} onChange={(event) => update("principalName", event.target.value)} maxLength={200} required aria-invalid={Boolean(errors.principalName) || undefined} />
+          {fieldError("principalName", errors.principalName)}
+          <label className={styles.checkbox}><input name="authorityConfirmed" type="checkbox" checked={values.authorityConfirmed} onChange={(event) => update("authorityConfirmed", event.target.checked)} aria-invalid={Boolean(errors.authorityConfirmed) || undefined} /> I confirm I am authorised to submit this request on their behalf</label>
+          {fieldError("authorityConfirmed", errors.authorityConfirmed)}
+        </> : <input type="hidden" name="principalName" value="" />}
+        {values.actingFor === "self" ? <input type="hidden" name="authorityConfirmed" value="false" /> : null}
+      </div>
+
       <div className={styles.field}>
         <label htmlFor="areaLga">FCT area council</label>
         <Select id="areaLga" name="areaLga" label="FCT area council" options={councilOptions} value={values.areaLga}

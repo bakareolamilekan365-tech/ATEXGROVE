@@ -21,7 +21,8 @@ type ExistingEvidenceOption = {
 export function EvidenceUploadForm({
   caseId,
   existingEvidence,
-}: Readonly<{ caseId: string; existingEvidence: ExistingEvidenceOption[] }>) {
+  defaultEvidenceType,
+}: Readonly<{ caseId: string; existingEvidence: ExistingEvidenceOption[]; defaultEvidenceType?: (typeof evidenceTypes)[number] }>) {
   const [state, action] = useActionState(uploadCaseEvidenceAction, initialState);
 
   return (
@@ -29,8 +30,8 @@ export function EvidenceUploadForm({
       <input type="hidden" name="caseId" value={caseId} />
       <div className={styles.field}>
         <label htmlFor="evidenceType">Document type</label>
-        <select id="evidenceType" name="evidenceType" required defaultValue="">
-          <option value="" disabled>Select a document type</option>
+        <select id="evidenceType" name="evidenceType" required defaultValue={defaultEvidenceType ?? ""}>
+          {!defaultEvidenceType ? <option value="" disabled>Select a document type</option> : null}
           {evidenceTypes.map((type) => <option key={type} value={type}>{evidenceTypeLabels[type]}</option>)}
         </select>
       </div>

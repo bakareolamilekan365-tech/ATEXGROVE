@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import {
   assignmentSchema,
   newVerificationCaseSchema,
@@ -7,6 +8,7 @@ import {
 
 describe("verification case request contracts", () => {
   const idempotencyKey = "11111111-1111-4111-8111-111111111111";
+  const createAction = readFileSync("src/app/dashboard/cases/actions.ts", "utf8");
 
   it("accepts a complete synthetic Abuja request", () => {
     expect(newVerificationCaseSchema.safeParse({
@@ -20,6 +22,11 @@ describe("verification case request contracts", () => {
       contactPreference: "email",
       contactPhone: "",
       contactPhoneConsent: false,
+      customerIntent: "buying",
+      relationshipToLand: "buyer",
+      actingFor: "self",
+      principalName: "",
+      authorityConfirmed: false,
     }).success).toBe(true);
   });
 
@@ -35,6 +42,11 @@ describe("verification case request contracts", () => {
       contactPreference: "sms",
       contactPhone: "",
       contactPhoneConsent: false,
+      customerIntent: "buying" as const,
+      relationshipToLand: "buyer" as const,
+      actingFor: "self" as const,
+      principalName: "",
+      authorityConfirmed: false,
     }).success).toBe(false);
   });
 
@@ -50,12 +62,23 @@ describe("verification case request contracts", () => {
       contactPreference: "email" as const,
       contactPhone: "",
       contactPhoneConsent: false,
+      customerIntent: "buying" as const,
+      relationshipToLand: "buyer" as const,
+      actingFor: "self" as const,
+      principalName: "",
+      authorityConfirmed: false,
     };
     const firstAttempt = newVerificationCaseSchema.parse(request);
     const replayedAttempt = newVerificationCaseSchema.parse(request);
 
     expect(replayedAttempt.idempotencyKey).toBe(firstAttempt.idempotencyKey);
     expect(replayedAttempt).toEqual(firstAttempt);
+  });
+
+  it("passes all intake claims and representation fields through the RPC contract", () => {
+    for (const parameter of [
+      "p_customer_intent", "p_relationship_to_land", "p_acting_for", "p_principal_name", "p_authority_confirmed",
+    ]) expect(createAction).toContain(`${parameter}:`);
   });
 
   it("requires an actor note for assignment", () => {

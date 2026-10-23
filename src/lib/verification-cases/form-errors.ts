@@ -1,6 +1,6 @@
 import type { ZodIssue } from "zod";
 
-export type CaseFormField = "areaLga" | "areaName" | "addressLine" | "siteDescription" | "notes" | "contactPreference" | "contactPhone" | "contactPhoneConsent";
+export type CaseFormField = "areaLga" | "areaName" | "addressLine" | "siteDescription" | "notes" | "contactPreference" | "contactPhone" | "contactPhoneConsent" | "customerIntent" | "relationshipToLand" | "actingFor" | "principalName" | "authorityConfirmed";
 export type CaseFieldErrors = Partial<Record<CaseFormField, string>>;
 
 const messages: Record<CaseFormField, string> = {
@@ -12,6 +12,11 @@ const messages: Record<CaseFormField, string> = {
   contactPreference: "Choose email, phone, or WhatsApp.",
   contactPhone: "Enter a valid Nigerian mobile number, or use email contact.",
   contactPhoneConsent: "Please confirm that the review team may use this number for this request.",
+  customerIntent: "Choose what you are asking us to help with.",
+  relationshipToLand: "Choose your claimed relationship to the land.",
+  actingFor: "If you are representing someone, choose another person or an organisation; otherwise choose who the request is for.",
+  principalName: "Enter the person or organisation this request is for (up to 200 characters).",
+  authorityConfirmed: "Confirm that you are authorised to submit this request on their behalf.",
 };
 
 const knownFields = new Set<string>(Object.keys(messages));

@@ -52,7 +52,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'anon',
-    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)',
+    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid,text,text,text,text,boolean)',
     'EXECUTE'
   ),
   'anonymous users cannot execute idempotent case creation'
@@ -60,7 +60,7 @@ select ok(
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)',
+    'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid,text,text,text,text,boolean)',
     'EXECUTE'
   ),
   'authenticated users can execute idempotent case creation'
@@ -91,10 +91,11 @@ insert into pg_temp.migration_021_results values (
     'Synthetic request.',
     'email',
     null, false,
-    '99999999-9999-4999-8999-999999999999'
+    '99999999-9999-4999-8999-999999999999',
+    'buying', 'buyer', 'self', null, false
   )
 );
-select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'));
+select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'),'case-service-scope-v1',true);
 insert into pg_temp.migration_021_results values (
   'customer-a-replay',
   public.create_verification_case(
@@ -104,7 +105,8 @@ insert into pg_temp.migration_021_results values (
     'Synthetic request.',
     'email',
     null, false,
-    '99999999-9999-4999-8999-999999999999'
+    '99999999-9999-4999-8999-999999999999',
+    'buying', 'buyer', 'self', null, false
   )
 );
 select throws_ok(
@@ -115,7 +117,8 @@ select throws_ok(
     'Synthetic request.',
     'email',
     null, false,
-    '99999999-9999-4999-8999-999999999999'
+    '99999999-9999-4999-8999-999999999999',
+    'buying', 'buyer', 'self', null, false
   )$$,
   '22023',
   'Idempotency key was already used with different request data',
@@ -190,10 +193,11 @@ insert into pg_temp.migration_021_results values (
     'Synthetic request.',
     'phone',
     '+2348012345678', true,
-    '99999999-9999-4999-8999-999999999999'
+    '99999999-9999-4999-8999-999999999999',
+    'buying', 'buyer', 'self', null, false
   )
 );
-select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'));
+select public.submit_verification_case((select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'),'case-service-scope-v1',true);
 reset role;
 
 select isnt(
@@ -392,7 +396,8 @@ select throws_ok(
     null,
     'email',
     null, false,
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'buying', 'buyer', 'self', null, false
   )$$,
   '42501',
   null,

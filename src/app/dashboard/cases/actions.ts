@@ -9,10 +9,11 @@ export type CaseFormValues = Record<string, string>;
 export type CaseFormState = { error: string | null; fieldErrors?: CaseFieldErrors; values?: CaseFormValues; firstInvalidField?: string | null };
 
 function submittedValues(formData: FormData): CaseFormValues {
-  const fields = ["areaLga", "areaName", "areaIsListed", "addressLine", "siteDescription", "notes", "contactPreference", "contactPhone"];
+  const fields = ["areaLga", "areaName", "areaIsListed", "addressLine", "siteDescription", "notes", "contactPreference", "contactPhone", "customerIntent", "relationshipToLand", "actingFor", "principalName"];
   return Object.fromEntries([
     ...fields.map((field) => [field, String(formData.get(field) ?? "")]),
     ["contactPhoneConsent", formData.get("contactPhoneConsent") === "on" ? "on" : ""],
+    ["authorityConfirmed", formData.get("authorityConfirmed") === "on" ? "on" : ""],
   ]);
 }
 
@@ -31,6 +32,11 @@ export async function createVerificationCaseAction(
     contactPreference: formData.get("contactPreference"),
     contactPhone: formData.get("contactPhone") ?? "",
     contactPhoneConsent: formData.get("contactPhoneConsent") === "on",
+    customerIntent: formData.get("customerIntent"),
+    relationshipToLand: formData.get("relationshipToLand"),
+    actingFor: formData.get("actingFor"),
+    principalName: formData.get("principalName") ?? "",
+    authorityConfirmed: formData.get("authorityConfirmed") === "on",
   });
 
   if (!parsed.success) {
@@ -57,12 +63,17 @@ export async function createVerificationCaseAction(
       p_contact_phone: parsed.data.contactPhone || null,
       p_contact_phone_consent: parsed.data.contactPhoneConsent,
       p_idempotency_key: parsed.data.idempotencyKey,
+      p_customer_intent: parsed.data.customerIntent,
+      p_relationship_to_land: parsed.data.relationshipToLand,
+      p_acting_for: parsed.data.actingFor,
+      p_principal_name: parsed.data.principalName || null,
+      p_authority_confirmed: parsed.data.authorityConfirmed,
     },
   );
 
   if (error || !caseId) {
     return {
-      error: "We could not submit this request. Please try again. Your entered details are still here.",
+      error: "We could not save this draft. Please try again. Your entered details are still here.",
     };
   }
 

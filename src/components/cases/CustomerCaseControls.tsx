@@ -8,6 +8,7 @@ import {
 } from "@/app/dashboard/cases/[id]/actions";
 import styles from "./case-workflow.module.css";
 import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
+import { CASE_SERVICE_SCOPE_NOTICE, CASE_SERVICE_SCOPE_NOTICE_VERSION } from "@/lib/verification-cases/service-scope-notice";
 import type { VerificationCaseStatus } from "@/types/verification";
 
 function PendingButton({ children, pendingLabel }: Readonly<{ children: React.ReactNode; pendingLabel: string }>) {
@@ -22,7 +23,13 @@ export function CustomerCaseControls({ caseId, status }: Readonly<{ caseId: stri
       <h2 id="draft-actions-title">Finish this request</h2>
       <p className={styles.muted}>Staff cannot see this draft or its documents until you submit it.</p>
       <div className={styles.actions}>
-        <form action={submitDraftCaseAction}><input type="hidden" name="caseId" value={caseId} /><PendingButton pendingLabel="Submitting...">Submit request</PendingButton></form>
+        <form action={submitDraftCaseAction}>
+          <input type="hidden" name="caseId" value={caseId} />
+          <input type="hidden" name="noticeVersion" value={CASE_SERVICE_SCOPE_NOTICE_VERSION} />
+          <div className={styles.notice}><strong>Draft wording, not legally reviewed.</strong><br />{CASE_SERVICE_SCOPE_NOTICE}</div>
+          <label className={styles.checkbox}><input name="serviceScopeAccepted" type="checkbox" required /> I have read and accept this service-scope notice.</label>
+          <PendingButton pendingLabel="Submitting...">Submit request</PendingButton>
+        </form>
         <form action={discardDraftCaseAction} onSubmit={(event) => {
           if (!window.confirm("Discard this draft? Its uploaded documents will be kept privately.")) event.preventDefault();
         }}><input type="hidden" name="caseId" value={caseId} /><PendingButton pendingLabel="Discarding...">Discard draft</PendingButton></form>

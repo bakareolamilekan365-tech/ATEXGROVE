@@ -1,8 +1,8 @@
 begin;
 select plan(59);
 
-select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid)', 'EXECUTE'), 'anon cannot execute draft creation');
-select ok(not has_function_privilege('anon', 'public.submit_verification_case(uuid)', 'EXECUTE'), 'anon cannot submit drafts');
+select ok(not has_function_privilege('anon', 'public.create_verification_case(text,text,text,boolean,text,text,text,text,boolean,uuid,text,text,text,text,boolean)', 'EXECUTE'), 'anon cannot execute draft creation');
+select ok(not has_function_privilege('anon', 'public.submit_verification_case(uuid,text,boolean)', 'EXECUTE'), 'anon cannot submit drafts');
 select ok(not has_function_privilege('anon', 'public.discard_draft_case(uuid)', 'EXECUTE'), 'anon cannot discard drafts');
 select ok(not has_function_privilege('anon', 'public.cancel_verification_case(uuid,text)', 'EXECUTE'), 'anon cannot cancel cases');
 
@@ -20,7 +20,7 @@ set local role authenticated;
 select lives_ok($$select public.create_verification_case(
  'DEMO DATA / NOT OFFICIAL sample plot near Kuje market','Kuje','Kuje',true,
  'Near Kuje market road','Synthetic request','email',null,false,
- '11111111-1111-4111-8111-111111111111')$$,'customer can create a draft through the RPC');
+ '11111111-1111-4111-8111-111111111111','buying','buyer','self',null,false)$$,'customer can create a draft through the RPC');
 select set_config('test.draft_case_id',(select id::text from public.verification_cases where idempotency_key='11111111-1111-4111-8111-111111111111'),true);
 select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'draft','new request is a draft');
 select is((select discarded_at from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),null,'new draft starts with no discarded timestamp');
@@ -31,7 +31,7 @@ set local role authenticated;
 select is(public.create_verification_case(
  'DEMO DATA / NOT OFFICIAL sample plot near Kuje market','Kuje','Kuje',true,
  'Near Kuje market road','Synthetic request','email',null,false,
- '11111111-1111-4111-8111-111111111111'),
+ '11111111-1111-4111-8111-111111111111','buying','buyer','self',null,false),
  current_setting('test.draft_case_id')::uuid,
  'creation replay returns the same draft');
 select is((select count(*)::int from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),1,'idempotency key creates one case');
@@ -69,12 +69,12 @@ reset role;
 
 select set_config('request.jwt.claims','{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}',true);
 set local role authenticated;
-select throws_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'42501',null,'another customer cannot submit draft');
+select throws_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid,'case-service-scope-v1',true)$$,'42501',null,'another customer cannot submit draft');
 reset role;
 select set_config('request.jwt.claims','{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
-select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'owner submits draft');
-select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid)$$,'submit replay succeeds');
+select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid,'case-service-scope-v1',true)$$,'owner submits draft');
+select lives_ok($$select public.submit_verification_case(current_setting('test.draft_case_id')::uuid,'case-service-scope-v1',true)$$,'submit replay succeeds');
 select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and reason='Request submitted by customer.'),1,'submit writes one fixed customer event');
 select is((select workflow_status from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),'submitted','submitted draft transitions to submitted');
 select is((select discarded_at from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),null,'submission leaves discarded_at null');

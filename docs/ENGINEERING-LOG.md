@@ -203,3 +203,25 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **CI evidence for this update:** App run [39950544017](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544017) passed lint, typecheck, 40 unit tests, 17 integration tests (3 skipped), security guardrails and production build. Database run [39950544756](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39950544756) passed seven pgTAP suites (250 assertions) in a disposable Supabase environment. Migration 023 remains not hosted.
 
 **Lesson:** A draft is a privacy boundary, not just a label. Apply visibility consistently to case rows, events, evidence metadata, Storage objects and privileged download paths. Retain uploaded files until a reviewed retention policy exists.
+
+## 2026-10-23 — Case intake claims, human references and service-scope consent
+
+**Problem:** Intake did not capture why a customer was requesting review, the customer's claimed relationship to land, who the request was for, or acceptance of the service boundary. Customers and staff also had only opaque UUIDs, no customer-facing next-action cue, and a generic evidence upload control.
+
+**Cause:** The draft-first workflow was intentionally minimal and had no versioned consent record, submission-time public reference, or structured intake claim fields.
+
+**Fix:** Migration 024 adds nullable legacy-safe claim fields, validates representation and authority for new requests, allocates a unique human-readable case number only at submission and backfills existing submitted-or-later cases in creation order. A private case-scope consent table has RLS and SELECT-only client access; the SECURITY DEFINER submit RPC records consent and accepts only the current notice version. The current notice is explicitly draft wording, not legally reviewed. The app adds claim labels, action-needed guidance and a five-category evidence checklist. App run [39954573306](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39954573306) passed lint, typecheck, 45 unit tests, 19 integration tests (3 skipped), guardrails and build. Database run [39954573310](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39954573310) passed eight pgTAP suites (287 assertions). Migration 024 is CI-verified, not hosted.
+
+**Hosted baseline note (recorded 2026-10-23):** The owner confirms migration 023 was applied after PR #26 merged; hosted history is `001`–`023`. Earlier dated “023 not hosted” notes remain historical snapshots of the state at the time they were written.
+
+**Lesson:** Treat customer statements as claims, not evidence. Record consent at the transaction boundary that commits the request, allocate references only when the request becomes active, and retain nulls rather than inventing historical intake data.
+
+## 2026-10-23 — Annual case numbering and draft wording correction
+
+**Problem:** The first case-number implementation used a global sequence while embedding the year in each reference, so serials did not restart annually and the global capacity error was misleading. Draft cards/details also said “Received” before submission, and the RPC accepted the contradiction of “representing someone” while the request was for “myself.”
+
+**Cause:** A sequence has one global state and was formatted with a year that did not scope its allocation; shared copy did not distinguish a private saved draft from a submitted request; representation validation checked each field separately.
+
+**Fix:** Replace the sequence in unhosted migration 024 with an RLS-enabled counter table keyed by Africa/Lagos calendar year, with no Data API role grants or policies. The submit RPC increments a year row using a transactional `INSERT ... ON CONFLICT DO UPDATE ... RETURNING`, serializing concurrent submissions for that year. Backfill submitted-or-later cases in deterministic `created_at,id` order within each Africa/Lagos year, excluding owner-discarded drafts; new drafts remain unnumbered and retries preserve their number. Reject `representing_someone` plus `self` in Zod and the create RPC. Label drafts “Saved” on the dashboard and “Draft” on details, and describe creation failures as saving a draft. Document the controlled maintenance window for migration 024's incompatible RPC signatures. Migration 024 remains unhosted; follow-up checks are on PR #27.
+
+**Lesson:** A year in an identifier must also scope its allocator. Keep display language aligned with workflow state, and enforce clear contradictions at both validation boundaries.

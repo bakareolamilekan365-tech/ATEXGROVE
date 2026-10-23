@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
-import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
+import { EvidenceChecklist } from "@/components/cases/EvidenceChecklist";
 import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
@@ -11,6 +11,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
+import { nextActionLabel } from "@/lib/verification-cases/next-action";
 
 export const dynamic = "force-dynamic";
 
@@ -39,13 +40,14 @@ export default async function CustomerCasePage({
     <main className={styles.shell}>
       <div className={styles.headerRow}>
         <div>
-          <p className={styles.eyebrow}>Case {item.id.slice(0, 8)}</p>
+          <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
           <h1>{location.heading}</h1>
           {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />
           </div>
+          <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
           {item.workflow_status === "draft" ? <p className={styles.notice}>This request is saved as a draft. Staff cannot see it until you submit it.</p> : null}
         </div>
         <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard">Back to dashboard</Link>
@@ -78,7 +80,7 @@ export default async function CustomerCasePage({
             </div>
             <span className={styles.demo}>Demo data / not official</span>
           </div>
-          <p className={styles.muted}>Every file is received from customer — not authenticated.</p>
+          <p className={styles.muted}>Received from customer — not authenticated.</p>
           {evidence.length ? (
             <div className={styles.stack}>
               {evidence.map((document) => (
@@ -94,16 +96,8 @@ export default async function CustomerCasePage({
         </section>
         {customerActions.canUploadEvidence ? (
           <section className={styles.panel}>
-            <h2>{item.workflow_status === "draft" ? "Add documents before submitting" : "Add document"}</h2>
-            <EvidenceUploadForm
-              caseId={item.id}
-              existingEvidence={evidence.map((document) => ({
-                id: document.id,
-                evidenceType: document.evidence_type,
-                version: document.version,
-                filename: document.original_filename,
-              }))}
-            />
+            <h2>{item.workflow_status === "draft" ? "Document checklist" : "Add documents"}</h2>
+            <EvidenceChecklist caseId={item.id} evidence={evidence} />
           </section>
         ) : null}
         <CustomerCaseControls caseId={item.id} status={item.workflow_status} />
@@ -114,7 +108,7 @@ export default async function CustomerCasePage({
           </section>
         ) : null}
         <aside className={styles.card}>
-          <p className={styles.eyebrow}>Request received</p>
+          <p className={styles.eyebrow}>{item.workflow_status === "draft" ? "Draft" : "Request received"}</p>
           <h2>Site details</h2>
           <p>{item.site_description}</p>
           <p><strong>Jurisdiction:</strong> {item.jurisdiction}</p>
