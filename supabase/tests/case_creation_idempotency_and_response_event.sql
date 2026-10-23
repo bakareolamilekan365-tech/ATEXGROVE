@@ -358,10 +358,12 @@ select is(
     where verification_case_id = (
       select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'
     )
-      and event_kind = 'customer_response'
+      and event_kind in ('status_change', 'customer_response')
+      and reason in ('Your case is now in review.', 'Synthetic customer clarification.')
+      and customer_visible
   ),
   2,
-  'the customer can see both customer-response events'
+  'the customer can see the status transition and response as distinct events'
 );
 reset role;
 

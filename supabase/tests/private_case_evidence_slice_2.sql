@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 2.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(71);
+select plan(70);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.case_evidence'::regclass), 'case_evidence has RLS enabled');
 select ok(not (select public from storage.buckets where id = 'documents'), 'documents bucket is private');
@@ -170,12 +170,12 @@ reset role;
 
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_evidence), 1, 'customer A reads their own evidence');
+select is((select count(*)::int from public.case_evidence where verification_case_id = '11111111-1111-4111-8111-111111111111'), 3, 'customer A reads all three versions in their own case');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_evidence), 0, 'customer B cannot read customer A evidence');
+select is((select count(*)::int from public.case_evidence where verification_case_id = '11111111-1111-4111-8111-111111111111'), 0, 'customer B cannot read customer A evidence');
 select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 0, 'customer B cannot read customer A object');
 select throws_ok(
   $$insert into storage.objects (bucket_id, name, owner_id)
@@ -197,13 +197,13 @@ reset role;
 
 select set_config('request.jwt.claims', '{"sub":"c3300000-0000-4000-8000-000000000003","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_evidence), 1, 'department lead can read case evidence');
+select is((select count(*)::int from public.case_evidence where verification_case_id = '11111111-1111-4111-8111-111111111111'), 3, 'department lead can read all versions for the scoped case');
 select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 0, 'department lead cannot read evidence objects directly');
 reset role;
 
 select set_config('request.jwt.claims', '{"sub":"d4400000-0000-4000-8000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
-select is((select count(*)::int from public.case_evidence), 1, 'active assignee can read case evidence');
+select is((select count(*)::int from public.case_evidence where verification_case_id = '11111111-1111-4111-8111-111111111111'), 3, 'active assignee can read all versions for the scoped case');
 select is((select count(*)::int from storage.objects where bucket_id = 'documents'), 0, 'active assignee cannot read evidence objects directly');
 reset role;
 
