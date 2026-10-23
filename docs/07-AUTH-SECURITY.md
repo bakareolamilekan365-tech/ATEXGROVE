@@ -29,7 +29,7 @@ The authentication boundary must account for:
 - session expiration and explicit revocation
 - safe redirect and callback handling
 
-Local sign-out is **Implemented on the current PR branch** through a POST action; CI verification is pending and it is not hosted functionality. Administrative session revocation remains **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
+Local sign-out is **Implemented on main** through a POST action and was CI-verified in app run [39909627609](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39909627609); deployment/realistic session behavior is a separate operational check. Administrative session revocation remains **Planned**. Password recovery is **Implemented in code / operational verification pending** until hosted redirect settings, email delivery, expired/invalid links and end-to-end recovery are tested.
 
 ### Current implementation and security evidence
 

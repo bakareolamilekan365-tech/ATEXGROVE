@@ -51,7 +51,7 @@ Migration 023's structured `discarded_at` authorization and regression evidence 
 
 The migration 023 branch added a seventh pgTAP suite for draft privacy, evidence, submission, discard and cancellation. Historical run links and counts are retained in [STATUS.md](STATUS.md); current hosted state is recorded there separately.
 
-Migration 024 tests must cover input constraints and representation authority, draft-without-number and submitted-number allocation, backfill ordering, notice version/acceptance, consent idempotency and RLS visibility, direct-write denial, function/sequence grants and no anon access. Application tests cover claim validation, safe next-action mapping, service notice acceptance and evidence guidance. The CI result for 024 is pending; do not claim verification or hosted application yet.
+Migration 024 coverage includes input constraints and representation authority, draft-without-number and submitted-number allocation, backfill ordering, notice version/acceptance, consent idempotency and RLS visibility, direct-write denial, function/sequence grants and no anon access. Application tests cover claim validation, safe next-action mapping, service notice acceptance and evidence guidance. App run [39954573306](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39954573306) passed 45 unit and 19 integration tests (3 skipped), lint, typecheck, guardrails and build; database run [39954573310](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39954573310) passed eight pgTAP suites (287 assertions). Migration 024 is CI-verified, not hosted.
 
 Test the same decisions at the server and database boundaries:
 
