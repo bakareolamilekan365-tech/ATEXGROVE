@@ -15,6 +15,9 @@ Validation is recorded in the final PR and the dated engineering-log entry. No n
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit sections remain historical.
 
+
+**Verified code commit `18cc17b99469ba2915b51a301dccc0aff4c7b7e2`:** [App CI 40176136069](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40176136069) passed lint, typecheck, 70 unit tests, 26 integration tests (3 existing credential-gated skips), security guardrails and production build. [Database CI 40176136055](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40176136055) passed all nine regular pgTAP suites (436 assertions), then reset its disposable LOCAL database to 025, seeded historical fixtures, applied the real 026 file and passed 13 upgrade assertions: **449 database assertions total**. Tests exercise authenticated owners, leads, assignees, scoped application admins and out-of-scope users. Local Playwright completed with four existing placeholder tests skipped; this is not full browser acceptance evidence. No hosted migration, merge or deployment was performed.
+
 ## Current hosted state
 
 - **Current / hosted:** Supabase migration ledger reads `001`–`024` plus `20261023144032` (025), checked read-only on 2026-10-25. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migration 024 is applied, but does not report its apply date.

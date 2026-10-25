@@ -2,7 +2,7 @@
 
 ## 2026-10-25 focused workflow correction
 
-Pending evidence submission, per-file staff authorization, transactional explicit release and concise case/document history are implemented on `fix/pending-evidence-submission` with forward-only migration 026; not merged, deployed or hosted. Prior 025 is merged and hosted. Full professional document authentication, retention/deletion, customer downloads and notifications remain outside this correction.
+Pending evidence submission, per-file staff authorization, transactional explicit release and concise case/document history are implemented on `fix/pending-evidence-submission` with forward-only migration 026; CI-verified in app run 40176136069 and database run 40176136055 (449 database assertions), but not merged, deployed or hosted. Prior 025 is merged and hosted. Full professional document authentication, retention/deletion, customer downloads and notifications remain outside this correction.
 
 
 This is the single master list for product gaps and owner requests. Items are **Planned** unless their status explicitly records existing implementation, CI evidence, or hosted state. “Tier not assigned” means the supplied priority map did not place that item; it is not a priority decision.
