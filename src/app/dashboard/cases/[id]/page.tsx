@@ -6,7 +6,7 @@ import { EvidenceChecklist } from "@/components/cases/EvidenceChecklist";
 import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
 import styles from "@/components/cases/case-workflow.module.css";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
+import { caseTimelineEvents, timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { CaseEvidence, CaseStatusEvent, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
@@ -32,7 +32,7 @@ export default async function CustomerCasePage({
   if (!caseData) notFound();
 
   const item = caseData as VerificationCase;
-  const events = (eventData ?? []) as CaseStatusEvent[];
+  const events = caseTimelineEvents((eventData ?? []) as CaseStatusEvent[]);
   const evidence = (evidenceData ?? []) as CaseEvidence[];
   const customerActions = customerCaseActions(item.workflow_status);
   const location = caseLocationDisplay(item.area_name, item.area_lga);
@@ -56,7 +56,7 @@ export default async function CustomerCasePage({
 
       <div className={styles.twoColumn}>
         <section className={styles.panel}>
-          <h2>Customer-safe timeline</h2>
+          <h2>Case timeline</h2>
           <p className={styles.muted}>Only updates approved for customer viewing appear here.</p>
           <ol className={styles.timeline}>
             {events.map((event) => (
@@ -79,11 +79,11 @@ export default async function CustomerCasePage({
           <div className={styles.cardHeader}>
             <div>
               <p className={styles.eyebrow}>Private evidence</p>
-              <h2>Documents ({evidence.length}/10)</h2>
+              <h2>Document history ({evidence.length}/10)</h2>
             </div>
             <span className={styles.demo}>Demo data / not official</span>
           </div>
-          <p className={styles.muted}>Received from customer — not authenticated.</p>
+          <p className={styles.muted}>Submission for review does not authenticate any document.</p>
           {evidence.length ? (
             <div className={styles.stack}>
               {evidence.map((document) => {
@@ -91,6 +91,8 @@ export default async function CustomerCasePage({
                 return <article className={styles.card} key={document.id}>
                   <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
                   <p>{document.description}</p>
+                  <p className={styles.notice}>{document.submitted_at ? "Submitted for review — not authenticated" : "Saved — not yet submitted to the review team"}</p>
+                  <p className={`${styles.muted} ${styles.small}`}>Uploaded {new Date(document.created_at).toLocaleString("en-NG")}{document.submitted_at ? ` · Submitted ${new Date(document.submitted_at).toLocaleString("en-NG")}` : ""}</p>
                   <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
                   {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}
                   <span className={styles.demo}>Demo data / not official</span>
@@ -109,7 +111,7 @@ export default async function CustomerCasePage({
         {item.workflow_status === "needs_customer_info" ? (
           <section className={styles.panel}>
             <h2>Respond to the review team</h2>
-            <CustomerResponseForm caseId={item.id} />
+            {item.information_request_event_id ? <CustomerResponseForm caseId={item.id} requestEventId={item.information_request_event_id} /> : <p className={styles.error}>This request needs a review-team refresh before you can submit a response. Your saved files remain private.</p>}
           </section>
         ) : null}
         <aside className={styles.card}>
