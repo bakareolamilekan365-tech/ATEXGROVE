@@ -107,7 +107,7 @@ describe("customer-safe case timeline", () => {
     };
     const reply = { ...transition, event_kind: "customer_response" as const, reason: "I have provided the requested plan." };
     expect(timelineEventHeading(transition)).toBe("In review — not yet verified");
-    expect(timelineEventHeading(reply)).toBe("Customer response");
+    expect(timelineEventHeading(reply)).toBe("Customer response submitted");
     expect(timelineEventKindLabel(timelineEventKindForDisplay(reply))).toBe("Customer reply");
 
     const legacyTransition = { ...reply, reason: "Customer provided the requested information." };

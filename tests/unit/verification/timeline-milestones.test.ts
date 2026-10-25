@@ -22,6 +22,11 @@ describe("case milestones and preparation windows", () => {
     const fixed = event({ id: "b", event_kind: reason.startsWith("Your") ? "status_change" : "customer_response", reason, created_at: "2026-10-25T08:00:00.000Z" });
     expect(caseTimelineEvents([reply, fixed])).toEqual([reply]);
   });
+  it("coalesces an unambiguous 021 reply even when UUID sort reverses equal timestamps", () => {
+    const reply = event({ id: "a" });
+    const fixed = event({ id: "z", reason: "Customer provided the requested information." });
+    expect(caseTimelineEvents([fixed, reply])).toEqual([reply]);
+  });
   it("preserves a standalone review resume action", () => {
     const resume = event({ event_kind: "status_change", reason: "Your case is now in review." });
     expect(caseTimelineEvents([resume])).toEqual([resume]);
