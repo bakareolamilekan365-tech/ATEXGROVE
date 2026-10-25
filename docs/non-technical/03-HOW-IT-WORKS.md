@@ -28,11 +28,11 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), and 023 was applied after PR #26 merged, per owner confirmation. Migration 024 is implemented on PR #27 and is not hosted; earlier CI covered its previous revision, and current follow-up checks are attached to that PR. See docs/STATUS.md for current status.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), 023 was applied after PR #26 merged per owner confirmation, and migration 024 is present in the linked hosted ledger checked 2026-10-23. Migration 025 is proposed on the current PR and not hosted. See docs/STATUS.md for current status.
 
 ## Private files
 
-The prototype flow lets a customer save a request as a draft, add optional allowed evidence, then submit it. Staff cannot see a draft, its timeline or its evidence until it is submitted. Customers can discard a draft or cancel an open request; uploaded files are retained privately, including on cancellation, until a retention rule is decided. Staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. At submission, customers accept the current service-scope notice; a human-readable case number is assigned then. Customers can state why they are asking, their relationship to the land, and whether they act for themselves or someone else. Staff see these as “Customer's claim, not verified.” Migration 024 is not hosted; see STATUS.md.
+The prototype flow lets a customer save a request as a draft, add optional allowed evidence, then submit it. Staff cannot see a draft, its timeline or its evidence until it is submitted. Customers can discard a draft or cancel an open request; uploaded files are retained privately, including on cancellation, until a retention rule is decided. Staff downloads go through an audited permission check. Customers cannot download their uploaded files yet. Files are treated as unverified customer submissions, not proof of ownership or official approval. At submission, customers accept the current service-scope notice; a human-readable case number is assigned then. Customers can state why they are asking, their relationship to the land, and whether they act for themselves or someone else. Staff see these as “Customer's claim, not verified.” Migration 024 is hosted; migration 025 is proposed and not hosted. See STATUS.md.
 
 The pilot begins with synthetic or properly redacted evidence. Before real documents are accepted, Atexgrove needs approved terms and privacy information, explicit consent, minimum-necessary access, a retention/deletion process, an incident process and appropriate professional review of those rules.
 
@@ -40,7 +40,7 @@ Important evidence will use versions rather than silent replacement. If a custom
 
 ## Testing and deployment
 
-Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. Hosted migration history is 001-023 per owner confirmation; migration 024 is not hosted. Separate hosted-user testing is still required.
+Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. The linked hosted migration ledger reads 001-024; migration 025 is not hosted. Separate hosted-user testing is still required.
 
 ## The controlled case journey
 

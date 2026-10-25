@@ -83,6 +83,8 @@ Document, project, organization and administrative screens should request data o
 
 Document upload/download views should communicate status, version, reviewer and access scope. Use controlled retrieval for private files, do not display public-looking storage URLs, and make rejection, archive and retention states understandable without implying legal validity.
 
+The case evidence form labels a separate Version 1 as **New document** and a linked correction as **Replacement version**. Replacement selection is limited to the latest version of the selected evidence type; the case page retains the visible version history. Timeline headings use event meaning: a status milestone shows the workflow state, an upload says **Document uploaded**, and a customer reply is shown as a reply rather than another status milestone. Internal notes remain staff-only. Do not imply that draft uploads are visible to staff before submission.
+
 ## AI surfaces (Future)
 
 AI interfaces must clearly say when output is advisory. They should distinguish facts from estimates, show uncertainty, identify the source material considered, warn that uploaded content is untrusted, and direct consequential decisions to qualified professionals or official authorities. AI must not appear to approve land, title, planning or safety matters.

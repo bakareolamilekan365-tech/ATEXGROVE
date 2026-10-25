@@ -3,6 +3,7 @@ import { findTypeaheadOption, nextSelectIndex, selectSubmittedValue } from "@/co
 import { mapCaseFormIssues } from "@/lib/verification-cases/form-errors";
 import { caseLocationDisplay, LEGACY_LOCATION_NOTE } from "@/lib/verification-cases/location-display";
 import { newVerificationCaseSchema } from "@/lib/verification-cases/validation";
+import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand } from "@/lib/verification-cases/intake-labels";
 
 const options = [{ value: "AMAC", label: "AMAC" }, { value: "Bwari", label: "Bwari" }, { value: "Kuje", label: "Kuje" }];
 
@@ -47,5 +48,15 @@ describe("case form UI helpers", () => {
   it("shows council-only location and legacy note when detailed location is null", () => {
     expect(caseLocationDisplay(null, "Kuje")).toEqual({ heading: "Kuje, Abuja", legacy: true, note: LEGACY_LOCATION_NOTE });
     expect(caseLocationDisplay("Kuje", "Kuje")).toEqual({ heading: "Kuje, Kuje, Abuja", legacy: false, note: null });
+  });
+
+  it("maps stored intake values to readable labels and handles self authority correctly", () => {
+    expect(formatCustomerIntent("own_or_occupy")).toBe("Own or occupy land");
+    expect(formatRelationshipToLand("developer")).toBe("Developer");
+    expect(formatRelationshipToLand("agent_or_representative")).toBe("Agent or representative");
+    expect(formatActingFor("organisation", "A demo organisation")).toBe("Organisation: A demo organisation");
+    expect(formatAuthorityConfirmation(null, "self")).toBe("Not applicable — acting for self");
+    expect(formatAuthorityConfirmation(null, null)).toBe("Not recorded");
+    expect(formatCustomerIntent(null)).toBe("Not recorded");
   });
 });

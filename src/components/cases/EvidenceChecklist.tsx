@@ -16,7 +16,7 @@ const guidance: Record<(typeof evidenceTypes)[number], string> = {
 
 export function EvidenceChecklist({ caseId, evidence }: Readonly<{ caseId: string; evidence: CaseEvidence[] }>) {
   const [selectedType, setSelectedType] = useState<(typeof evidenceTypes)[number] | null>(null);
-  const existing = evidence.map((item) => ({ id: item.id, evidenceType: item.evidence_type, version: item.version, filename: item.original_filename }));
+  const existing = evidence.map((item) => ({ id: item.id, evidenceType: item.evidence_type, version: item.version, filename: item.original_filename, supersedesEvidenceId: item.supersedes_evidence_id }));
   return <div className={styles.stack}>
     <p className={styles.muted}>Not every case needs every document. Uploads are received from customer — not authenticated.</p>
     <ul className={styles.stack}>
