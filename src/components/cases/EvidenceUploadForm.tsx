@@ -27,11 +27,11 @@ export function EvidenceUploadForm({
   defaultEvidenceType,
 }: Readonly<{ caseId: string; existingEvidence: ExistingEvidenceOption[]; defaultEvidenceType?: (typeof evidenceTypes)[number] }>) {
   const [state, action] = useActionState(uploadCaseEvidenceAction, initialState);
-  const [evidenceType, setEvidenceType] = useState<(typeof evidenceTypes)[number]>(defaultEvidenceType ?? "other");
+  const [evidenceType, setEvidenceType] = useState<(typeof evidenceTypes)[number] | "">(defaultEvidenceType ?? "");
   const [uploadMode, setUploadMode] = useState<"new" | "replacement">("new");
   const [predecessorId, setPredecessorId] = useState("");
   const replacementOptions = useMemo(
-    () => latestReplaceableEvidence(
+    () => evidenceType === "" ? [] : latestReplaceableEvidence(
       existingEvidence.map((item) => ({
         id: item.id,
         evidence_type: item.evidenceType,
@@ -45,6 +45,12 @@ export function EvidenceUploadForm({
   );
 
   function changeEvidenceType(value: string) {
+    if (value === "") {
+      setEvidenceType("");
+      setPredecessorId("");
+      setUploadMode("new");
+      return;
+    }
     if (evidenceTypes.includes(value as (typeof evidenceTypes)[number])) {
       const selectedType = value as (typeof evidenceTypes)[number];
       const replacedIds = new Set(existingEvidence.map((item) => item.supersedesEvidenceId).filter((id): id is string => id !== null));
