@@ -2,6 +2,8 @@
 
 ## Pending evidence authorization (026, not hosted)
 
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
 Upload is preparation, not submission. Staff SELECT on `case_evidence` requires `submitted_at IS NOT NULL` and `staff_can_access_verification_case`. This protects direct reads, counts and embedded joins. The SECURITY DEFINER audited-download RPC repeats both checks before any server-side signed URL is generated. Storage remains private with no authenticated SELECT/UPDATE/DELETE policy; the sole INSERT policy is restricted to owned draft/awaiting-information cases. Existing ten-file and MIME constraints remain.
 
 The case helper continues to exclude draft and `discarded_at` cases, even for preassigned staff. Customers retain only their own metadata view; they cannot write submission timestamps, events or audits directly. Staff cannot submit a customer response or release pending files. No upload event is emitted; historical upload rows are excluded from staff event reads to prevent a parallel preparation-activity channel.

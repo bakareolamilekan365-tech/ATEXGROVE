@@ -2,6 +2,8 @@
 
 ## Explicit evidence submission — migration 026 compatibility
 
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
 Current hosted baseline is 025 as read-only verified 2026-10-25. This section describes branch code requiring 026; earlier proposed-025 descriptions below are historical.
 
 - `register_case_evidence` keeps its nine arguments and validation/lineage/quota checks. It now accepts only owned, non-discarded `draft` or `needs_customer_info` cases. Successful registration saves pending evidence and a creation audit, with no event or review release.

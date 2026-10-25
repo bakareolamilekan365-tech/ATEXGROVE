@@ -2,6 +2,8 @@
 
 ## 2026-10-25 focused workflow correction
 
+Follow-up patch in this same PR: empty required upload category, no staff resume from awaiting information, terminal actions that preserve pending privacy, and matching decision/known-issue/cutover documentation. Verification of this follow-up is pending; previous CI below describes the prior revision only.
+
 Pending evidence submission, per-file staff authorization, transactional explicit release and concise case/document history are implemented on `fix/pending-evidence-submission` with forward-only migration 026; CI-verified in app run 40176136069 and database run 40176136055 (449 database assertions), but not merged, deployed or hosted. Prior 025 is merged and hosted. Full professional document authentication, retention/deletion, customer downloads and notifications remain outside this correction.
 
 

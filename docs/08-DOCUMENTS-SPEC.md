@@ -2,6 +2,8 @@
 
 ## Upload, submission and review are separate (026 branch implementation)
 
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
 Hosted history was checked 2026-10-25 and includes 025; earlier dated references to 025 being proposed are historical. Migration 026 is not hosted.
 
 1. **Uploaded:** private object and metadata saved, with uploader, upload time, category, version, predecessor and creation audit.
@@ -88,7 +90,7 @@ Metadata should not contain unnecessary copies of sensitive document content. Ac
 - Store service-role credentials only on the server and never in client bundles or committed environment files.
 - Access, review, rejection, approval, version changes and deletion should be auditable without dumping full sensitive contents into logs.
 
-Slice 2 uses `documents/cases/{case_id}/{evidence_id}/{random}.{ext}`. The original filename never becomes part of the object path. PDF, JPEG and PNG are allowlisted, each file is limited to 10 MB, and the server validates the declared MIME type against the file signature before upload. Each case is limited to 10 registered evidence rows. Customers may upload to their own draft or open case, but cannot retrieve their own uploaded files in this slice. Staff cannot read draft metadata or files. Neither leads nor assignees can read `storage.objects` directly: staff retrieval must use the server action, which calls the audited authorization RPC before a server-only service-role client creates a 60-second signed download URL. Files are served as attachments and never rendered inline.
+Slice 2 uses `documents/cases/{case_id}/{evidence_id}/{random}.{ext}`. The original filename never becomes part of the object path. PDF, JPEG and PNG are allowlisted, each file is limited to 10 MB, and the server validates the declared MIME type against the file signature before upload. Each case is limited to 10 registered evidence rows. Customers may upload only to their own non-discarded `draft` or `needs_customer_info` case, but cannot retrieve their own uploaded files in this slice. Staff cannot read draft metadata or files. Neither leads nor assignees can read `storage.objects` directly: staff retrieval must use the server action, which calls the audited authorization RPC before a server-only service-role client creates a 60-second signed download URL. Files are served as attachments and never rendered inline.
 
 The 10-file limit counts registered evidence rows. The application removes an uploaded object when registration fails, but a client that uploads an object without completing registration does not consume the evidence-row limit. This orphan-object gap is a known free-plan limitation and requires operational monitoring/cleanup rather than being represented as a stronger quota guarantee.
 
@@ -158,7 +160,7 @@ Long-running work should expose durable states such as queued, running, succeede
 
 ## Current prototype boundary
 
-Migration 024 is present in the linked hosted ledger. The app offers five evidence categories (title deed copy, survey plan copy, receipt, seller ID and other), one-line purposes, per-category supplied counts and an Add action that preselects the type. No category is mandatory for every case. Upload UI distinguishes a separate “New document” from a “Replacement version” and only offers the latest same-type version for replacement. Files remain labelled “Received from customer — not authenticated”; the list does not authenticate, review or determine document sufficiency. Migration 025 is merged and hosted; its per-upload event behavior is superseded by 026 on this branch. See [STATUS.md](STATUS.md) for separate implementation, CI and hosted evidence.
+Migration 024 is present in the linked hosted ledger. The app offers five evidence categories (title deed copy, survey plan copy, receipt, seller ID and other), one-line purposes, per-category supplied counts and an Add action that preselects the type. No category is mandatory for every case. Upload UI distinguishes a separate “New document” from a “Replacement version” and only offers the latest same-type version for replacement. Pending files are labelled “Saved — not yet submitted to the review team”; submitted files are labelled “Submitted for review — not authenticated”; the list does not authenticate, review or determine document sufficiency. Migration 025 is merged and hosted; its per-upload event behavior is superseded by 026 on this branch. See [STATUS.md](STATUS.md) for separate implementation, CI and hosted evidence.
 
 Slice 2 still does not include document authentication, findings, reviewer decisions, staff uploads, full project/organization authorization, malware scanning, privileged-operator immutability, jurisdiction-specific retention/deletion, background processing or AI analysis. A received file is not “verified”, “approved” or “valid”. Hosted cross-user object isolation with realistic authenticated sessions remains a separate operational gate after approved deployment.
 

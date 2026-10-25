@@ -2,11 +2,13 @@
 
 ## Pending evidence boundary — migration 026 (branch implementation, not hosted)
 
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
 Current hosted baseline checked 2026-10-25 is through 025 (`20261023144032`); old dated hosted observations below are historical.
 
 `case_evidence.submitted_at` is nullable: NULL means pending customer submission. `submission_event_id` links release to the submitted-request or customer-response event. A non-null event requires a timestamp. Registration always leaves both NULL; clients retain SELECT only, with no direct release/update privilege. Metadata, uploader, creation time, type, storage reference, review state and immutable predecessor lineage remain intact. Submitted versions do not disappear merely because a pending replacement exists.
 
-`verification_cases.information_request_event_id` identifies the current explicit staff request. `case_status_events.response_to_event_id` binds a response to that request; a partial unique index permits one response per request. The request pointer is initialized from the latest real historical information-request milestone and updated by the staff transition RPC. A malformed legacy awaiting-information case with no event fails closed; staff must resume and issue a real request.
+`verification_cases.information_request_event_id` identifies the current explicit staff request. `case_status_events.response_to_event_id` binds a response to that request; a partial unique index permits one response per request. The request pointer is initialized from the latest real historical information-request milestone and updated by the staff transition RPC. A malformed legacy awaiting-information case with no event fails closed; use a reviewed forward linkage repair or close/cancel and create a new request. Staff cannot manually resume review.
 
 Migration backfills `submitted_at = created_at` only for evidence on non-draft, non-discarded cases: previously visible files remain visible, including files on legacy `needs_customer_info` cases. The backfill does not invent historical consent, release events or professional authentication. New files are pending regardless of case history. Old draft/discarded files stay pending.
 

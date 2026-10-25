@@ -50,6 +50,14 @@ Status values: Accepted / Accepted for pilot / Proposed (needs confirmation) / D
 - Decided 2026-10-14: pilot palette and Figtree interface font were accepted; the logo portion of that decision is superseded below.
 - Decided 2026-10-21: the owner confirmed `assets/brand/source/atexgrove-*.jpg` as the final logo source. A true vector or transparent PNG is required before the logo is used in the application header or favicon.
 
+## Evidence submission and migration naming — 2026-10-25 (PR #29)
+
+- Customers deliberately add or replace documents only in `draft` or `needs_customer_info`. After submission they must wait for a staff information request; `submitted`, `assigned` and `in_review` do not allow uploads or customer corrections.
+- Each newly registered file is pending (`submitted_at IS NULL`) and invisible to staff through metadata, counts, joins, audit reads and downloads until explicit customer submission. Previously submitted versions remain accessible to authorized staff. Submission is not professional review or authentication.
+- Staff cannot resume `needs_customer_info` as `in_review`. Only the customer's explicit reply releases pending files and resumes review in one transaction. Staff may close or cancel; the customer may cancel. Terminal actions never release pending files.
+- New migration filenames use timestamp versions. “025” means `20261023144032_case_timeline_evidence_workflow.sql`; “026” means `20261025075512_pending_evidence_submission.sql`. The short numbers are documentation labels only, not CLI migration versions. Applied migrations 001–025 remain unchanged; 026 is not hosted.
+
+
 ## Open owner decisions — 2026-10-21
 
 - Confirm the authoritative Development Control requirements source and contact.

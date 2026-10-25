@@ -4,15 +4,41 @@
 
 **Do not merge, deploy or apply this migration without explicit owner approval.** Hosted baseline was checked read-only on 2026-10-25: migrations 001–024 plus 025 (`20261023144032`). Do not edit or reapply those migrations.
 
-1. Review this focused PR and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the compatible app build, backups and a controlled maintenance window.
+1. Review this focused PR and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the compatible app build, backups and a controlled maintenance window. After explicit owner approval, **merge first**, without automatically starting the new app.
 2. After owner approval, pause customer writes and drain in-flight upload/response requests. Inspect pending uploads and confirm the target project is `apexgrove`. The compatibility backfill deliberately preserves previously visible evidence, not inferred historical submission consent.
-3. Apply only `20261025075512_pending_evidence_submission.sql` using the normal migration tooling. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
-4. Deploy the compatible app passing `p_request_event_id`; resume writes only after verifying draft privacy, pending replacement privacy, explicit batch release and concise response milestones with separate customer, lead, assignee and unrelated accounts.
+3. **Apply the migration second**, against the approved linked target: run `npx supabase migration list`, then `npx supabase db push --dry-run`; inspect that only `20261025075512_pending_evidence_submission.sql` is pending, then run `npx supabase db push`. Do not use “026” as the CLI version. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
+4. **Run the new app third**, passing `p_request_event_id`; until 026 is applied, replies from this new app fail because its three-argument RPC does not exist. Both old and new app writes must remain paused during cutover; resume writes only after verifying draft privacy, pending replacement privacy, explicit batch release and concise response milestones with separate customer, lead, assignee and unrelated accounts.
 5. Verify the hosted ledger and database constraints separately and record the actual apply date/CI IDs. Never claim hosted deployment from a green workflow alone.
 
 Do not roll back to an app that expects the old response RPC or broadly visible evidence. Prefer a reviewed forward fix; preserve pending data, event references and release audits. Do not reset/seed production or use privileged credentials for authorization testing.
 
-A legacy `needs_customer_info` row without any historical request milestone has no safe request token and cannot submit. Keep its files pending; the assignee can resume, then issue a new real information request. Staff resume/cancellation never release pending files. A stale retry from a completed round returns only the old result and does not affect the new round.
+A legacy `needs_customer_info` row without any historical request milestone has no safe request token and cannot submit. Keep its files pending; use a reviewed forward repair of the request linkage or close/cancel and create a new request. Staff cannot resume review manually. Closure/cancellation never release pending files. A stale retry from a completed round returns only the old result and does not affect the new round.
+
+
+### Read-only hosted verification after approved 026 application
+
+These queries do not apply migrations. Run them only after the owner-approved migration, record actual outputs and apply time, and do not treat CI as hosted confirmation:
+
+```sql
+select version, name from supabase_migrations.schema_migrations
+where version in ('20261023144032', '20261025075512') order by version;
+
+select schemaname, tablename, policyname, cmd, roles, qual, with_check
+from pg_policies
+where (schemaname = 'public' and tablename in ('case_evidence', 'case_status_events', 'audit_logs'))
+   or (schemaname = 'storage' and tablename = 'objects')
+order by schemaname, tablename, policyname;
+
+select to_regprocedure('public.customer_respond_to_case(uuid,text,uuid)') as required_three_arg_rpc,
+       to_regprocedure('public.customer_respond_to_case(uuid,text)') as removed_two_arg_rpc;
+
+select count(*) as evidence_pending from public.case_evidence where submitted_at is null;
+select vc.workflow_status, (vc.discarded_at is not null) as discarded, count(*) as evidence_pending
+from public.case_evidence ce join public.verification_cases vc on vc.id = ce.verification_case_id
+where ce.submitted_at is null group by vc.workflow_status, (vc.discarded_at is not null);
+```
+
+Expected policy names include `Customers and scoped staff can read case evidence`, `Customers and scoped staff can read case status events`, `Admins can view audit logs`, and `Customers can upload evidence for their cases`. Inspect their predicates too: staff metadata and audit access must exclude pending files; uploads must require ownership and draft/awaiting-information status. There must be no authenticated Storage SELECT/UPDATE/DELETE access. The three-argument RPC must exist and the two-argument one must be NULL. Pending counts can legitimately include drafts, awaiting-information responses and retained closed/cancelled/discarded evidence, but must not include active `in_review` cases. Run authenticated account smoke checks as well; privileged counts alone do not test RLS.
 
 
 This runbook covers current development and hosted-configuration procedures. It does not authorize unreviewed production changes. Use synthetic data only.
