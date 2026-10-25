@@ -2,7 +2,7 @@
 
 ## 2026-10-25 focused workflow correction
 
-Follow-up patch in this same PR: empty required upload category, no staff resume from awaiting information, terminal actions that preserve pending privacy, and matching decision/known-issue/cutover documentation. Verification of this follow-up is pending; previous CI below describes the prior revision only.
+Follow-up patch in this same PR: empty required upload category, no staff resume from awaiting information, terminal actions that preserve pending privacy, and matching decision/known-issue/cutover documentation. Completed on this branch, verified at `29d31036b2a4a8208bafbc8cfc7cc4a5083d4def`: [app run 40194071878](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071878) passed lint/typecheck, 75 unit tests, 26 integration tests (3 existing skips), guardrails and build; [database run 40194071685](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071685) passed 10 suites / 494 assertions plus 13 upgrade assertions (507 total). Migration 026 is **not hosted**. Previous CI below describes the prior revision only.
 
 Pending evidence submission, per-file staff authorization, transactional explicit release and concise case/document history are implemented on `fix/pending-evidence-submission` with forward-only migration 026; CI-verified in app run 40176136069 and database run 40176136055 (449 database assertions), but not merged, deployed or hosted. Prior 025 is merged and hosted. Full professional document authentication, retention/deletion, customer downloads and notifications remain outside this correction.
 
