@@ -1,0 +1,20 @@
+-- Disposable CI ONLY: verify 025 data after applying the real 026 file.
+begin;
+select plan(13);
+select is((select count(*)::int from public.case_evidence),5,'upgrade retains every historical evidence row');
+select is((select submitted_at from public.case_evidence where id='60000000-0000-4000-8000-000000000001'),null::timestamptz,'legacy draft remains pending');
+select is((select submitted_at from public.case_evidence where id='60000000-0000-4000-8000-000000000003'),null::timestamptz,'legacy discarded draft remains pending');
+select is((select count(*)::int from public.case_evidence where submitted_at=created_at and submission_event_id is null),3,'previously visible information/cancelled/closed files are grandfathered without fake release events');
+select is((select jsonb_agg(to_jsonb(e)-'response_to_event_id' order by id) from public.case_status_events e),(select events from upgrade_snapshot.history),'historical event rows are byte-equivalent apart from new null column');
+select is((select jsonb_agg(to_jsonb(a) order by id) from public.audit_logs a),(select audits from upgrade_snapshot.history),'historical audit records remain identical');
+select is((select jsonb_agg(to_jsonb(ce)-'submitted_at'-'submission_event_id' order by id) from public.case_evidence ce),(select evidence from upgrade_snapshot.history),'original evidence metadata and versions remain identical');
+select is((select information_request_event_id from public.verification_cases where id='50000000-0000-4000-8000-000000000002'),'70000000-0000-4000-8000-000000000001'::uuid,'latest legacy request uses the fixed milestone rather than companion text');
+select set_config('request.jwt.claims','{"sub":"40000000-0000-4000-8000-000000000002","role":"authenticated"}',true);
+set local role authenticated;
+select is((select count(*)::int from public.case_evidence where verification_case_id='50000000-0000-4000-8000-000000000002'),1,'scoped staff retain access to historical needs-info evidence');
+select lives_ok($$select * from public.authorize_case_evidence_download('60000000-0000-4000-8000-000000000002')$$,'historical submitted evidence still allows audited download');
+select is((select count(*)::int from public.case_evidence where id in ('60000000-0000-4000-8000-000000000001','60000000-0000-4000-8000-000000000003')),0,'legacy draft/discarded evidence remains staff-inaccessible');
+select throws_ok($$select * from public.authorize_case_evidence_download('60000000-0000-4000-8000-000000000001')$$,'42501',null,'historical draft download stays denied');
+select is((select count(*)::int from public.case_status_events where reason like 'Document added: %'),0,'historical upload event remains withheld from staff API');
+reset role;
+select * from finish(); rollback;

@@ -84,7 +84,7 @@ reset role;
 select set_config('request.jwt.claims','{"sub":"c3300000-0000-4000-8000-000000000003","role":"authenticated"}',true);
 set local role authenticated;
 select is((select count(*)::int from public.verification_cases where id=current_setting('test.draft_case_id')::uuid),1,'submitted case becomes visible in the staff queue scope');
-select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and event_kind='document_uploaded' and reason='Title deed copy uploaded'),1,'staff can see authorized historical draft upload as document activity after submission');
+select is((select count(*)::int from public.case_status_events where verification_case_id=current_setting('test.draft_case_id')::uuid and event_kind='document_uploaded' and reason='Title deed copy uploaded'),0,'draft uploads never create timeline activity, even after submission');
 select is((select count(*)::int from public.case_evidence where verification_case_id=current_setting('test.draft_case_id')::uuid),1,'staff can see uploaded evidence metadata only after submission');
 select lives_ok($$select * from public.authorize_case_evidence_download('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')$$,'scoped staff can use audited download after submission');
 reset role;

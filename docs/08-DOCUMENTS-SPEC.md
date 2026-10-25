@@ -1,10 +1,26 @@
 # Atexgrove — Document Management Specification
 
+## Upload, submission and review are separate (026 branch implementation)
+
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
+Hosted history was checked 2026-10-25 and includes 025; earlier dated references to 025 being proposed are historical. Migration 026 is not hosted.
+
+1. **Uploaded:** private object and metadata saved, with uploader, upload time, category, version, predecessor and creation audit.
+2. **Pending customer submission:** `submitted_at` is NULL. Customer sees “Saved — not yet submitted to the review team”. The state persists across sessions. A pending replacement never removes staff access to an already-submitted predecessor.
+3. **Submitted for staff review:** explicit Submit request or Submit response releases all pending versions atomically and records their IDs in the submission audit. Customer/staff document history says “Submitted for review — not authenticated”, shows upload/release dates and retains all versions.
+4. **Professionally reviewed/authenticated:** separate future functionality. Upload, release, case review and closure confer no legal authentication.
+
+Uploads are permitted only while drafting or preparing a requested response. During submitted/assigned/in-review states, staff must request information to open a preparation window. Files uploaded before a concurrent staff status change but not registered may require the existing cleanup/retry path; registration rechecks under the case lock and never implicitly submits. Existing 10 MB, PDF/JPEG/PNG, server signature validation and ten-total-version limits are unchanged. No delete/retention or customer download feature is introduced.
+
+The main timeline omits upload events; document history supplies file activity. Old event/audit rows are retained, including unmatched legacy communication. Existing non-draft/non-discarded evidence is grandfathered as submitted at creation time for compatibility; the timestamp does not claim historical explicit consent.
+
+
 ## Scope and implementation boundary
 
 Documents are sensitive assets connected to users, organizations, verification cases, later land parcels and projects. The Phase 2 primary resource scope is the verification case; a case and its evidence must not require an existing marketplace parcel. This specification defines the target controls without claiming that every lifecycle stage is implemented today.
 
-**Current hosted state:** migrations `001`–`024` are recorded in the linked hosted ledger (checked 2026-10-23); migration 024's exact apply date is not available. Migration 023 permits draft evidence and adds owner submit/discard/cancel behavior. Evidence rules remain: private bucket, PDF/JPEG/PNG, signature checks, 10 MB per file, ten registered evidence rows per case, immutable version lineage and staff-only audited signed downloads. Staff-scoped RLS and download authorization exclude active drafts and cases with `discarded_at` set. Discarded draft records and evidence remain retained pending a separate retention/deletion decision. Migration 025 is in the current PR, adds no storage read/write bypass, and remains not hosted.
+**Current hosted state:** migrations `001`–`024` plus `20261023144032` (025) are recorded in the linked hosted ledger (checked 2026-10-25); migration 024's exact apply date is not available. Migration 023 permits draft evidence and adds owner submit/discard/cancel behavior. Evidence rules remain: private bucket, PDF/JPEG/PNG, signature checks, 10 MB per file, ten registered evidence rows per case, immutable version lineage and staff-only audited signed downloads. Staff-scoped RLS and download authorization exclude active drafts and cases with `discarded_at` set. Discarded draft records and evidence remain retained pending a separate retention/deletion decision. Migration 025 is now merged and hosted (2026-10-25 ledger); migration 026 remains not hosted and is described above.
 
 ## Supported Slice 2 types
 
@@ -59,7 +75,7 @@ Metadata should not contain unnecessary copies of sensitive document content. Ac
 - Important evidence versions are immutable after submission.
 - A revised upload creates a new version where appropriate; it does not silently replace historical evidence.
 - Independent new documents each begin at Version 1. A replacement explicitly selects the latest version, must remain in the same case and document type, increments the version by one, and retains the predecessor, uploader, timestamp and reason.
-- The proposed migration 025 rejects stale predecessors and adds a database uniqueness guard so a predecessor can have only one successor. Existing evidence metadata is preserved; hosted data was checked for duplicate predecessor links and inconsistent case/type/version links before preparing the migration.
+- The merged/hosted migration 025 rejects stale predecessors and adds a database uniqueness guard so a predecessor can have only one successor. Existing evidence metadata is preserved; hosted data was checked for duplicate predecessor links and inconsistent case/type/version links before preparing the migration.
 - Review and verification decisions must point to the version reviewed, not only to the logical document ID.
 - Archived versions remain discoverable to authorized reviewers subject to retention policy.
 
@@ -74,7 +90,7 @@ Metadata should not contain unnecessary copies of sensitive document content. Ac
 - Store service-role credentials only on the server and never in client bundles or committed environment files.
 - Access, review, rejection, approval, version changes and deletion should be auditable without dumping full sensitive contents into logs.
 
-Slice 2 uses `documents/cases/{case_id}/{evidence_id}/{random}.{ext}`. The original filename never becomes part of the object path. PDF, JPEG and PNG are allowlisted, each file is limited to 10 MB, and the server validates the declared MIME type against the file signature before upload. Each case is limited to 10 registered evidence rows. Customers may upload to their own draft or open case, but cannot retrieve their own uploaded files in this slice. Staff cannot read draft metadata or files. Neither leads nor assignees can read `storage.objects` directly: staff retrieval must use the server action, which calls the audited authorization RPC before a server-only service-role client creates a 60-second signed download URL. Files are served as attachments and never rendered inline.
+Slice 2 uses `documents/cases/{case_id}/{evidence_id}/{random}.{ext}`. The original filename never becomes part of the object path. PDF, JPEG and PNG are allowlisted, each file is limited to 10 MB, and the server validates the declared MIME type against the file signature before upload. Each case is limited to 10 registered evidence rows. Customers may upload only to their own non-discarded `draft` or `needs_customer_info` case, but cannot retrieve their own uploaded files in this slice. Staff cannot read draft metadata or files. Neither leads nor assignees can read `storage.objects` directly: staff retrieval must use the server action, which calls the audited authorization RPC before a server-only service-role client creates a 60-second signed download URL. Files are served as attachments and never rendered inline.
 
 The 10-file limit counts registered evidence rows. The application removes an uploaded object when registration fails, but a client that uploads an object without completing registration does not consume the evidence-row limit. This orphan-object gap is a known free-plan limitation and requires operational monitoring/cleanup rather than being represented as a stronger quota guarantee.
 
@@ -144,6 +160,8 @@ Long-running work should expose durable states such as queued, running, succeede
 
 ## Current prototype boundary
 
-Migration 024 is present in the linked hosted ledger. The app offers five evidence categories (title deed copy, survey plan copy, receipt, seller ID and other), one-line purposes, per-category supplied counts and an Add action that preselects the type. No category is mandatory for every case. Upload UI distinguishes a separate “New document” from a “Replacement version” and only offers the latest same-type version for replacement. Files remain labelled “Received from customer — not authenticated”; the list does not authenticate, review or determine document sufficiency. Proposed migration 025 marks upload timeline entries as document activity; it is not hosted. See [STATUS.md](STATUS.md) for separate implementation, CI and hosted evidence.
+Migration 024 is present in the linked hosted ledger. The app offers five evidence categories (title deed copy, survey plan copy, receipt, seller ID and other), one-line purposes, per-category supplied counts and an Add action that preselects the type. No category is mandatory for every case. Upload UI distinguishes a separate “New document” from a “Replacement version” and only offers the latest same-type version for replacement. Pending files are labelled “Saved — not yet submitted to the review team”; submitted files are labelled “Submitted for review — not authenticated”; the list does not authenticate, review or determine document sufficiency. Migration 025 is merged and hosted; its per-upload event behavior is superseded by 026 on this branch. See [STATUS.md](STATUS.md) for separate implementation, CI and hosted evidence.
 
 Slice 2 still does not include document authentication, findings, reviewer decisions, staff uploads, full project/organization authorization, malware scanning, privileged-operator immutability, jurisdiction-specific retention/deletion, background processing or AI analysis. A received file is not “verified”, “approved” or “valid”. Hosted cross-user object isolation with realistic authenticated sessions remains a separate operational gate after approved deployment.
+
+Application audit administrators are also constrained by case scope for case audits and by submitted evidence for file audits; the audit API cannot expose pending preparation. Raw audit records remain retained for trusted database operators.

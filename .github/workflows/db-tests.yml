@@ -15,3 +15,12 @@ jobs:
       - run: supabase start
       # Runs the pgTAP files in supabase/tests against that database.
       - run: supabase test db
+      # Upgrade regression is LOCAL/disposable only; never link this runner to hosted Supabase.
+      - name: Reset disposable database to the actual hosted baseline (025)
+        run: supabase db reset --local --version 20261023144032 --no-seed
+      - name: Seed historical draft and previously visible evidence
+        run: docker exec -i supabase_db_apexgrove psql -U postgres -d postgres -v ON_ERROR_STOP=1 < supabase/upgrade_before.sql
+      - name: Apply only the pending local migration
+        run: supabase migration up --local
+      - name: Verify upgrade preserves historical records and authorization
+        run: supabase test db --local supabase/upgrade_after.sql

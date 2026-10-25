@@ -56,7 +56,7 @@ export async function uploadCaseEvidenceAction(
     return failure("We could not check this case. Refresh the page and try again.");
   }
   if (!verificationCase) return failure("This case was not found or is not yours.");
-  if (!["draft", "submitted", "assigned", "in_review", "needs_customer_info"].includes(verificationCase.workflow_status)) {
+  if (!["draft", "needs_customer_info"].includes(verificationCase.workflow_status)) {
     return failure("This case is not accepting documents.");
   }
 
@@ -126,10 +126,9 @@ export async function uploadCaseEvidenceAction(
   }
 
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
-  revalidatePath(`/ops/cases/${parsed.data.caseId}`);
   return {
     error: null,
-    success: parsed.data.supersedesEvidenceId ? "Replacement version added to the document history." : "New document added as Version 1.",
+    success: "Saved — not yet submitted to the review team",
   };
 }
 
@@ -188,10 +187,11 @@ export async function customerRespondToCaseAction(
   const { error } = await supabase.rpc("customer_respond_to_case", {
     p_case_id: parsed.data.caseId,
     p_message: parsed.data.message,
+    p_request_event_id: String(formData.get("requestEventId") ?? ""),
   });
   if (error) return failure("The response was not allowed or the case has changed.");
 
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
-  return { error: null, success: "Response sent. Review has resumed." };
+  return { error: null, success: "Response submitted. Documents released for review — not authenticated." };
 }

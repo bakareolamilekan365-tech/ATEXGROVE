@@ -1,5 +1,18 @@
 # Atexgrove — Authentication, Authorization & Security
 
+## Pending evidence authorization (026, not hosted)
+
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
+Upload is preparation, not submission. Staff SELECT on `case_evidence` requires `submitted_at IS NOT NULL` and `staff_can_access_verification_case`. This protects direct reads, counts and embedded joins. The SECURITY DEFINER audited-download RPC repeats both checks before any server-side signed URL is generated. Storage remains private with no authenticated SELECT/UPDATE/DELETE policy; the sole INSERT policy is restricted to owned draft/awaiting-information cases. Existing ten-file and MIME constraints remain.
+
+The case helper continues to exclude draft and `discarded_at` cases, even for preassigned staff. Customers retain only their own metadata view; they cannot write submission timestamps, events or audits directly. Staff cannot submit a customer response or release pending files. No upload event is emitted; historical upload rows are excluded from staff event reads to prevent a parallel preparation-activity channel.
+
+All release operations lock the case and validate ownership/state. Request tokens prevent stale-page submissions targeting another round. The unique response reference prevents duplicate release/milestones. Staff resuming a case does not release pending evidence; cancellation/discard/closure leave it withheld. Privileged database operators and server service-role credentials remain trusted infrastructure boundaries, not end-user identities; never use them for application list queries.
+
+Migration 025 is hosted as verified 2026-10-25. Migration 026 has not been applied. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this correction does not claim a clean security-advisor report.
+
+
 ## Security boundary and status
 
 This document defines the security model for the modular-monolith prototype and its planned extensions. It is not a claim that every control below is already implemented. The current repository is the implementation source of truth; controls labelled **Future** or **Planned** require later implementation and operational validation.
@@ -187,3 +200,5 @@ Security design should minimize personal data, restrict access, preserve auditab
 ## Planned vendor and processor controls
 
 These controls are **Planned**, not implemented. Maintain a register of third-party data processors/providers and their approval state, and document the specific data each is permitted to receive. Do not grant a provider broader access merely because it supplies one service. See [X-42](BACKLOG.md#x-42), [X-47](BACKLOG.md#x-47), [V-40](BACKLOG.md#v-40) and [V-41](BACKLOG.md#v-41). Any new application table must use explicit grants: authenticated SELECT only, no `anon` grant, and only the narrowly required server/service permissions.
+
+Application audit administrators are also constrained by case scope for case audits and by submitted evidence for file audits; the audit API cannot expose pending preparation. Raw audit records remain retained for trusted database operators.

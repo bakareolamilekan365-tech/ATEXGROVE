@@ -1,5 +1,19 @@
 # Atexgrove — API Architecture
 
+## Explicit evidence submission — migration 026 compatibility
+
+Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
+
+Current hosted baseline is 025 as read-only verified 2026-10-25. This section describes branch code requiring 026; earlier proposed-025 descriptions below are historical.
+
+- `register_case_evidence` keeps its nine arguments and validation/lineage/quota checks. It now accepts only owned, non-discarded `draft` or `needs_customer_info` cases. Successful registration saves pending evidence and a creation audit, with no event or review release.
+- `submit_verification_case(uuid,text,boolean)` keeps its consent and numbering contract; successful first submission releases every pending file and writes a single submitted milestone. A retry never releases additional files.
+- `customer_respond_to_case(uuid,text,uuid)` replaces the two-argument RPC. The third argument is `p_request_event_id`, obtained from the owner-visible case. The response message remains required (2–2000 trimmed characters). It must match the current request; an identical previous response returns the existing event, while different data is rejected. The release, one response milestone, status transition and audit commit together. Old app builds fail closed because the two-argument RPC is removed.
+- `authorize_case_evidence_download(uuid)` retains its signature but requires both submitted evidence and current staff case scope. The admin signer is only reached after that check.
+
+Do not deploy these application changes against an unmigrated database. Use the controlled, owner-approved sequence in RUNBOOK. No hosted migration is performed by opening or testing this PR.
+
+
 ## Principles
 - Consistent JSON response shapes
 - Typed request/response schemas
@@ -59,7 +73,7 @@ Migration 023's customer actions are POST server actions backed by owner-checked
 
 Migration 024 adds a `case_consents` SELECT-only RLS resource: customers read their own records; staff read records only when scoped to the associated case; customers cannot directly write. The submit RPC records the `case_service_scope` consent. The customer UI derives a next-action label from workflow status in application code; it is not a database field.
 
-Evidence uploads use `register_case_evidence` after the file passes Storage policy and server-side signature checks. A new document is a separate Version 1 record. A replacement must reference the current leaf of a same-case, same-type chain; the RPC locks the case row, and migration 025 adds a unique successor index so concurrent or stale replacements cannot fork a chain. Prior versions remain immutable. Upload activity is recorded as `document_uploaded`, not `status_change`. `customer_respond_to_case` keeps the fixed safe transition and actual response as separate, ordered events. Customer/staff timeline views render the event kind rather than treating every `to_status` as a milestone. Migration 025 is in the current PR and not hosted.
+Evidence uploads use `register_case_evidence` after the file passes Storage policy and server-side signature checks. A new document is a separate Version 1 record. A replacement must reference the current leaf of a same-case, same-type chain; the RPC locks the case row, and migration 025 adds a unique successor index so concurrent or stale replacements cannot fork a chain. Prior versions remain immutable. Upload activity is recorded as `document_uploaded`, not `status_change`. `customer_respond_to_case` keeps the fixed safe transition and actual response as separate, ordered events. Customer/staff timeline views render the event kind rather than treating every `to_status` as a milestone. Migration 025 is merged and hosted; the 026 correction above supersedes its upload-event and paired-response writing.
 
 There is no staff notification delivery mechanism in the current repository. The notification function is a placeholder, and draft uploads do not enqueue or send staff notifications.
 

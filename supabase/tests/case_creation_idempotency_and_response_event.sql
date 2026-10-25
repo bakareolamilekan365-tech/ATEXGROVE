@@ -263,11 +263,13 @@ values (
   'staff_note'
 );
 
+insert into public.case_status_events(id,verification_case_id,actor_user_id,from_status,to_status,reason,customer_visible,event_kind) values ('12345678-aaaa-4aaa-8aaa-aaaaaaaaaaaa',(select case_id from pg_temp.migration_021_results where attempt='customer-b-same-key'),'cc300000-0000-4000-8000-000000000003','in_review','needs_customer_info','Please clarify',true,'information_requested');
+update public.verification_cases set information_request_event_id='12345678-aaaa-4aaa-8aaa-aaaaaaaaaaaa' where id=(select case_id from pg_temp.migration_021_results where attempt='customer-b-same-key');
 select set_config('request.jwt.claims', '{"sub":"bb200000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 set local role authenticated;
 select lives_ok(
   format(
-    'select public.customer_respond_to_case(%L::uuid, %L)',
+    'select public.customer_respond_to_case(%L::uuid, %L, ''12345678-aaaa-4aaa-8aaa-aaaaaaaaaaaa''::uuid)',
     (select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'),
     'Synthetic customer clarification.'
   ),
@@ -295,8 +297,8 @@ select is(
       and event_kind = 'status_change'
       and customer_visible
   ),
-  1,
-  'customer response writes one separate fixed status transition'
+  0,
+  'customer response does not write a duplicate fixed status transition'
 );
 select is(
   (
@@ -311,22 +313,8 @@ select is(
   1,
   'customer response preserves the customer text as a response event'
 );
-select ok(
-  (
-    select status_event.created_at < response_event.created_at
-    from public.case_status_events status_event
-    join public.case_status_events response_event
-      on response_event.verification_case_id = status_event.verification_case_id
-    where status_event.verification_case_id = (
-      select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'
-    )
-      and status_event.reason = 'Your case is now in review.'
-      and status_event.event_kind = 'status_change'
-      and response_event.reason = 'Synthetic customer clarification.'
-      and response_event.event_kind = 'customer_response'
-  ),
-  'status transition precedes the customer response in timeline time'
-);
+select is((select response_to_event_id from public.case_status_events where reason='Synthetic customer clarification.'), '12345678-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid, 'response is bound to its information request');
+
 select is(
   (
     select count(*)::int from public.case_status_events
@@ -362,8 +350,8 @@ select is(
       and reason in ('Your case is now in review.', 'Synthetic customer clarification.')
       and customer_visible
   ),
-  2,
-  'the customer can see the status transition and response as distinct events'
+  1,
+  'the customer sees one response milestone with their message'
 );
 reset role;
 
@@ -376,7 +364,7 @@ select set_config('request.jwt.claims', '{"sub":"bb200000-0000-4000-8000-0000000
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.customer_respond_to_case(%L::uuid, %L)',
+    'select public.customer_respond_to_case(%L::uuid, %L, null::uuid)',
     (select case_id from pg_temp.migration_021_results where attempt = 'customer-b-same-key'),
     'Late response'
   ),
@@ -395,7 +383,7 @@ select set_config('request.jwt.claims', '{"sub":"aa100000-0000-4000-8000-0000000
 set local role authenticated;
 select throws_ok(
   format(
-    'select public.customer_respond_to_case(%L::uuid, %L)',
+    'select public.customer_respond_to_case(%L::uuid, %L, null::uuid)',
     (select case_id from pg_temp.migration_021_results where attempt = 'customer-a-first'),
     'Late response'
   ),

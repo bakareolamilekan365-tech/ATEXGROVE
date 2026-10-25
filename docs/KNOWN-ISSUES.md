@@ -1,11 +1,14 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-23
+**Status date:** 2026-10-25
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
 
 | Item | Current status | Planned direction |
 | --- | --- | --- |
+| Legacy duplicate response/resume timeline line | **Presentation-only heuristic:** `caseTimelineEvents` hides an unambiguous old fixed “resume” companion with the same case, actor and transition, within one second (also matching visibility and adjacent milestones; equal-timestamp pairs are handled conservatively). Historical rows and audits are unchanged in the database; unmatched/ambiguous history remains visible. | Preserve history; new 026 responses write one linked milestone. |
+| Corrections after submission | **Deliberate restriction:** customers cannot correct old submitted cases or add/replace evidence in `submitted`, `assigned` or `in_review`; they must wait for a staff information request. | Staff can request information to open the preparation window. No general customer-edit workflow is implemented. |
+| Legacy information request without a milestone | **Fails closed:** no safe response token exists. Staff cannot manually resume review to repair it. | A reviewed forward repair of the request linkage is required, or close/cancel and create a new request. Never release pending files as a workaround. |
 | Customer/staff context separation and role display | **Code fix merged and schema hosted:** [PR #17](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/17) separates customer queries and adds role/workspace display. Migration `020_customer_safe_status.sql` was applied to hosted Supabase on 2026-10-20. | Operationally verify the merged UI with separate customer, staff and dual-role accounts. |
 | Staff UI displays raw user IDs | **Open:** work-queue/detail screens show identifiers rather than safe display names. | Resolve names through an authorized profile/staff view without broadening profile access. |
 | Privacy, Terms and cookie pages | **Not implemented.** | Required, with appropriate legal/privacy review, before real customer documents or production use. |

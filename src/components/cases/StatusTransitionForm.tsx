@@ -29,6 +29,9 @@ export function StatusTransitionForm({
   return (
     <form action={action} className={styles.form}>
       <input type="hidden" name="caseId" value={caseId} />
+      {currentStatus === "needs_customer_info" ? (
+        <p className={styles.muted}>Waiting for the customer to submit their response. You may close or cancel this case; only the customer can resume review.</p>
+      ) : null}
       <div className={styles.field}>
         <label htmlFor="toStatus">New status</label>
         <select id="toStatus" name="toStatus" required defaultValue="">

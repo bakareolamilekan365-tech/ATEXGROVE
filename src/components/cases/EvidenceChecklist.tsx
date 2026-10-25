@@ -18,7 +18,7 @@ export function EvidenceChecklist({ caseId, evidence }: Readonly<{ caseId: strin
   const [selectedType, setSelectedType] = useState<(typeof evidenceTypes)[number] | null>(null);
   const existing = evidence.map((item) => ({ id: item.id, evidenceType: item.evidence_type, version: item.version, filename: item.original_filename, supersedesEvidenceId: item.supersedes_evidence_id }));
   return <div className={styles.stack}>
-    <p className={styles.muted}>Not every case needs every document. Uploads are received from customer — not authenticated.</p>
+    <p className={styles.muted}>Not every case needs every document. Uploads are saved privately until you submit your request or response.</p>
     <ul className={styles.stack}>
       {evidenceTypes.map((type) => {
         const count = evidence.filter((item) => item.evidence_type === type).length;

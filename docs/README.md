@@ -55,6 +55,6 @@ The original master prompt can remain as a product-vision document. These files 
 
 ## Status
 
-**Status date: 2026-10-23.** The linked hosted migration ledger reads `001`–`024` (checked 2026-10-23); the ledger does not report migration 024's exact apply date. Migration 021 was applied 2026-10-21 and migration 022 on 2026-10-23; 023 was applied after PR #26 merged, per owner confirmation. Migration 025 is proposed on the current fix PR and is not hosted. Check [STATUS.md](STATUS.md) for the distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
+**Status date: 2026-10-25.** The linked hosted migration ledger reads `001`–`024` plus `20261023144032` (025), checked read-only on 2026-10-25; the ledger does not report migration 024's exact apply date. Migration 021 was applied 2026-10-21 and migration 022 on 2026-10-23; 023 was applied after PR #26 merged, per owner confirmation. Migration 025 is merged and hosted. PR #29 adds timestamp migration `20261025075512` (026), which is not hosted. Customer uploads on that branch are restricted to draft or awaiting-information preparation; explicit customer submission releases pending files and only a customer reply resumes review. Check [STATUS.md](STATUS.md) for the distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
 
 Historical sections in `17-PROJECT-AUDIT.md` retain the status that was true on their stated dates. Use the latest dated audit addendum and the implementation itself for current status.
