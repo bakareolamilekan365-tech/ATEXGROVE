@@ -42,7 +42,7 @@ export function timelineEventKindLabel(eventKind: CaseStatusEventKind) {
 const legacyResponseStatusLine = "Customer provided the requested information.";
 
 function isLegacyUploadEvent(event: Pick<CaseStatusEvent,
-  "event_kind" | "from_status" | "to_status" | "reason"
+  "event_kind" | "from_status" | "to_status" | "reason" | "response_to_event_id"
 >) {
   return event.event_kind === "status_change"
     && event.from_status === event.to_status
@@ -55,11 +55,12 @@ function isLegacyUploadEvent(event: Pick<CaseStatusEvent,
  * classify only that exact historical system line as the status transition.
  */
 export function timelineEventHeading(event: Pick<CaseStatusEvent,
-  "event_kind" | "from_status" | "to_status" | "reason"
+  "event_kind" | "from_status" | "to_status" | "reason" | "response_to_event_id"
 >) {
   if (isLegacyUploadEvent(event)) return "Document uploaded";
   if (
     event.event_kind === "customer_response" &&
+    !event.response_to_event_id &&
     event.reason === legacyResponseStatusLine &&
     event.from_status === "needs_customer_info" &&
     event.to_status === "in_review"
@@ -84,11 +85,12 @@ export function timelineEventHeading(event: Pick<CaseStatusEvent,
 }
 
 export function timelineEventKindForDisplay(event: Pick<CaseStatusEvent,
-  "event_kind" | "from_status" | "to_status" | "reason"
+  "event_kind" | "from_status" | "to_status" | "reason" | "response_to_event_id"
 >): CaseStatusEventKind {
   if (isLegacyUploadEvent(event)) return "document_uploaded";
   if (
     event.event_kind === "customer_response" &&
+    !event.response_to_event_id &&
     event.reason === legacyResponseStatusLine &&
     event.from_status === "needs_customer_info" &&
     event.to_status === "in_review"
@@ -135,14 +137,14 @@ export function caseTimelineEvents(events: readonly CaseStatusEvent[]): CaseStat
     if (!next || fixed.from_status !== "needs_customer_info" || fixed.to_status !== "in_review") continue;
     if (!((fixed.event_kind === "status_change" && fixed.reason === "Your case is now in review.") ||
       (fixed.event_kind === "customer_response" && fixed.reason === legacyResponseStatusLine))) continue;
-    if (next.event_kind === "customer_response" && next.reason !== legacyResponseStatusLine &&
+    if (!next.response_to_event_id && next.event_kind === "customer_response" && next.reason !== legacyResponseStatusLine &&
       next.verification_case_id === fixed.verification_case_id && next.actor_user_id === fixed.actor_user_id &&
       next.from_status === fixed.from_status && next.to_status === fixed.to_status &&
       next.customer_visible === fixed.customer_visible &&
       Date.parse(next.created_at) - Date.parse(fixed.created_at) <= 1000) redundant.add(fixed.id);
   }
   for (const fixed of chronological) {
-    if (fixed.event_kind !== "customer_response" || fixed.reason !== legacyResponseStatusLine ||
+    if (fixed.response_to_event_id || fixed.event_kind !== "customer_response" || fixed.reason !== legacyResponseStatusLine ||
       fixed.from_status !== "needs_customer_info" || fixed.to_status !== "in_review") continue;
     const group = chronological.filter((candidate) =>
       candidate.created_at === fixed.created_at && candidate.verification_case_id === fixed.verification_case_id &&
