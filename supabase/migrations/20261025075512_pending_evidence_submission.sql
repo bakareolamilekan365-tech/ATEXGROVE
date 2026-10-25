@@ -39,6 +39,19 @@ create policy "Customers and scoped staff can read case evidence"
     or (submitted_at is not null and (select public.staff_can_access_verification_case(verification_case_id)))
   );
 
+-- An application administrator is still an end-user identity, not a database
+-- operator. Audit-list access must not become a pending evidence/draft side channel.
+drop policy "Admins can view audit logs" on public.audit_logs;
+create policy "Admins can view audit logs" on public.audit_logs for select to authenticated using (
+  (select public.is_admin()) and case entity_type
+    when 'case_evidence' then exists (
+      select 1 from public.case_evidence ce where ce.id = entity_id
+        and ce.submitted_at is not null
+        and public.staff_can_access_verification_case(ce.verification_case_id))
+    when 'verification_case' then public.staff_can_access_verification_case(entity_id)
+    else true end
+);
+
 -- Historical upload events remain stored and owner-readable, but never expose
 -- private preparation to staff through the event API. New uploads write audits only.
 drop policy "Customers and scoped staff can read case status events" on public.case_status_events;
