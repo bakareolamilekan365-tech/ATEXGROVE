@@ -1,7 +1,7 @@
 -- Behavioural allow/deny tests for Phase 2, Slice 1.
 -- Runs only against the disposable local/CI Supabase database.
 begin;
-select plan(60);
+select plan(61);
 
 select ok((select relrowsecurity from pg_class where oid = 'public.staff_members'::regclass), 'staff_members has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid = 'public.verification_cases'::regclass), 'verification_cases has RLS enabled');
@@ -298,14 +298,25 @@ select lives_ok(
   ),
   'active assignee can request customer information'
 );
-select lives_ok(
+select throws_ok(
   format(
     'select public.transition_verification_case(%L::uuid, %L, %L, '''')',
     (select id from pg_temp.slice_1_case_ids),
     'in_review',
     'Review resumed after clarification.'
   ),
-  'active assignee can resume review after customer information'
+  '22023',
+  null,
+  'active assignee cannot resume review without a customer reply'
+);
+reset role;
+select set_config('request.jwt.claims', '{"sub":"a1000000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+set local role authenticated;
+select lives_ok(
+  format('select public.customer_respond_to_case(%L::uuid, %L, %L::uuid)',
+    (select id from pg_temp.slice_1_case_ids), 'Customer clarification supplied.',
+    (select information_request_event_id from public.verification_cases where id=(select id from pg_temp.slice_1_case_ids))),
+  'case owner resumes review through an explicit reply'
 );
 reset role;
 
