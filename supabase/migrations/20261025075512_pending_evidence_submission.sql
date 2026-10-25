@@ -305,7 +305,8 @@ begin
   if not (
     (case_row.workflow_status = 'assigned' and p_to_status = 'in_review')
     or (case_row.workflow_status = 'in_review' and p_to_status in ('needs_customer_info', 'closed', 'cancelled'))
-    or (case_row.workflow_status = 'needs_customer_info' and p_to_status = 'in_review')
+    -- Only the owner response RPC may resume review and release pending files.
+    or (case_row.workflow_status = 'needs_customer_info' and p_to_status in ('closed', 'cancelled'))
   ) then
     raise exception 'Invalid verification case status transition: % -> %', case_row.workflow_status, p_to_status
       using errcode = '22023';
