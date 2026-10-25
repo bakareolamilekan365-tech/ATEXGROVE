@@ -73,7 +73,7 @@ export function timelineEventHeading(event: Pick<CaseStatusEvent,
     case "customer_message":
       return "Customer message";
     case "customer_response":
-      return "Customer response";
+      return "Customer response submitted";
     case "information_requested":
       return "Information requested";
     case "staff_note":
@@ -140,6 +140,19 @@ export function caseTimelineEvents(events: readonly CaseStatusEvent[]): CaseStat
       next.from_status === fixed.from_status && next.to_status === fixed.to_status &&
       next.customer_visible === fixed.customer_visible &&
       Date.parse(next.created_at) - Date.parse(fixed.created_at) <= 1000) redundant.add(fixed.id);
+  }
+  for (const fixed of chronological) {
+    if (fixed.event_kind !== "customer_response" || fixed.reason !== legacyResponseStatusLine ||
+      fixed.from_status !== "needs_customer_info" || fixed.to_status !== "in_review") continue;
+    const group = chronological.filter((candidate) =>
+      candidate.created_at === fixed.created_at && candidate.verification_case_id === fixed.verification_case_id &&
+      candidate.actor_user_id === fixed.actor_user_id && candidate.customer_visible === fixed.customer_visible &&
+      candidate.from_status === fixed.from_status && candidate.to_status === fixed.to_status &&
+      candidate.event_kind === "customer_response",
+    );
+    if (group.length === 2 && group.filter((candidate) => candidate.reason === legacyResponseStatusLine).length === 1) {
+      redundant.add(fixed.id);
+    }
   }
   return milestones.filter((event) => !redundant.has(event.id));
 }
