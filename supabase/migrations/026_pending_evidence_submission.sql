@@ -1,5 +1,5 @@
 -- Uploading saves private preparation; only explicit customer submission releases it.
--- Forward-only after hosted 025 (20261023144032). No historical event/audit rows changed.
+-- Forward-only after hosted migration 025. No historical event/audit rows changed.
 
 alter table public.case_status_events
   add column response_to_event_id uuid references public.case_status_events(id) on delete restrict;

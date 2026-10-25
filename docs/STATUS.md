@@ -2,13 +2,13 @@
 
 ## Current correction — pending evidence submission (2026-10-25)
 
-Hosted ledger checked read-only on 2026-10-25: `001`–`024` and `20261023144032_case_timeline_evidence_workflow` (025). PR #28 is merged and 025 is hosted. Earlier dated statements below describe the state when written and are superseded by this section for current state.
+Hosted ledger checked read-only on 2026-10-25: migrations `001`–`025`. PR #28 is merged and 025 is hosted. Earlier dated statements below describe the state when written and are superseded by this section for current state.
 
-This branch adds forward-only `20261025075512_pending_evidence_submission.sql` (026). It is **not hosted**. Evidence registration writes metadata and an audit, not a case milestone. Each file remains pending (`submitted_at IS NULL`) until owner submission releases it. Staff evidence RLS and audited downloads require a submitted timestamp plus existing case scope. Draft and discarded-draft protections remain. Old visible evidence remains available; draft/discarded evidence remains pending.
+The repository includes forward-only `026_pending_evidence_submission.sql`, merged in PR #29. It is **CI-verified and not hosted**. Evidence registration writes metadata and an audit, not a case milestone. Each file remains pending (`submitted_at IS NULL`) until owner submission releases it. Staff evidence RLS and audited downloads require a submitted timestamp plus existing case scope. Draft and discarded-draft protections remain. Old visible evidence remains available; draft/discarded evidence remains pending.
 
 The customer prepares files only during draft or `needs_customer_info`; after submission they must wait for a staff request. Staff cannot resume an awaiting-information case; only the customer reply resumes review, while closure/cancellation keep pending files private. The generic upload form starts with an empty required document-type placeholder; replacement mode is unavailable until a type is chosen. Explicit request/response submission releases all pending versions together; response submission writes one milestone containing the required message. A request-event token and uniqueness guard make retries harmless across later information rounds. Document history retains versions, upload dates and release state; the main timeline filters upload activity and unambiguous historical duplicate response lines without deleting records.
 
-Validation is recorded in the final PR and the dated engineering-log entry. No new hosted changes, merge, or deployment are authorized by this correction.
+Validation is recorded in PR #29 and the dated engineering-log entry. This migration-name correction does not apply migration 026 or deploy application code.
 
 
 **Status date:** 2026-10-25
@@ -22,7 +22,7 @@ Validation is recorded in the final PR and the dated engineering-log entry. No n
 
 ## Current hosted state
 
-- **Current / hosted:** Supabase migration ledger reads `001`–`024` plus `20261023144032` (025), checked read-only on 2026-10-25. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migration 024 is applied, but does not report its apply date.
+- **Current / hosted:** Supabase migration ledger reads `001`–`025`, checked read-only after the controlled history normalization on 2026-10-25. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migrations 024 and 025 are applied but does not report their original apply times.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.
 - **Current / hosted:** `storage.objects` has exactly one Atexgrove policy for the `documents` bucket: authenticated customers may insert into an owned, eligible case path. There is no authenticated object SELECT, UPDATE or DELETE policy.
 - **Current / hosted:** staff downloads must first pass the audited `authorize_case_evidence_download` RPC. Only the server-side admin client, using the server-only service-role credential, creates the 60-second signed download URL.
@@ -65,7 +65,7 @@ The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`.
 
 - **Implemented on `fix/case-timeline-evidence-workflow`:** evidence uploads receive a `document_uploaded` event kind; customer response writes distinct ordered status and reply events; safe timeline headings classify legacy events without rewriting history; version replacement is limited to the current same-case, same-type chain head; intake claim values use centralized readable labels.
 - **CI-verified:** [App CI run 39974685742](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685742) passed lint, typecheck, 53 unit tests, 23 integration tests (3 skipped), security guardrails and production build. [Database security run 39974685721](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685721) passed all 8 pgTAP suites (323 assertions) on disposable Supabase.
-- **Hosted:** migration 025 is merged in PR #28 and recorded as `20261023144032` in the hosted ledger, verified 2026-10-25. Its behavior is superseded on this branch by pending migration 026; 026 is not hosted.
+- **Hosted:** migration 025 is merged in PR #28 and recorded as `025` in the hosted ledger, verified 2026-10-25. Its behavior is superseded on this branch by pending migration 026; 026 is not hosted.
 - **Notifications:** no staff notification delivery mechanism is implemented. Draft uploads do not create staff queue entries or trigger staff notifications; the notification function remains a placeholder.
 
 ## Implemented product slices

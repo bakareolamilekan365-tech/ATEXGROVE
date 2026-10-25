@@ -1,10 +1,10 @@
 # Atexgrove — Database Schema
 
-## Pending evidence boundary — migration 026 (branch implementation, not hosted)
+## Pending evidence boundary — migration 026 (merged and CI-verified, not hosted)
 
 Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
 
-Current hosted baseline checked 2026-10-25 is through 025 (`20261023144032`); old dated hosted observations below are historical.
+Current hosted baseline checked 2026-10-25 is through migration 025; old dated hosted observations below are historical.
 
 `case_evidence.submitted_at` is nullable: NULL means pending customer submission. `submission_event_id` links release to the submitted-request or customer-response event. A non-null event requires a timestamp. Registration always leaves both NULL; clients retain SELECT only, with no direct release/update privilege. Metadata, uploader, creation time, type, storage reference, review state and immutable predecessor lineage remain intact. Submitted versions do not disappear merely because a pending replacement exists.
 
@@ -21,7 +21,7 @@ PostgreSQL with PostGIS.
 
 ## Schema status and implementation boundary
 
-This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted migration history `001`–`024` on 2026-10-23; migration 024's exact apply date was not reported by the ledger. Migration 025 is merged and hosted as checked on 2026-10-25; new migration 026 is implemented on this branch and not hosted.
+This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted migration history `001`–`024` on 2026-10-23; migration 024's exact apply date was not reported by the ledger. Migration 025 is merged and hosted as checked on 2026-10-25; migration 026 is merged and CI-verified but not hosted.
 
 ## Conventions
 
