@@ -28,7 +28,7 @@ The working prototype currently supports:
 - private case evidence uploads and audited staff downloads;
 - customer-safe case updates and replies when more information is requested.
 
-Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), 023 was applied after PR #26 merged per owner confirmation, and migration 024 is present in the linked hosted ledger checked 2026-10-23. Migration 025 is proposed on the current PR and not hosted. See docs/STATUS.md for current status.
+Reports, projects, professional services, land discovery, and feasibility scenarios are still future work. The case workflow is a prototype and does not confirm land ownership, planning approval, or official status. Migration 021 is hosted (applied 2026-10-21), migration 022 is hosted (applied 2026-10-23), 023 was applied after PR #26 merged per owner confirmation, and migration 024 is present in the linked hosted ledger checked 2026-10-23. Migration 025 (`20261023144032`) is hosted; migration 026 (`20261025075512`) is not hosted. See docs/STATUS.md for current status.
 
 ## Private files
 
@@ -40,7 +40,7 @@ Important evidence will use versions rather than silent replacement. If a custom
 
 ## Testing and deployment
 
-Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. The linked hosted migration ledger reads 001-024; migration 025 is not hosted. Separate hosted-user testing is still required.
+Connecting to hosted Supabase and applying reviewed migrations does not require Docker. Docker is used to create a temporary local Supabase system for database permission tests. GitHub Actions runs migrations and automated allow/deny tests in a temporary environment. The linked hosted migration ledger reads 001–024 plus `20261023144032` (025), checked read-only on 2026-10-25; 026 remains not hosted. Separate hosted-user testing is still required.
 
 ## The controlled case journey
 
