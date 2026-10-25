@@ -116,3 +116,30 @@ export function canTransitionVerificationCase(
 export function availableCaseTransitions(from: VerificationCaseStatus) {
   return caseStatusTransitions[from] ?? [];
 }
+
+/** Presentation only: history and audits stay append-only in the database. */
+export function caseTimelineEvents(events: readonly CaseStatusEvent[]): CaseStatusEvent[] {
+  const milestones = events.filter((event) =>
+    timelineEventKindForDisplay(event) !== "document_uploaded",
+  );
+  // 019/021/025 wrote a fixed resume line immediately before the actual reply.
+  // Suppress only an unambiguous companion: same case/actor/transition, within
+  // one second, with no intervening milestone. Unmatched historical rows remain.
+  const chronological = [...milestones].sort((a, b) =>
+    Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
+  );
+  const redundant = new Set<string>();
+  for (let i = 0; i < chronological.length; i++) {
+    const fixed = chronological[i];
+    const next = chronological[i + 1];
+    if (!next || fixed.from_status !== "needs_customer_info" || fixed.to_status !== "in_review") continue;
+    if (!((fixed.event_kind === "status_change" && fixed.reason === "Your case is now in review.") ||
+      (fixed.event_kind === "customer_response" && fixed.reason === legacyResponseStatusLine))) continue;
+    if (next.event_kind === "customer_response" && next.reason !== legacyResponseStatusLine &&
+      next.verification_case_id === fixed.verification_case_id && next.actor_user_id === fixed.actor_user_id &&
+      next.from_status === fixed.from_status && next.to_status === fixed.to_status &&
+      next.customer_visible === fixed.customer_visible &&
+      Date.parse(next.created_at) - Date.parse(fixed.created_at) <= 1000) redundant.add(fixed.id);
+  }
+  return milestones.filter((event) => !redundant.has(event.id));
+}

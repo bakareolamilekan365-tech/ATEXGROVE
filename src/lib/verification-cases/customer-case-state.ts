@@ -1,7 +1,7 @@
 import type { VerificationCaseStatus } from "@/types/verification";
 
 const evidenceStatuses: readonly VerificationCaseStatus[] = [
-  "draft", "submitted", "assigned", "in_review", "needs_customer_info",
+  "draft", "needs_customer_info",
 ];
 const cancellableStatuses: readonly VerificationCaseStatus[] = [
   "submitted", "assigned", "in_review", "needs_customer_info",
