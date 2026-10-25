@@ -105,7 +105,7 @@ export const caseStatusTransitions: Readonly<
 > = {
   assigned: ["in_review"],
   in_review: ["needs_customer_info", "closed", "cancelled"],
-  needs_customer_info: ["in_review"],
+  needs_customer_info: ["closed", "cancelled"],
 };
 
 export function canTransitionVerificationCase(
