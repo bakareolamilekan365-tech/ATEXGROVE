@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseTimelineEvents } from "@/lib/verification-cases/status";
+import { caseTimelineEvents, timelineEventHeading } from "@/lib/verification-cases/status";
 import { customerCaseActions } from "@/lib/verification-cases/customer-case-state";
 import type { CaseStatusEvent } from "@/types/verification";
 
@@ -26,6 +26,11 @@ describe("case milestones and preparation windows", () => {
     const reply = event({ id: "a" });
     const fixed = event({ id: "z", reason: "Customer provided the requested information." });
     expect(caseTimelineEvents([fixed, reply])).toEqual([reply]);
+  });
+  it("does not reinterpret a new linked response that quotes an old system line", () => {
+    const reply = event({ response_to_event_id: "request", reason: "Customer provided the requested information." });
+    expect(timelineEventHeading(reply)).toBe("Customer response submitted");
+    expect(caseTimelineEvents([reply])).toEqual([reply]);
   });
   it("preserves a standalone review resume action", () => {
     const resume = event({ event_kind: "status_change", reason: "Your case is now in review." });
