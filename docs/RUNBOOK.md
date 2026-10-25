@@ -2,11 +2,11 @@
 
 ## Controlled deployment — pending evidence correction (026)
 
-**Do not merge, deploy or apply this migration without explicit owner approval.** Hosted baseline was checked read-only on 2026-10-25: migrations 001–024 plus 025 (`20261023144032`). Do not edit or reapply those migrations.
+**Do not deploy or apply this migration without explicit owner approval.** Migration 026 is merged but not hosted. The hosted baseline was checked read-only on 2026-10-25: migrations `001`–`025`. Do not edit or reapply those migrations.
 
-1. Review this focused PR and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the compatible app build, backups and a controlled maintenance window. After explicit owner approval, **merge first**, without automatically starting the new app.
+1. Review PR #29 and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the merged compatible app build, backups and a controlled maintenance window. Do not automatically start the new app.
 2. After owner approval, pause customer writes and drain in-flight upload/response requests. Inspect pending uploads and confirm the target project is `apexgrove`. The compatibility backfill deliberately preserves previously visible evidence, not inferred historical submission consent.
-3. **Apply the migration second**, against the approved linked target: run `npx supabase migration list`, then `npx supabase db push --dry-run`; inspect that only `20261025075512_pending_evidence_submission.sql` is pending, then run `npx supabase db push`. Do not use “026” as the CLI version. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
+3. **Apply the migration second**, against the approved linked target: run `npx supabase migration list`, then `npx supabase db push --dry-run`; inspect that only `026_pending_evidence_submission.sql` is pending, then run `npx supabase db push`. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
 4. **Run the new app third**, passing `p_request_event_id`; until 026 is applied, replies from this new app fail because its three-argument RPC does not exist. Both old and new app writes must remain paused during cutover; resume writes only after verifying draft privacy, pending replacement privacy, explicit batch release and concise response milestones with separate customer, lead, assignee and unrelated accounts.
 5. Verify the hosted ledger and database constraints separately and record the actual apply date/CI IDs. Never claim hosted deployment from a green workflow alone.
 
@@ -21,7 +21,7 @@ These queries do not apply migrations. Run them only after the owner-approved mi
 
 ```sql
 select version, name from supabase_migrations.schema_migrations
-where version in ('20261023144032', '20261025075512') order by version;
+where version in ('025', '026') order by version;
 
 select schemaname, tablename, policyname, cmd, roles, qual, with_check
 from pg_policies

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const migration = readFileSync("supabase/migrations/20261025075512_pending_evidence_submission.sql", "utf8");
+const migration = readFileSync("supabase/migrations/026_pending_evidence_submission.sql", "utf8");
 const uploadForm = readFileSync("src/components/cases/EvidenceUploadForm.tsx", "utf8");
 const customerPage = readFileSync("src/app/dashboard/cases/[id]/page.tsx", "utf8");
 const staffPage = readFileSync("src/app/ops/cases/[id]/page.tsx", "utf8");
@@ -16,7 +16,7 @@ describe("case timeline and evidence versioning contract", () => {
   });
 
   it("requires a replacement to extend the current chain head and preserves predecessor links", () => {
-    expect(readFileSync("supabase/migrations/20261023144032_case_timeline_evidence_workflow.sql", "utf8")).toContain("case_evidence_single_successor_idx");
+    expect(readFileSync("supabase/migrations/025_case_timeline_evidence_workflow.sql", "utf8")).toContain("case_evidence_single_successor_idx");
     expect(migration).toContain("This version already has a replacement; select the latest version");
     expect(migration).toContain("Superseded evidence must belong to this case");
     expect(migration).toContain("next_version := predecessor.version + 1");

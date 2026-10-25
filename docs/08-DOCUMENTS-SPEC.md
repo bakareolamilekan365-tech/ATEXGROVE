@@ -1,6 +1,6 @@
 # Atexgrove — Document Management Specification
 
-## Upload, submission and review are separate (026 branch implementation)
+## Upload, submission and review are separate (026 merged and CI-verified, not hosted)
 
 Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
 
@@ -20,7 +20,7 @@ The main timeline omits upload events; document history supplies file activity. 
 
 Documents are sensitive assets connected to users, organizations, verification cases, later land parcels and projects. The Phase 2 primary resource scope is the verification case; a case and its evidence must not require an existing marketplace parcel. This specification defines the target controls without claiming that every lifecycle stage is implemented today.
 
-**Current hosted state:** migrations `001`–`024` plus `20261023144032` (025) are recorded in the linked hosted ledger (checked 2026-10-25); migration 024's exact apply date is not available. Migration 023 permits draft evidence and adds owner submit/discard/cancel behavior. Evidence rules remain: private bucket, PDF/JPEG/PNG, signature checks, 10 MB per file, ten registered evidence rows per case, immutable version lineage and staff-only audited signed downloads. Staff-scoped RLS and download authorization exclude active drafts and cases with `discarded_at` set. Discarded draft records and evidence remain retained pending a separate retention/deletion decision. Migration 025 is now merged and hosted (2026-10-25 ledger); migration 026 remains not hosted and is described above.
+**Current hosted state:** migrations `001`–`025` are recorded in the linked hosted ledger (checked after controlled history normalization on 2026-10-25); migrations 024 and 025 have no recorded apply time in the ledger. Migration 023 permits draft evidence and adds owner submit/discard/cancel behavior. Evidence rules remain: private bucket, PDF/JPEG/PNG, signature checks, 10 MB per file, ten registered evidence rows per case, immutable version lineage and staff-only audited signed downloads. Staff-scoped RLS and download authorization exclude active drafts and cases with `discarded_at` set. Discarded draft records and evidence remain retained pending a separate retention/deletion decision. Migration 025 is merged and hosted; migration 026 remains not hosted and is described above.
 
 ## Supported Slice 2 types
 

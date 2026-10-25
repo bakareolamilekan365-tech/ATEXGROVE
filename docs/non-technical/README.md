@@ -4,7 +4,7 @@ This folder explains Atexgrove for founders, partners, advisers, future team mem
 
 The files in the parent `docs/` folder remain the detailed source of truth. These versions explain the same direction in simpler language and must never be used to exaggerate what has been built.
 
-**Status date: 2026-10-23.** The linked hosted migration ledger reads `001`–`024` (checked 2026-10-23); the ledger does not report migration 024's exact apply date. Migration 021 was applied 2026-10-21; 022 was applied 2026-10-23; 023 was applied after PR #26 merged, per owner confirmation. Migration 025 is proposed in the current fix PR and is not hosted. See the technical [STATUS.md](../STATUS.md) for hosted status and open operational checks.
+**Status date: 2026-10-25.** The linked hosted migration ledger reads `001`–`025`, checked after controlled history normalization on 2026-10-25. Migration 025 is merged and hosted. Migration 026 is implemented and CI-verified but is not hosted. See the technical [STATUS.md](../STATUS.md) for hosted status and open operational checks.
 
 ## Suggested reading order
 
