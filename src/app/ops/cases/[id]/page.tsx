@@ -7,7 +7,7 @@ import styles from "@/components/cases/case-workflow.module.css";
 import { downloadCaseEvidenceAction } from "@/app/ops/cases/actions";
 import { requireStaff } from "@/lib/auth/guards";
 import { evidenceTypeLabels } from "@/lib/case-evidence/validation";
-import { timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
+import { caseTimelineEvents, timelineEventHeading, timelineEventKindForDisplay, timelineEventKindLabel } from "@/lib/verification-cases/status";
 import type { CaseEvidence, CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand } from "@/lib/verification-cases/intake-labels";
@@ -37,7 +37,7 @@ export default async function OperationsCasePage({
   if (!caseData) notFound();
 
   const item = caseData as VerificationCase;
-  const events = (eventData ?? []) as CaseStatusEvent[];
+  const events = caseTimelineEvents((eventData ?? []) as CaseStatusEvent[]);
   const assignments = (assignmentData ?? []) as AssignmentRow[];
   const evidence = (evidenceData ?? []) as CaseEvidence[];
   const activeAssignment = assignments.find((assignment) => assignment.status === "active");
@@ -95,11 +95,11 @@ export default async function OperationsCasePage({
             <div className={styles.cardHeader}>
               <div>
                 <p className={styles.eyebrow}>Private evidence</p>
-                <h2>Customer documents ({evidence.length})</h2>
+                <h2>Submitted document history ({evidence.length})</h2>
               </div>
               <span className={styles.demo}>Demo data / not official</span>
             </div>
-            <p className={styles.muted}>Received from customer — not authenticated. Files are untrusted and download only.</p>
+            <p className={styles.muted}>Submission for review does not authenticate any document. Files are untrusted and download only.</p>
             {evidence.length ? (
               <div className={styles.stack}>
                 {evidence.map((document) => {
@@ -107,6 +107,8 @@ export default async function OperationsCasePage({
                   return <article className={styles.card} key={document.id}>
                     <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
                     <p>{document.description}</p>
+                  <p className={styles.notice}>{document.submitted_at ? "Submitted for review — not authenticated" : "Saved — not yet submitted to the review team"}</p>
+                  <p className={`${styles.muted} ${styles.small}`}>Uploaded {new Date(document.created_at).toLocaleString("en-NG")}{document.submitted_at ? ` · Submitted ${new Date(document.submitted_at).toLocaleString("en-NG")}` : ""}</p>
                     <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
                     {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}
                     <form action={downloadCaseEvidenceAction}>
@@ -120,7 +122,7 @@ export default async function OperationsCasePage({
           </section>
 
           <section className={styles.panel}>
-            <h2>Append-only timeline</h2>
+            <h2>Case timeline</h2>
             <ol className={styles.timeline}>
               {events.map((event) => (
                 <li key={event.id} data-kind={event.event_kind}>
