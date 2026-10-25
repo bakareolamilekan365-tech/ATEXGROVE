@@ -15,7 +15,8 @@ describe("verification case status transitions", () => {
   it.each([
     ["assigned", "in_review"],
     ["in_review", "needs_customer_info"],
-    ["needs_customer_info", "in_review"],
+    ["needs_customer_info", "closed"],
+    ["needs_customer_info", "cancelled"],
     ["in_review", "closed"],
     ["in_review", "cancelled"],
   ] as const)("allows %s -> %s", (from, to) => {
@@ -25,7 +26,7 @@ describe("verification case status transitions", () => {
   it.each([
     ["submitted", "in_review"],
     ["assigned", "closed"],
-    ["needs_customer_info", "closed"],
+    ["needs_customer_info", "in_review"],
     ["closed", "in_review"],
     ["cancelled", "submitted"],
   ] as const)("rejects %s -> %s", (from, to) => {
@@ -38,6 +39,7 @@ describe("verification case status transitions", () => {
       "closed",
       "cancelled",
     ]);
+    expect(availableCaseTransitions("needs_customer_info")).toEqual(["closed", "cancelled"]);
     expect(availableCaseTransitions("closed")).toEqual([]);
   });
 
