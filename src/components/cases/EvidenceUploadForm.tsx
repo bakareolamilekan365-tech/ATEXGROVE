@@ -99,7 +99,7 @@ export function EvidenceUploadForm({
         <label htmlFor="evidenceFile">PDF, JPG or PNG (maximum 10 MB)</label>
         <input id="evidenceFile" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
       </div>
-      <div className={styles.notice}>Synthetic or properly redacted files only. Received from customer — not authenticated.</div>
+      <div className={styles.notice}>Synthetic or properly redacted files only. Saved privately — not yet submitted to the review team.</div>
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       {state.success ? <p className={styles.success} role="status">{state.success}</p> : null}
       <SubmitButton pendingLabel="Uploading...">Add document</SubmitButton>
