@@ -10,7 +10,7 @@ select is((select allowed_mime_types from storage.buckets where id = 'documents'
 select ok(not has_function_privilege('anon', 'public.document_case_id_from_path(text)', 'EXECUTE'), 'path helper is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.document_evidence_id_from_path(text)', 'EXECUTE'), 'evidence path helper is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.register_case_evidence(uuid,uuid,text,text,text,text,text,bigint,uuid)', 'EXECUTE'), 'registration RPC is not callable by anon');
-select ok(not has_function_privilege('anon', 'public.customer_respond_to_case(uuid,text)', 'EXECUTE'), 'customer response RPC is not callable by anon');
+select ok(not has_function_privilege('anon', 'public.customer_respond_to_case(uuid,text,uuid)', 'EXECUTE'), 'customer response RPC is not callable by anon');
 select ok(not has_function_privilege('anon', 'public.authorize_case_evidence_download(uuid)', 'EXECUTE'), 'download authorization RPC is not callable by anon');
 
 insert into auth.users (id, aud, role, email, raw_user_meta_data) values
@@ -31,7 +31,7 @@ insert into public.verification_cases (
   id, customer_user_id, created_by_user_id, site_description, area_lga,
   customer_notes, contact_preference, workflow_status
 ) values
-  ('11111111-1111-4111-8111-111111111111', 'a1100000-0000-4000-8000-000000000001', 'a1100000-0000-4000-8000-000000000001', 'DEMO DATA / NOT OFFICIAL evidence case A', 'Kuje', 'Synthetic only', 'email', 'in_review'),
+  ('11111111-1111-4111-8111-111111111111', 'a1100000-0000-4000-8000-000000000001', 'a1100000-0000-4000-8000-000000000001', 'DEMO DATA / NOT OFFICIAL evidence case A', 'Kuje', 'Synthetic only', 'email', 'draft'),
   ('22222222-2222-4222-8222-222222222222', 'b2200000-0000-4000-8000-000000000002', 'b2200000-0000-4000-8000-000000000002', 'DEMO DATA / NOT OFFICIAL evidence case B', 'Gwagwalada', 'Synthetic only', 'email', 'needs_customer_info');
 
 insert into public.case_assignments (
@@ -67,8 +67,8 @@ select lives_ok(
 reset role;
 
 select is((select count(*)::int from public.case_evidence where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'registration writes the evidence row');
-select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and event_kind = 'document_uploaded'), 1, 'registration writes a customer-visible document activity event');
-select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and from_status = to_status), 1, 'document activity records context without claiming a status transition');
+select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and event_kind = 'document_uploaded'), 0, 'registration does not write a document timeline event');
+select is((select count(*)::int from public.case_status_events where reason = 'Title deed copy uploaded' and from_status = to_status), 0, 'registration does not write a fake workflow transition');
 select is((select count(*)::int from public.audit_logs where action = 'case_evidence.created' and entity_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'), 1, 'registration writes the audit row');
 select is(
   (select source || ':' || review_state || ':' || is_demo_data::text || ':' || version::text from public.case_evidence where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
@@ -170,6 +170,7 @@ reset role;
 
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
+select public.submit_verification_case('11111111-1111-4111-8111-111111111111','case-service-scope-v1',true);
 select is((select count(*)::int from public.case_evidence where verification_case_id = '11111111-1111-4111-8111-111111111111'), 3, 'customer A reads all three versions in their own case');
 reset role;
 
@@ -223,6 +224,7 @@ select throws_ok(
 );
 reset role;
 
+update public.verification_cases set workflow_status='needs_customer_info' where id='11111111-1111-4111-8111-111111111111';
 insert into storage.objects (bucket_id, name, owner_id) values
   ('documents', 'documents/cases/11111111-1111-4111-8111-111111111111/cccccccc-cccc-4ccc-8ccc-cccccccccccc/bad.html', 'a1100000-0000-4000-8000-000000000001'),
   ('documents', 'documents/cases/11111111-1111-4111-8111-111111111111/dddddddd-dddd-4ddd-8ddd-dddddddddddd/large.pdf', 'a1100000-0000-4000-8000-000000000001');
@@ -282,10 +284,12 @@ select throws_ok(
 reset role;
 select is((select count(*)::int from public.case_evidence where id = 'ffffffff-ffff-4fff-8fff-ffffffffffff'), 0, 'eleventh file leaves no evidence row');
 
+insert into public.case_status_events(id,verification_case_id,actor_user_id,from_status,to_status,reason,customer_visible,event_kind) values ('99999999-9999-4999-8999-999999999999','22222222-2222-4222-8222-222222222222','c3300000-0000-4000-8000-000000000003','in_review','needs_customer_info','Please clarify',true,'information_requested');
+update public.verification_cases set information_request_event_id='99999999-9999-4999-8999-999999999999' where id='22222222-2222-4222-8222-222222222222';
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 set local role authenticated;
 select throws_ok(
-  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Wrong customer response')$$,
+  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Wrong customer response', '99999999-9999-4999-8999-999999999999')$$,
   '42501', 'Only the case customer can respond', 'another customer cannot respond'
 );
 reset role;
@@ -293,7 +297,7 @@ reset role;
 select set_config('request.jwt.claims', '{"sub":"d4400000-0000-4000-8000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
 select throws_ok(
-  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Staff response attempt')$$,
+  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Staff response attempt', '99999999-9999-4999-8999-999999999999')$$,
   '42501', 'Only the case customer can respond', 'staff cannot use the customer response RPC'
 );
 reset role;
@@ -301,12 +305,12 @@ reset role;
 select set_config('request.jwt.claims', '{"sub":"b2200000-0000-4000-8000-000000000002","role":"authenticated"}', true);
 set local role authenticated;
 select lives_ok(
-  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Synthetic clarification supplied.')$$,
+  $$select public.customer_respond_to_case('22222222-2222-4222-8222-222222222222', 'Synthetic clarification supplied.', '99999999-9999-4999-8999-999999999999')$$,
   'case owner can respond while information is needed'
 );
 reset role;
 select is((select workflow_status from public.verification_cases where id = '22222222-2222-4222-8222-222222222222'), 'in_review', 'customer response resumes review');
-select is((select count(*)::int from public.case_status_events where verification_case_id = '22222222-2222-4222-8222-222222222222' and customer_visible), 2, 'customer response writes the fixed update and the customer text as visible events');
+select is((select count(*)::int from public.case_status_events where verification_case_id = '22222222-2222-4222-8222-222222222222' and customer_visible and event_kind='customer_response'), 1, 'customer response writes one visible milestone with the customer text');
 
 update public.verification_cases set workflow_status = 'closed' where id = '11111111-1111-4111-8111-111111111111';
 select set_config('request.jwt.claims', '{"sub":"a1100000-0000-4000-8000-000000000001","role":"authenticated"}', true);
