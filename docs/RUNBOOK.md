@@ -1,5 +1,20 @@
 # Atexgrove Operator Runbook
 
+## Controlled deployment — pending evidence correction (026)
+
+**Do not merge, deploy or apply this migration without explicit owner approval.** Hosted baseline was checked read-only on 2026-10-25: migrations 001–024 plus 025 (`20261023144032`). Do not edit or reapply those migrations.
+
+1. Review this focused PR and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the compatible app build, backups and a controlled maintenance window.
+2. After owner approval, pause customer writes and drain in-flight upload/response requests. Inspect pending uploads and confirm the target project is `apexgrove`. The compatibility backfill deliberately preserves previously visible evidence, not inferred historical submission consent.
+3. Apply only `20261025075512_pending_evidence_submission.sql` using the normal migration tooling. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
+4. Deploy the compatible app passing `p_request_event_id`; resume writes only after verifying draft privacy, pending replacement privacy, explicit batch release and concise response milestones with separate customer, lead, assignee and unrelated accounts.
+5. Verify the hosted ledger and database constraints separately and record the actual apply date/CI IDs. Never claim hosted deployment from a green workflow alone.
+
+Do not roll back to an app that expects the old response RPC or broadly visible evidence. Prefer a reviewed forward fix; preserve pending data, event references and release audits. Do not reset/seed production or use privileged credentials for authorization testing.
+
+A legacy `needs_customer_info` row without any historical request milestone has no safe request token and cannot submit. Keep its files pending; the assignee can resume, then issue a new real information request. Staff resume/cancellation never release pending files. A stale retry from a completed round returns only the old result and does not affect the new round.
+
+
 This runbook covers current development and hosted-configuration procedures. It does not authorize unreviewed production changes. Use synthetic data only.
 
 ## Owner-request intake and delivery rule

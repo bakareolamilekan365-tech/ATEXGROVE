@@ -1,5 +1,16 @@
 # Atexgrove — Authentication, Authorization & Security
 
+## Pending evidence authorization (026, not hosted)
+
+Upload is preparation, not submission. Staff SELECT on `case_evidence` requires `submitted_at IS NOT NULL` and `staff_can_access_verification_case`. This protects direct reads, counts and embedded joins. The SECURITY DEFINER audited-download RPC repeats both checks before any server-side signed URL is generated. Storage remains private with no authenticated SELECT/UPDATE/DELETE policy; the sole INSERT policy is restricted to owned draft/awaiting-information cases. Existing ten-file and MIME constraints remain.
+
+The case helper continues to exclude draft and `discarded_at` cases, even for preassigned staff. Customers retain only their own metadata view; they cannot write submission timestamps, events or audits directly. Staff cannot submit a customer response or release pending files. No upload event is emitted; historical upload rows are excluded from staff event reads to prevent a parallel preparation-activity channel.
+
+All release operations lock the case and validate ownership/state. Request tokens prevent stale-page submissions targeting another round. The unique response reference prevents duplicate release/milestones. Staff resuming a case does not release pending evidence; cancellation/discard/closure leave it withheld. Privileged database operators and server service-role credentials remain trusted infrastructure boundaries, not end-user identities; never use them for application list queries.
+
+Migration 025 is hosted as verified 2026-10-25. Migration 026 has not been applied. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this correction does not claim a clean security-advisor report.
+
+
 ## Security boundary and status
 
 This document defines the security model for the modular-monolith prototype and its planned extensions. It is not a claim that every control below is already implemented. The current repository is the implementation source of truth; controls labelled **Future** or **Planned** require later implementation and operational validation.

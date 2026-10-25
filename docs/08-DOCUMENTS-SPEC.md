@@ -1,5 +1,19 @@
 # Atexgrove — Document Management Specification
 
+## Upload, submission and review are separate (026 branch implementation)
+
+Hosted history was checked 2026-10-25 and includes 025; earlier dated references to 025 being proposed are historical. Migration 026 is not hosted.
+
+1. **Uploaded:** private object and metadata saved, with uploader, upload time, category, version, predecessor and creation audit.
+2. **Pending customer submission:** `submitted_at` is NULL. Customer sees “Saved — not yet submitted to the review team”. The state persists across sessions. A pending replacement never removes staff access to an already-submitted predecessor.
+3. **Submitted for staff review:** explicit Submit request or Submit response releases all pending versions atomically and records their IDs in the submission audit. Customer/staff document history says “Submitted for review — not authenticated”, shows upload/release dates and retains all versions.
+4. **Professionally reviewed/authenticated:** separate future functionality. Upload, release, case review and closure confer no legal authentication.
+
+Uploads are permitted only while drafting or preparing a requested response. During submitted/assigned/in-review states, staff must request information to open a preparation window. Files uploaded before a concurrent staff status change but not registered may require the existing cleanup/retry path; registration rechecks under the case lock and never implicitly submits. Existing 10 MB, PDF/JPEG/PNG, server signature validation and ten-total-version limits are unchanged. No delete/retention or customer download feature is introduced.
+
+The main timeline omits upload events; document history supplies file activity. Old event/audit rows are retained, including unmatched legacy communication. Existing non-draft/non-discarded evidence is grandfathered as submitted at creation time for compatibility; the timestamp does not claim historical explicit consent.
+
+
 ## Scope and implementation boundary
 
 Documents are sensitive assets connected to users, organizations, verification cases, later land parcels and projects. The Phase 2 primary resource scope is the verification case; a case and its evidence must not require an existing marketplace parcel. This specification defines the target controls without claiming that every lifecycle stage is implemented today.

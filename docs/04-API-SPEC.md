@@ -1,5 +1,17 @@
 # Atexgrove — API Architecture
 
+## Explicit evidence submission — migration 026 compatibility
+
+Current hosted baseline is 025 as read-only verified 2026-10-25. This section describes branch code requiring 026; earlier proposed-025 descriptions below are historical.
+
+- `register_case_evidence` keeps its nine arguments and validation/lineage/quota checks. It now accepts only owned, non-discarded `draft` or `needs_customer_info` cases. Successful registration saves pending evidence and a creation audit, with no event or review release.
+- `submit_verification_case(uuid,text,boolean)` keeps its consent and numbering contract; successful first submission releases every pending file and writes a single submitted milestone. A retry never releases additional files.
+- `customer_respond_to_case(uuid,text,uuid)` replaces the two-argument RPC. The third argument is `p_request_event_id`, obtained from the owner-visible case. The response message remains required (2–2000 trimmed characters). It must match the current request; an identical previous response returns the existing event, while different data is rejected. The release, one response milestone, status transition and audit commit together. Old app builds fail closed because the two-argument RPC is removed.
+- `authorize_case_evidence_download(uuid)` retains its signature but requires both submitted evidence and current staff case scope. The admin signer is only reached after that check.
+
+Do not deploy these application changes against an unmigrated database. Use the controlled, owner-approved sequence in RUNBOOK. No hosted migration is performed by opening or testing this PR.
+
+
 ## Principles
 - Consistent JSON response shapes
 - Typed request/response schemas

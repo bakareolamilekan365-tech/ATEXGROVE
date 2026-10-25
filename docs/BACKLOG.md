@@ -1,5 +1,10 @@
 # Product backlog — master list
 
+## 2026-10-25 focused workflow correction
+
+Pending evidence submission, per-file staff authorization, transactional explicit release and concise case/document history are implemented on `fix/pending-evidence-submission` with forward-only migration 026; not merged, deployed or hosted. Prior 025 is merged and hosted. Full professional document authentication, retention/deletion, customer downloads and notifications remain outside this correction.
+
+
 This is the single master list for product gaps and owner requests. Items are **Planned** unless their status explicitly records existing implementation, CI evidence, or hosted state. “Tier not assigned” means the supplied priority map did not place that item; it is not a priority decision.
 
 Tier A: immediate post-022 foundation/customer intake. Tier B: Phase 2 / Slice 3 verification workflow. Tier C: demo and UX polish. Tier D: real-user/legal/security readiness. Tier E: Phase 3 feasibility and Land & Development Report. Tier F: Phase 4 and later. See [RUNBOOK.md](RUNBOOK.md) for owner-request intake and delivery rules.

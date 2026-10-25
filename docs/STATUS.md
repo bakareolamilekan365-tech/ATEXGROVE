@@ -1,6 +1,17 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-23
+## Current correction — pending evidence submission (2026-10-25)
+
+Hosted ledger checked read-only on 2026-10-25: `001`–`024` and `20261023144032_case_timeline_evidence_workflow` (025). PR #28 is merged and 025 is hosted. Earlier dated statements below describe the state when written and are superseded by this section for current state.
+
+This branch adds forward-only `20261025075512_pending_evidence_submission.sql` (026). It is **not hosted**. Evidence registration writes metadata and an audit, not a case milestone. Each file remains pending (`submitted_at IS NULL`) until owner submission releases it. Staff evidence RLS and audited downloads require a submitted timestamp plus existing case scope. Draft and discarded-draft protections remain. Old visible evidence remains available; draft/discarded evidence remains pending.
+
+The customer prepares files only during draft or `needs_customer_info`. Explicit request/response submission releases all pending versions together; response submission writes one milestone containing the required message. A request-event token and uniqueness guard make retries harmless across later information rounds. Document history retains versions, upload dates and release state; the main timeline filters upload activity and unambiguous historical duplicate response lines without deleting records.
+
+Validation is recorded in the final PR and the dated engineering-log entry. No new hosted changes, merge, or deployment are authorized by this correction.
+
+
+**Status date:** 2026-10-25
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit sections remain historical.
 
