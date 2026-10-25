@@ -6,6 +6,7 @@ insert into public.verification_cases(id,customer_user_id,created_by_user_id,sit
 insert into public.verification_cases(id,customer_user_id,created_by_user_id,site_description,area_lga,contact_preference,workflow_status) values ('20000000-0000-4000-8000-000000000002','10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Synthetic pending workflow case 2','Kuje','email','draft');
 insert into public.verification_cases(id,customer_user_id,created_by_user_id,site_description,area_lga,contact_preference,workflow_status) values ('20000000-0000-4000-8000-000000000003','10000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000001','Synthetic pending workflow case 3','Kuje','email','draft');
 insert into public.case_assignments(verification_case_id,assignee_user_id,assigned_by_user_id,status) values ('20000000-0000-4000-8000-000000000001','10000000-0000-4000-8000-000000000004','10000000-0000-4000-8000-000000000003','active');
+update public.profiles set account_type='admin' where user_id='10000000-0000-4000-8000-000000000003';
 create function pg_temp.save_evidence(cid uuid, eid uuid, predecessor uuid default null)
 returns uuid language plpgsql security invoker as $$
 declare path text := 'documents/cases/' || cid || '/' || eid || '/synthetic.pdf';
@@ -29,6 +30,7 @@ select is((select count(*)::int from storage.objects where bucket_id='documents'
 reset role; select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated"}',true); set local role authenticated;
 select is((select count(*)::int from public.verification_cases where id='20000000-0000-4000-8000-000000000001'), 0, 'actor 3 cannot see draft');
 select is((select count(*)::int from public.case_evidence where verification_case_id='20000000-0000-4000-8000-000000000001'), 0, 'actor 3 cannot count draft evidence');
+select is((select count(*)::int from public.audit_logs where entity_type in ('case_evidence','verification_case')),0,'scoped admin cannot discover draft preparation through audit API');
 select throws_ok($test$select * from public.authorize_case_evidence_download('30000000-0000-4000-8000-000000000002')$test$, '42501', null, 'actor 3 cannot download draft');
 select is((select count(*)::int from storage.objects where bucket_id='documents'), 0, 'actor 3 cannot bypass via Storage');
 reset role; select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000004","role":"authenticated"}',true); set local role authenticated;
@@ -74,6 +76,7 @@ select is((select count(*)::int from public.case_evidence where verification_cas
 reset role; select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000003","role":"authenticated"}',true); set local role authenticated;
 select is((select count(*)::int from public.case_evidence where verification_case_id='20000000-0000-4000-8000-000000000001'), 2, 'scoped actor 3 counts only old submitted evidence');
 select is((select count(*)::int from public.case_evidence where id='30000000-0000-4000-8000-000000000003'), 0, 'scoped actor 3 cannot read pending replacement');
+select is((select count(*)::int from public.audit_logs where entity_id in ('30000000-0000-4000-8000-000000000003','30000000-0000-4000-8000-000000000004')),0,'scoped admin cannot discover pending evidence through audit API');
 select is((select count(ce.id)::int from public.verification_cases vc join public.case_evidence ce on ce.verification_case_id=vc.id where vc.id='20000000-0000-4000-8000-000000000001'), 2, 'actor 3 join does not expose pending evidence');
 select throws_ok($test$select * from public.authorize_case_evidence_download('30000000-0000-4000-8000-000000000003')$test$, '42501', null, 'actor 3 cannot download pending replacement');
 select lives_ok($test$select * from public.authorize_case_evidence_download('30000000-0000-4000-8000-000000000002')$test$, 'actor 3 retains prior submitted download');
