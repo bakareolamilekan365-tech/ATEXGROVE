@@ -17,7 +17,7 @@ Validation is recorded in the final PR and the dated engineering-log entry. No n
 
 ## Current hosted state
 
-- **Current / hosted:** Supabase migration ledger reads `001`–`024` on the linked project (checked 2026-10-23). Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migration 024 is applied, but does not report its apply date.
+- **Current / hosted:** Supabase migration ledger reads `001`–`024` plus `20261023144032` (025), checked read-only on 2026-10-25. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migration 024 is applied, but does not report its apply date.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.
 - **Current / hosted:** `storage.objects` has exactly one Atexgrove policy for the `documents` bucket: authenticated customers may insert into an owned, eligible case path. There is no authenticated object SELECT, UPDATE or DELETE policy.
 - **Current / hosted:** staff downloads must first pass the audited `authorize_case_evidence_download` RPC. Only the server-side admin client, using the server-only service-role credential, creates the 60-second signed download URL.
@@ -56,11 +56,11 @@ The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`.
 - **CI-verified:** [App run 39961078177](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078177) passed lint, typecheck, 47 unit tests, 19 integration tests (3 skipped), security guardrails and production build. [Database run 39961078498](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078498) passed all 8 pgTAP suites (303 assertions) against disposable Supabase.
 - **Hosted:** migration 024 appears in the linked hosted ledger checked on 2026-10-23; the exact apply date is not exposed by the ledger.
 
-## Current PR — case timeline and evidence workflow (migration 025)
+## Merged predecessor — case timeline and evidence workflow (migration 025)
 
 - **Implemented on `fix/case-timeline-evidence-workflow`:** evidence uploads receive a `document_uploaded` event kind; customer response writes distinct ordered status and reply events; safe timeline headings classify legacy events without rewriting history; version replacement is limited to the current same-case, same-type chain head; intake claim values use centralized readable labels.
 - **CI-verified:** [App CI run 39974685742](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685742) passed lint, typecheck, 53 unit tests, 23 integration tests (3 skipped), security guardrails and production build. [Database security run 39974685721](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685721) passed all 8 pgTAP suites (323 assertions) on disposable Supabase.
-- **Hosted:** migration 025 is **not hosted**. Current linked hosted state remains `001`–`024`.
+- **Hosted:** migration 025 is merged in PR #28 and recorded as `20261023144032` in the hosted ledger, verified 2026-10-25. Its behavior is superseded on this branch by pending migration 026; 026 is not hosted.
 - **Notifications:** no staff notification delivery mechanism is implemented. Draft uploads do not create staff queue entries or trigger staff notifications; the notification function remains a placeholder.
 
 ## Implemented product slices
@@ -86,7 +86,7 @@ The latest green workflows associated with the current merged `main` changes are
 - [CI run 39584206476](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206476) - lint, typecheck, unit tests, integration tests, security guardrails and production build passed for PR #21.
 - [Database security run 39584206434](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206434) - migrations through `021` and all pgTAP suites passed in a disposable Supabase environment. That CI run was not itself the hosted apply; migration `021` was separately applied on 2026-10-21.
 
-The latest visible verification for merged migration 024 is [app run 39961078177](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078177): 47 unit tests, 19 integration tests (3 skipped), lint, typecheck, guardrails and build. [Database run 39961078498](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078498) passed eight pgTAP suites (303 assertions). The current PR's 025 verification is recorded above. Automated disposable-environment evidence is not itself hosted-environment verification; migration 025 remains not hosted until separately applied.
+The latest visible verification for merged migration 024 is [app run 39961078177](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078177): 47 unit tests, 19 integration tests (3 skipped), lint, typecheck, guardrails and build. [Database run 39961078498](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078498) passed eight pgTAP suites (303 assertions). The merged PR #28 verification is recorded above. Migration 025 is separately confirmed hosted on 2026-10-25. Disposable CI is not hosted deployment evidence; new migration 026 remains not hosted.
 
 ## Accepted hosted advisor items
 

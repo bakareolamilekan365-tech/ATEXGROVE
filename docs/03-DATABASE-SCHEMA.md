@@ -19,7 +19,7 @@ PostgreSQL with PostGIS.
 
 ## Schema status and implementation boundary
 
-This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted migration history `001`–`024` on 2026-10-23; migration 024's exact apply date was not reported by the ledger. Migration 025 is proposed in the current PR, implemented but not hosted until reviewed and applied.
+This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted migration history `001`–`024` on 2026-10-23; migration 024's exact apply date was not reported by the ledger. Migration 025 is merged and hosted as checked on 2026-10-25; new migration 026 is implemented on this branch and not hosted.
 
 ## Conventions
 
@@ -85,7 +85,7 @@ Audit records are required for important mutations, verification decisions, docu
 
 The first commercial workflow starts with a verification case, not a marketplace listing. A case may be created from site/request details before any `land_parcels` record exists. Any later parcel/listing link must be optional and follow-on.
 
-The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is hosted (applied 2026-10-23); migration `023` is hosted per owner confirmation; migration `024` is present in the linked hosted migration ledger (checked 2026-10-23). Migration `025` in the current PR is not hosted. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
+The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is hosted (applied 2026-10-23); migration `023` is hosted per owner confirmation; migration `024` is present in the linked hosted migration ledger (checked 2026-10-23). Migration `025` is merged and hosted (2026-10-25 ledger); 026 remains pending. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
 
 ### staff_members (Slice 1 repository implementation)
 
@@ -185,10 +185,10 @@ Source, review state and authority level are separate. Authority levels must pre
 - to_stage/status
 - reason
 - customer_visible
-- event_kind (`status_change`, `staff_note`, `customer_message`, `information_requested`, `customer_response`; migration `021`; `document_uploaded` in proposed migration `025`)
+- event_kind (`status_change`, `staff_note`, `customer_message`, `information_requested`, `customer_response`; migration `021`; `document_uploaded` in merged/hosted migration `025`)
 - created_at
 
-Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events marked customer-visible; customer routes also filter the case owner explicitly so dual customer/staff accounts do not mix workspaces. Migration `020` is hosted and makes assignee-driven transitions write fixed customer-safe status events with separate hidden staff notes. Migration `021` is hosted (applied 2026-10-21), adds `event_kind`, classifies historical events and records customer responses. Migration `022` is hosted (applied 2026-10-23); assignment writes the fixed customer-visible line “A reviewer has been assigned to your case.” plus one private lead note. Migration `023` is hosted and adds draft submit/discard/cancel events; staff-scoped reads exclude active drafts and cases marked `discarded_at`. Migration `024` is recorded in the linked hosted ledger; it adds versioned consent and annual case numbers. Proposed migration `025` changes evidence uploads from status-like events to `document_uploaded` activity and fixes the new response transition to use `status_change`; old upload/response event rows are classified at render time without editing historical records. No event-driven staff notification is implemented; the notification function remains a placeholder.
+Status history is append-only for application clients: `anon` has no table access and `authenticated` receives no insert, update or delete privilege. The privileged `service_role`/database-operator boundary retains maintenance capability and must be tightly controlled and audited. Customers can read only events marked customer-visible; customer routes also filter the case owner explicitly so dual customer/staff accounts do not mix workspaces. Migration `020` is hosted and makes assignee-driven transitions write fixed customer-safe status events with separate hidden staff notes. Migration `021` is hosted (applied 2026-10-21), adds `event_kind`, classifies historical events and records customer responses. Migration `022` is hosted (applied 2026-10-23); assignment writes the fixed customer-visible line “A reviewer has been assigned to your case.” plus one private lead note. Migration `023` is hosted and adds draft submit/discard/cancel events; staff-scoped reads exclude active drafts and cases marked `discarded_at`. Migration `024` is recorded in the linked hosted ledger; it adds versioned consent and annual case numbers. The historical 025 implementation changed evidence uploads from status-like events to `document_uploaded` activity and fixes the new response transition to use `status_change`; old upload/response event rows are classified at render time without editing historical records. No event-driven staff notification is implemented; the notification function remains a placeholder.
 
 ### feasibility_scenarios (Phase 3 target)
 
@@ -447,3 +447,5 @@ Long-running work may eventually need durable job state for AI document analysis
 ## Scalability and jurisdiction notes
 
 Future schema work should plan for indexes, pagination-friendly queries, query optimization, connection management, caching, spatial indexes and viewport-based GIS loading while avoiding N+1 access patterns. Horizontal scaling is a later operational decision. Jurisdiction identifiers should remain explicit so Nigerian and future African markets do not inherit Abuja-specific rules accidentally. Privacy, retention, third-party processors and international transfers must be handled with appropriate domain and legal review; this documentation is not legal advice.
+
+Application audit administrators are also constrained by case scope for case audits and by submitted evidence for file audits; the audit API cannot expose pending preparation. Raw audit records remain retained for trusted database operators.

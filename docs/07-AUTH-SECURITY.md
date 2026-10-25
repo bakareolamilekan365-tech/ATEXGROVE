@@ -198,3 +198,5 @@ Security design should minimize personal data, restrict access, preserve auditab
 ## Planned vendor and processor controls
 
 These controls are **Planned**, not implemented. Maintain a register of third-party data processors/providers and their approval state, and document the specific data each is permitted to receive. Do not grant a provider broader access merely because it supplies one service. See [X-42](BACKLOG.md#x-42), [X-47](BACKLOG.md#x-47), [V-40](BACKLOG.md#v-40) and [V-41](BACKLOG.md#v-41). Any new application table must use explicit grants: authenticated SELECT only, no `anon` grant, and only the narrowly required server/service permissions.
+
+Application audit administrators are also constrained by case scope for case audits and by submitted evidence for file audits; the audit API cannot expose pending preparation. Raw audit records remain retained for trusted database operators.
