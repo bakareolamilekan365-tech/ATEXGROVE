@@ -51,6 +51,7 @@ export type VerificationCase = {
   principal_name: string | null;
   authority_confirmed: boolean | null;
   case_number: string | null;
+  information_request_event_id: string | null;
   is_demo_data: boolean;
   created_at: string;
   updated_at: string;
@@ -65,6 +66,7 @@ export type CaseStatusEvent = {
   reason: string;
   customer_visible: boolean;
   event_kind: CaseStatusEventKind;
+  response_to_event_id?: string | null;
   created_at: string;
 };
 
@@ -89,6 +91,8 @@ export type CaseEvidence = {
   version: number;
   supersedes_evidence_id: string | null;
   review_state: "received_unreviewed";
+  submitted_at: string | null;
+  submission_event_id: string | null;
   is_demo_data: true;
   created_at: string;
 };
