@@ -47,6 +47,8 @@ All synthetic records must be clearly labelled **DEMO DATA / NOT OFFICIAL**.
 24. `RELEASE-PLAN.md` — planned hosting/release approach
 25. `ENGINEERING-LOG.md` — dated problems, fixes and lessons
 
+Approved UI references are stored in `references/ui/`. The updated `Staff dashboard.pdf` guides the Verification Lead experience but does not make every visible mockup control an implemented feature.
+
 ## Important
 
 These documents intentionally separate the huge long-term Atexgrove vision from the smaller prototype implementation.
@@ -55,6 +57,6 @@ The original master prompt can remain as a product-vision document. These files 
 
 ## Status
 
-**Status date: 2026-10-25.** The linked hosted migration ledger reads `001`–`025`, checked after controlled history normalization on 2026-10-25; the ledger does not report the original apply times for migrations 024 or 025. Migration 021 was applied 2026-10-21 and migration 022 on 2026-10-23; 023 was applied after PR #26 merged, per owner confirmation. Migration 025 is merged and hosted. PR #29 added migration `026_pending_evidence_submission.sql`, which is merged and CI-verified but not hosted. Customer uploads under that implementation are restricted to draft or awaiting-information preparation; explicit customer submission releases pending files and only a customer reply resumes review. Check [STATUS.md](STATUS.md) for the distinction between implemented, CI-verified and hosted. Operational docs are indexed above.
+**Current status:** migration 026 and compatible application code are merged and subsequently owner-confirmed hosted; the last independent read-only ledger inspection reached 025 on 2026-10-25. The accepted private-preview stack is Netlify Free plus a separate Supabase Free staging project at a strict ₦0 / $0 budget. Check [STATUS.md](STATUS.md) for evidence qualifications, implemented behavior and open operational gates. Operational docs are indexed above.
 
 Historical sections in `17-PROJECT-AUDIT.md` retain the status that was true on their stated dates. Use the latest dated audit addendum and the implementation itself for current status.

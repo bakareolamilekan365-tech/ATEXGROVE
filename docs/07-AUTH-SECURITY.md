@@ -1,6 +1,6 @@
 # Atexgrove — Authentication, Authorization & Security
 
-## Pending evidence authorization (026, not hosted)
+## Pending evidence authorization (026 owner-confirmed hosted)
 
 Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
 
@@ -10,7 +10,7 @@ The case helper continues to exclude draft and `discarded_at` cases, even for pr
 
 All release operations lock the case and validate ownership/state. Request tokens prevent stale-page submissions targeting another round. The unique response reference prevents duplicate release/milestones. Staff resuming a case does not release pending evidence; cancellation/discard/closure leave it withheld. Privileged database operators and server service-role credentials remain trusted infrastructure boundaries, not end-user identities; never use them for application list queries.
 
-Migration 025 is hosted as verified 2026-10-25. Migration 026 has not been applied. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this correction does not claim a clean security-advisor report.
+Migration 025 is hosted as independently checked 2026-10-25. Migration 026 is subsequently owner-confirmed hosted, without a claimed apply timestamp or fresh independent ledger check. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this does not claim a clean security-advisor report.
 
 
 ## Security boundary and status

@@ -17,7 +17,9 @@ The first prototype remains on the Supabase Free plan. Leaked-password protectio
 - **GitHub** — source control, reviews and CI.
 - **Supabase** — PostgreSQL/PostGIS, Auth, RLS and private Storage.
 - **Map stack (Phase 4; optional earlier context only)** — MapLibre and a replaceable tile/data provider when map implementation genuinely needs it. A provider is not a prerequisite for Phase 2.
-- **Vercel** — future preview/deployment target when the local journey is ready.
+- **Netlify Free** — accepted private-preview web host; no deployment or runtime validation is claimed yet.
+- **Separate Supabase Free staging** — accepted preview database/Auth/private-Storage environment, isolated from the existing hosted project.
+- **Google Forms/Sheets** — access requests and participant feedback for the controlled preview.
 - **Email provider** — later; begin with Supabase Auth email for development.
 - **Monitoring/observability** — later, after privacy/consent and event boundaries are defined.
 
@@ -88,7 +90,7 @@ Docker is required only to run the local Supabase stack and pgTAP database tests
 
 | Service                           | Use                                             | Free-first decision                                                                                 |
 | --------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Vercel                            | Next.js preview/production deployment           | Use the free tier when the app shell is ready. Local development does not require an account.       |
+| Netlify                           | Next.js private-preview deployment               | Use Free only. Validate middleware, SSR/Auth and request payload behavior before invitations; no current deployment is claimed. |
 | Resend or Supabase email provider | Transactional email and password-reset delivery | Start with Supabase Auth email for development; add a provider only when real delivery is required. |
 | Sentry                            | Error monitoring                                | Add the free tier after the first deployed prototype. Do not block local work on it.                |
 | PostHog                           | Product analytics                               | Optional and deferred until privacy, consent, and event definitions are approved.                   |
@@ -96,6 +98,10 @@ Docker is required only to run the local Supabase stack and pgTAP database tests
 ### Do not sign up for yet
 
 Do not add Stripe, Google Maps, Auth0, Cloudinary, OpenAI, paid GIS datasets, or a separate file-upload vendor for the prototype foundation. Supabase covers the initial database, authentication, and private document storage; MapLibre keeps the map rendering layer open.
+
+### Private-preview upload gate
+
+The current server-action upload path accepts evidence up to 10 MB, but Netlify documents a 6 MB buffered function request limit and approximately 4.5 MB effective binary payload after base64 overhead. Treat a successful permitted 9–10 MB upload in isolated staging as a release gate. Do not invite the board until this is proven or a separately reviewed $0-compatible upload architecture is adopted.
 
 ### Payment decision
 

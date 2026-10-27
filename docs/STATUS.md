@@ -1,12 +1,30 @@
 # Atexgrove Current Status
 
+**Status date:** 2026-10-27
+
+**Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
+
+## Current baseline — migration 026 and private preview
+
+- **Implemented and merged:** PR #29 added `026_pending_evidence_submission.sql` and compatible application behavior. PR #30 normalized the repository filenames for migrations 025 and 026; migration 025's hosted history marker was changed to numeric `025` on 2026-10-25 without rerunning its SQL.
+- **Owner-confirmed hosted:** after the last documented read-only check through 025, the owner applied migration 026 and confirmed that hosted migration history now uses numeric versions `001`–`026`. This is a subsequent owner-confirmed fact, not a fresh independent ledger inspection; no apply date or time is claimed.
+- **CI-verified:** app run [40194071878](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071878) passed lint, typecheck, 75 unit tests, 26 integration tests (3 credential-gated skips), guardrails and build. Database run [40194071685](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071685) passed 10 pgTAP suites / 494 assertions plus 13 real 025-to-026 upgrade assertions (507 total) in disposable infrastructure. This does not prove hosted behavior.
+- **Latest green merged-baseline evidence:** PR #30 app run [40222378896](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40222378896) passed install, lint, typecheck, unit/integration tests, guardrails and build. Database run [40222378897](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40222378897) applied migrations 001–026 on disposable Supabase, passed 10 pgTAP files / 494 assertions and the 13-assertion 025-to-026 upgrade test. These runs validate the merged repository, not hosted deployment.
+- **Private preview decision:** the provisional 12–20 November 2026 closed test targets approximately 15–20 approved owners and board members using fictional data and individual accounts. The Google access-request form has been distributed. Staging, account provisioning and browser acceptance are not yet complete.
+- **Hosting decision:** use Netlify Free for the Next.js application and a separate Supabase Free staging project, with GitHub for source/CI and Google Forms/Sheets for access requests and feedback. The budget is strictly ₦0 / $0. No Netlify or staging deployment is claimed.
+- **January 2027, not November acceptance:** Staff ID/password, possible authenticator MFA, separate staff/customer identities, employee customer-access controls and conflict-of-interest safeguards remain a later workstream.
+
+Operational gates still open: realistic multi-account isolation, real browser authentication transitions, hosted email confirmation/recovery edge cases, complete preview journeys and Netlify runtime compatibility. In particular, Netlify documents a 6 MB buffered function payload limit and about 4.5 MB effective binary limit after base64 overhead, while Atexgrove permits 10 MB evidence. A permitted 9–10 MB upload must pass through the chosen staging architecture before invitations; this task does not redesign uploads.
+
+The current CI workflow uses Node 20 while installed Supabase JavaScript packages declare Node 22 or later; the latest run passed but emitted engine warnings. Align CI and the eventual Netlify runtime with a supported Node version in a separate reviewed change. The same run reported dependency vulnerabilities during installation; review and triage them without an automatic forced major-version upgrade.
+
 ## Login/session navigation correction (2026-10-27)
 
 **Implemented on `fix/login-session-and-docs-reconciliation`; browser acceptance pending:** successful email/password sign-in now makes one full-document request to a validated internal `?next=` destination or `/dashboard`. This avoids racing `router.push` with an immediate refresh across the authentication boundary. Customer/staff workspace boundary links use the same fresh-request principle. Middleware preserves refreshed Supabase cookies and cache-control headers when returning redirects.
 
 Unit coverage exercises successful/failed sign-in navigation and unsafe redirect inputs; integration coverage exercises protected-route redirects and refreshed-cookie propagation. The reported browser symptom was not independently reproduced against a safe isolated authentication environment, so immediate login, recovery completion, sign-out, account switching and customer/staff navigation remain operational verification items. No hosted Supabase state or deployment was changed.
 
-## Current correction — pending evidence submission (2026-10-25)
+## Historical branch correction — pending evidence submission (2026-10-25; superseded above)
 
 Hosted ledger checked read-only on 2026-10-25: migrations `001`–`025`. PR #28 is merged and 025 is hosted. Earlier dated statements below describe the state when written and are superseded by this section for current state.
 
@@ -17,9 +35,7 @@ The customer prepares files only during draft or `needs_customer_info`; after su
 Validation is recorded in PR #29 and the dated engineering-log entry. This migration-name correction does not apply migration 026 or deploy application code.
 
 
-**Status date:** 2026-10-25
-
-**Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit sections remain historical.
+**Historical snapshot date:** 2026-10-25. Statements in this section that migration 026 was not hosted were accurate at that time and are superseded by the current baseline above.
 
 
 **Verified follow-up revision `29d31036b2a4a8208bafbc8cfc7cc4a5083d4def`:** [App CI 40194071878](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071878) passed lint, typecheck, **75 unit tests**, **26 integration tests** (3 existing credential-gated skips), security guardrails and production build. [Database CI 40194071685](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071685) passed **10 pgTAP suites / 494 assertions** on the full disposable Supabase stack and **13 actual 025 → 026 upgrade assertions**, **507 database assertions total**. Authenticated owner/assignee tests exhaust every staff destination while evidence is pending, reject resumption, preserve terminal privacy and prove customer replies release files before review resumes. Migration 026 remains **not hosted**; migrations 001–025 are unchanged. No merge, deployment or hosted migration was performed.
@@ -28,7 +44,7 @@ Validation is recorded in PR #29 and the dated engineering-log entry. This migra
 
 ## Current hosted state
 
-- **Current / hosted:** Supabase migration ledger reads `001`–`025`, checked read-only after the controlled history normalization on 2026-10-25. Migration `021_case_creation_idempotency_and_response_event.sql` was applied on 2026-10-21; migration `022_assignment_events_location_and_contact.sql` on 2026-10-23; migration 023 was applied after PR #26 merged per owner confirmation; the ledger confirms migrations 024 and 025 are applied but does not report their original apply times.
+- **Current / owner-confirmed hosted:** migration history is consistent through numeric versions `001`–`026`. The last independent read-only ledger inspection reached 025 on 2026-10-25; the later 026 application is owner-confirmed and has no claimed apply timestamp.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.
 - **Current / hosted:** `storage.objects` has exactly one Atexgrove policy for the `documents` bucket: authenticated customers may insert into an owned, eligible case path. There is no authenticated object SELECT, UPDATE or DELETE policy.
 - **Current / hosted:** staff downloads must first pass the audited `authorize_case_evidence_download` RPC. Only the server-side admin client, using the server-only service-role credential, creates the 60-second signed download URL.
@@ -71,7 +87,7 @@ The owner-confirmed Atexgrove logo, mark and wordmark SVGs are in `public/logo`.
 
 - **Implemented on `fix/case-timeline-evidence-workflow`:** evidence uploads receive a `document_uploaded` event kind; customer response writes distinct ordered status and reply events; safe timeline headings classify legacy events without rewriting history; version replacement is limited to the current same-case, same-type chain head; intake claim values use centralized readable labels.
 - **CI-verified:** [App CI run 39974685742](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685742) passed lint, typecheck, 53 unit tests, 23 integration tests (3 skipped), security guardrails and production build. [Database security run 39974685721](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39974685721) passed all 8 pgTAP suites (323 assertions) on disposable Supabase.
-- **Hosted:** migration 025 is merged in PR #28 and recorded as `025` in the hosted ledger, verified 2026-10-25. Its behavior is superseded on this branch by pending migration 026; 026 is not hosted.
+- **Hosted:** migration 025 is merged in PR #28 and recorded as `025` in the hosted ledger, verified 2026-10-25. Its behavior is superseded by migration 026, which is subsequently owner-confirmed hosted.
 - **Notifications:** no staff notification delivery mechanism is implemented. Draft uploads do not create staff queue entries or trigger staff notifications; the notification function remains a placeholder.
 
 ## Implemented product slices
@@ -97,7 +113,7 @@ The latest green workflows associated with the current merged `main` changes are
 - [CI run 39584206476](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206476) - lint, typecheck, unit tests, integration tests, security guardrails and production build passed for PR #21.
 - [Database security run 39584206434](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39584206434) - migrations through `021` and all pgTAP suites passed in a disposable Supabase environment. That CI run was not itself the hosted apply; migration `021` was separately applied on 2026-10-21.
 
-The latest visible verification for merged migration 024 is [app run 39961078177](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078177): 47 unit tests, 19 integration tests (3 skipped), lint, typecheck, guardrails and build. [Database run 39961078498](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078498) passed eight pgTAP suites (303 assertions). The merged PR #28 verification is recorded above. Migration 025 is separately confirmed hosted on 2026-10-25. Disposable CI is not hosted deployment evidence; new migration 026 remains not hosted.
+The latest visible verification for merged migration 024 is [app run 39961078177](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078177): 47 unit tests, 19 integration tests (3 skipped), lint, typecheck, guardrails and build. [Database run 39961078498](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39961078498) passed eight pgTAP suites (303 assertions). The merged PR #28 verification is recorded above. Migration 025 was independently confirmed hosted on 2026-10-25; migration 026 is subsequently owner-confirmed hosted. Disposable CI is not hosted deployment evidence.
 
 ## Accepted hosted advisor items
 
@@ -106,7 +122,7 @@ The following are recorded as accepted or intentionally deferred for the current
 - `spatial_ref_sys` RLS finding — PostGIS-managed/system boundary.
 - PostGIS installed in the `public` schema — accepted for the current prototype; revisit before substantial GIS work.
 - PostGIS `st_estimatedextent` function findings — extension-managed surface accepted for the current prototype.
-- leaked-password protection — unavailable on the current Free plan; reassess before production or a plan change.
+- leaked-password protection — disabled on the existing Free project and documented by Supabase as Pro-and-above functionality; this is an accepted preview limitation, not an enabled control. Reassess before production or a plan change.
 
 Application-owned findings are not covered by these acceptances and must be fixed through reviewed forward changes.
 
@@ -115,6 +131,8 @@ Application-owned findings are not covered by these acceptances and must be fixe
 - **Operational verification pending:** a real upload and audited staff download through the running application against hosted Supabase.
 - **Operational verification pending:** realistic multi-account isolation for customer A/customer B, assigned staff, department leads and out-of-scope staff.
 - **Operational verification pending:** hosted email confirmation, invalid/expired confirmation and recovery links, and other hosted email flows beyond the password-reset path already exercised.
+- **Operational verification pending:** login/session navigation and customer/staff workspace switching in a real browser against isolated staging.
+- **Deployment gate:** Netlify Free runtime compatibility, including a permitted 9–10 MB evidence upload, must be proven before preview invitations.
 - **Product gap:** customers cannot retrieve their own uploaded evidence.
 - **Product/operations gaps:** privacy, terms and cookie pages; data-retention/deletion decisions; malware scanning; monitoring and production operations.
 - **Not claimed:** production readiness, legal compliance, government certification, statutory verification or a completed land-verification service.
