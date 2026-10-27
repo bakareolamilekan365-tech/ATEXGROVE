@@ -1,5 +1,11 @@
 # Atexgrove Current Status
 
+## Login/session navigation correction (2026-10-27)
+
+**Implemented on `fix/login-session-and-docs-reconciliation`; browser acceptance pending:** successful email/password sign-in now makes one full-document request to a validated internal `?next=` destination or `/dashboard`. This avoids racing `router.push` with an immediate refresh across the authentication boundary. Customer/staff workspace boundary links use the same fresh-request principle. Middleware preserves refreshed Supabase cookies and cache-control headers when returning redirects.
+
+Unit coverage exercises successful/failed sign-in navigation and unsafe redirect inputs; integration coverage exercises protected-route redirects and refreshed-cookie propagation. The reported browser symptom was not independently reproduced against a safe isolated authentication environment, so immediate login, recovery completion, sign-out, account switching and customer/staff navigation remain operational verification items. No hosted Supabase state or deployment was changed.
+
 ## Current correction — pending evidence submission (2026-10-25)
 
 Hosted ledger checked read-only on 2026-10-25: migrations `001`–`025`. PR #28 is merged and 025 is hosted. Earlier dated statements below describe the state when written and are superseded by this section for current state.

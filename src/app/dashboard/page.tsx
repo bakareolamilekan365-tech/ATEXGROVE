@@ -70,7 +70,7 @@ export default async function DashboardPage({
           <p className={styles.muted}>{roleCopy[role] ?? "Your customer workspace."}</p>
         </div>
         <div className={styles.actions}>
-          {staff ? <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</Link> : null}
+          {staff ? <a className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</a> : null}
           <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
         </div>
       </div>

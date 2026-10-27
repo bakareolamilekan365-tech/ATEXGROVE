@@ -1,11 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { signInWithFreshNavigation } from "@/lib/auth/password-sign-in";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -16,20 +15,20 @@ export default function LoginPage() {
     setError(null);
     setIsSubmitting(true);
 
-    const { error: signInError } =
-      await createSupabaseClient().auth.signInWithPassword({
-        email,
-        password,
-      });
+    const requestedPath = new URLSearchParams(window.location.search).get("next");
+    const result = await signInWithFreshNavigation(
+      createSupabaseClient().auth,
+      { email, password },
+      requestedPath,
+      (destination) => window.location.assign(destination),
+    );
 
-    if (signInError) {
-      setError(signInError.message);
+    if (result.error) {
+      setError(result.error);
       setIsSubmitting(false);
       return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
+    setIsSubmitting(false);
   }
 
   return (

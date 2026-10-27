@@ -48,6 +48,8 @@ Local sign-out is **Implemented on main** through a POST action and was CI-verif
 
 See [STATUS.md](STATUS.md) for the single current record of hosted migrations, Storage policies, CI/database-test evidence, accepted advisor items and operational verification gaps.
 
+The 2026-10-27 login correction uses a fresh document request after browser-side password authentication instead of racing an App Router navigation with an immediate refresh. It supports only validated internal `?next=` destinations, with `/dashboard` as the fallback. Middleware replacement redirects preserve any refreshed Supabase cookies and the required private/no-cache response headers. Customer/staff workspace boundary links also request a fresh document, while staff routes continue to enforce `requireStaff` and RLS. Unit and integration regression coverage exists; real browser and isolated-preview verification remains pending.
+
 ### Future authentication hardening
 
 Multi-factor authentication (MFA), suspicious-login detection, device/session visibility, recovery codes and stronger account recovery are future security work. Recovery must not become an alternative path around normal authorization.

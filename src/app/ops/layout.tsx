@@ -33,7 +33,7 @@ export default async function OperationsLayout({
         </Link>
         <nav aria-label="Operations">
           <Link className={styles.link} href="/ops/cases">My queue</Link>
-          <Link className={styles.link} href="/dashboard">Customer dashboard</Link>
+          <a className={styles.link} href="/dashboard">Customer dashboard</a>
         </nav>
         <span className={styles.roleBadge}>Staff</span>
         <form action={signOutAction}><button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Sign out</button></form>
