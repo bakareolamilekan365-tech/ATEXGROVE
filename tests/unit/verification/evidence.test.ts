@@ -3,10 +3,12 @@ import { createAuthorizedEvidenceDownload } from "@/lib/case-evidence/download";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildEvidenceStoragePath,
+  evidenceStoragePathMatches,
   extensionForMime,
   hasValidEvidenceFileSignature,
   MAX_EVIDENCE_FILE_SIZE,
   normalizeOriginalFilename,
+  parseEvidenceStoragePath,
   validateEvidenceFile,
 } from "@/lib/case-evidence/validation";
 import { latestReplaceableEvidence } from "@/lib/case-evidence/versioning";
@@ -52,6 +54,30 @@ describe("case evidence validation", () => {
     );
     expect(path).toBe("documents/cases/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333.pdf");
     expect(path).not.toContain("seller");
+    expect(parseEvidenceStoragePath(path)).toMatchObject({
+      caseId: "11111111-1111-4111-8111-111111111111",
+      evidenceId: "22222222-2222-4222-8222-222222222222",
+      extension: "pdf",
+    });
+    expect(evidenceStoragePathMatches(
+      path,
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+      "application/pdf",
+    )).toBe(true);
+    expect(evidenceStoragePathMatches(
+      path,
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "22222222-2222-4222-8222-222222222222",
+      "application/pdf",
+    )).toBe(false);
+    expect(evidenceStoragePathMatches(
+      path,
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+      "image/png",
+    )).toBe(false);
+    expect(parseEvidenceStoragePath("documents/cases/not-a-uuid/file.pdf")).toBeNull();
   });
 });
 

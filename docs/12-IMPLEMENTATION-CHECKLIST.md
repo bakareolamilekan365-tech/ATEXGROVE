@@ -82,6 +82,20 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 
 **Known Slice 2 limits:** no malware scanning is available in this free-plan cut, so files remain untrusted, download-only and limited to PDF/JPEG/PNG with server-side file-signature checks. Customers cannot retrieve their own uploaded files yet. The 10-file limit counts registered evidence rows; uploads that never complete registration are not counted, which is a known free-plan limitation despite server cleanup after a failed registration. Evidence is customer-supplied and unauthenticated. Real customer documents remain prohibited pending the privacy/legal readiness gate. Evidence review/findings, staff uploads, handover/escalation and preparer/approver separation remain later work. Draft retention/cleanup is undecided; draft evidence is not automatically deleted. The privileged `service_role`/database-operator path can still perform exceptional maintenance and must be controlled and audited.
 
+### November direct-upload readiness
+
+- [x] **IMPLEMENTED IN REPOSITORY:** evidence bytes upload from the authenticated browser directly to private Supabase Storage; the Next.js finalization action receives metadata only.
+- [x] **IMPLEMENTED IN REPOSITORY:** finalization rechecks ownership/state/path and verifies authoritative Storage size, MIME and an eight-byte signature prefix before calling `register_case_evidence`.
+- [x] **LOCALLY VERIFIED:** the linked private-object endpoint returned HTTP 206 and exactly bytes 0-7 for an existing object; this read-only check is not deployed Netlify acceptance.
+- [ ] **AUTOMATED VERIFIED IN CI:** lint, typecheck, unit/integration suites, guardrails and build pass for this implementation revision.
+- [ ] **OPERATIONALLY PENDING:** create and isolate the approved Netlify/Supabase staging environment.
+- [ ] **OPERATIONALLY PENDING:** complete browser-direct uploads at approximately 1 MiB, 5 MiB, 9 MiB and near the permitted 10 MiB limit through deployed Netlify staging.
+- [ ] **OPERATIONALLY PENDING:** reject a staging file whose declared MIME/extension and stored magic bytes disagree.
+- [ ] **OPERATIONALLY PENDING:** verify realistic multi-account upload isolation, pending-evidence staff invisibility, explicit release and audited staff download.
+- [ ] **OPERATIONALLY PENDING:** verify real browser/session behavior and exercise the manual orphan-cleanup procedure without deleting registered evidence.
+
+No migration 027 exists for this work. Potential private orphan objects and weaker pre-registration quota concurrency are accepted preview limitations; durable reservations and automated expiry remain deferred.
+
 ## Feasibility
 
 - [ ] Inputs are validated and assumptions are explicit.

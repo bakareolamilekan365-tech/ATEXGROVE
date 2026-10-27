@@ -4,15 +4,18 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import {
-  buildEvidenceStoragePath,
   customerResponseSchema,
-  evidenceUploadSchema,
-  MAX_EVIDENCE_FILES_PER_CASE,
+  evidenceFinalizationSchema,
+  evidenceStoragePathMatches,
   normalizeOriginalFilename,
-  validateEvidenceFile,
-  validateEvidenceFileSignature,
+  type EvidenceFinalizationInput,
 } from "@/lib/case-evidence/validation";
-import { cleanupAfterRegistrationFailure, logEvidenceFailure, storageUploadFailureMessage } from "@/lib/case-evidence/upload-errors";
+import {
+  cleanupAfterRegistrationFailure,
+  cleanupAfterVerificationFailure,
+  logEvidenceFailure,
+} from "@/lib/case-evidence/upload-errors";
+import { verifyStoredEvidenceObject } from "@/lib/case-evidence/stored-object";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CASE_SERVICE_SCOPE_NOTICE_VERSION } from "@/lib/verification-cases/service-scope-notice";
 
@@ -20,92 +23,84 @@ export type EvidenceActionState = { error: string | null; success: string | null
 
 const failure = (error: string): EvidenceActionState => ({ error, success: null });
 
-export async function uploadCaseEvidenceAction(
-  _previousState: EvidenceActionState,
-  formData: FormData,
+export async function finalizeCaseEvidenceUploadAction(
+  input: EvidenceFinalizationInput,
 ): Promise<EvidenceActionState> {
-  const parsed = evidenceUploadSchema.safeParse({
-    caseId: formData.get("caseId"),
-    evidenceType: formData.get("evidenceType"),
-    description: formData.get("description"),
-    supersedesEvidenceId: formData.get("supersedesEvidenceId") ?? "",
-  });
-  const file = formData.get("file");
-
+  const { supabase, user } = await requireAuthenticatedUser();
+  const parsed = evidenceFinalizationSchema.safeParse(input);
   if (!parsed.success) {
     return failure(parsed.error.issues[0]?.message ?? "Check the evidence details.");
   }
-  if (!(file instanceof File)) return failure("Choose a file to upload.");
-
-  const fileValidation = validateEvidenceFile(file);
-  if (!fileValidation.ok) return failure(fileValidation.error);
-  if (!(await validateEvidenceFileSignature(file))) {
-    return failure("The file contents do not match its declared PDF, JPG or PNG type.");
+  const details = parsed.data;
+  const normalizedFilename = normalizeOriginalFilename(details.originalFilename);
+  if (normalizedFilename !== details.originalFilename) {
+    return failure("The original filename was not normalized safely.");
+  }
+  if (!evidenceStoragePathMatches(
+    details.storagePath,
+    details.caseId,
+    details.evidenceId,
+    details.mimeType,
+  )) {
+    return failure("The uploaded file path is invalid.");
   }
 
-  const { supabase, user } = await requireAuthenticatedUser();
   const { data: verificationCase, error: caseLookupError } = await supabase
     .from("verification_cases")
-    .select("id, workflow_status")
-    .eq("id", parsed.data.caseId)
+    .select("id, workflow_status, discarded_at")
+    .eq("id", details.caseId)
     .eq("customer_user_id", user.id)
     .maybeSingle();
 
   if (caseLookupError) {
-    logEvidenceFailure("case_lookup", caseLookupError, [file.name]);
+    logEvidenceFailure("case_lookup", caseLookupError, [details.originalFilename, details.storagePath]);
     return failure("We could not check this case. Refresh the page and try again.");
   }
   if (!verificationCase) return failure("This case was not found or is not yours.");
-  if (!["draft", "needs_customer_info"].includes(verificationCase.workflow_status)) {
+
+  const removeUploadedObject = async () => {
+    const admin = createSupabaseAdminClient();
+    return admin.storage.from("documents").remove([details.storagePath]);
+  };
+
+  if (verificationCase.discarded_at || !["draft", "needs_customer_info"].includes(verificationCase.workflow_status)) {
+    await cleanupAfterVerificationFailure(
+      new Error("Case state changed before evidence finalization."),
+      details.storagePath,
+      [details.originalFilename],
+      removeUploadedObject,
+    );
     return failure("This case is not accepting documents.");
   }
 
-  const { count, error: countError } = await supabase
-    .from("case_evidence")
-    .select("id", { count: "exact", head: true })
-    .eq("verification_case_id", parsed.data.caseId);
-  if (countError) {
-    logEvidenceFailure("quota_check", countError, [file.name]);
-    return failure("We could not check this case's documents. Refresh the page and try again.");
-  }
-  if ((count ?? 0) >= MAX_EVIDENCE_FILES_PER_CASE) {
-    return failure("This case already has the maximum of 10 files.");
-  }
-
-  const evidenceId = crypto.randomUUID();
-  const storagePath = buildEvidenceStoragePath(
-    parsed.data.caseId,
-    evidenceId,
-    crypto.randomUUID(),
-    file.type,
-  );
-  const originalFilename = normalizeOriginalFilename(file.name);
-  let uploadError: unknown | null = null;
   try {
-    const result = await supabase.storage
-      .from("documents")
-      .upload(storagePath, file, { contentType: file.type, upsert: false });
-    uploadError = result.error;
+    await verifyStoredEvidenceObject({
+      storagePath: details.storagePath,
+      mimeType: details.mimeType,
+      sizeBytes: details.sizeBytes,
+    });
   } catch (error) {
-    uploadError = error;
-  }
-  if (uploadError) {
-    logEvidenceFailure("storage_upload", uploadError, [file.name, originalFilename, storagePath]);
-    return failure(storageUploadFailureMessage(uploadError));
+    const message = await cleanupAfterVerificationFailure(
+      error,
+      details.storagePath,
+      [details.originalFilename],
+      removeUploadedObject,
+    );
+    return failure(message);
   }
 
   let registrationError: unknown | null = null;
   try {
     const result = await supabase.rpc("register_case_evidence", {
-      p_evidence_id: evidenceId,
-      p_case_id: parsed.data.caseId,
-      p_evidence_type: parsed.data.evidenceType,
-      p_description: parsed.data.description,
-      p_storage_path: storagePath,
-      p_original_filename: originalFilename,
-      p_mime_type: file.type,
-      p_size_bytes: file.size,
-      p_supersedes_evidence_id: parsed.data.supersedesEvidenceId || null,
+      p_evidence_id: details.evidenceId,
+      p_case_id: details.caseId,
+      p_evidence_type: details.evidenceType,
+      p_description: details.description,
+      p_storage_path: details.storagePath,
+      p_original_filename: details.originalFilename,
+      p_mime_type: details.mimeType,
+      p_size_bytes: details.sizeBytes,
+      p_supersedes_evidence_id: details.supersedesEvidenceId || null,
     });
     registrationError = result.error;
   } catch (error) {
@@ -115,17 +110,14 @@ export async function uploadCaseEvidenceAction(
   if (registrationError) {
     const message = await cleanupAfterRegistrationFailure(
       registrationError,
-      storagePath,
-      [file.name, originalFilename],
-      async () => {
-        const admin = createSupabaseAdminClient();
-        return admin.storage.from("documents").remove([storagePath]);
-      },
+      details.storagePath,
+      [details.originalFilename],
+      removeUploadedObject,
     );
     return failure(message);
   }
 
-  revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
+  revalidatePath(`/dashboard/cases/${details.caseId}`);
   return {
     error: null,
     success: "Saved — not yet submitted to the review team",

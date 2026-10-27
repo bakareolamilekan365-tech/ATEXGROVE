@@ -301,3 +301,19 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Preview decision:** The accepted provisional stack is Netlify Free plus a separate Supabase Free staging project, GitHub for source/CI and Google Forms/Sheets for controlled access and feedback, at a strict ₦0 / $0 budget. The 12–20 November 2026 window and approximately 15–20 approved owners/board participants remain conditional on readiness. Netlify/staging deployment is not yet claimed, and the 10 MB application upload limit must be reconciled with Netlify request-payload limits in staging.
 
 **Scope boundary:** Existing email/password, customer/staff permissions and dual-role testing remain the November model. Staff ID/password, possible authenticator MFA, separate staff/customer identities and conflict controls belong to January 2027. The updated staff dashboard PDF is a design reference, not evidence that those later controls or workflow concepts are implemented.
+
+## 2026-10-27 - November direct evidence upload transport
+
+**Problem:** Evidence binaries travelled through a Next.js Server Action before reaching Supabase Storage. Netlify Free's buffered function boundary cannot reliably carry Atexgrove's permitted 9-10 MiB files.
+
+**Cause:** The original private-evidence implementation predated selection of Netlify Free for the preview and combined binary transport with server registration.
+
+**Decision/fix:** The authenticated browser now performs cheap local validation and uploads the immutable object directly to private Supabase Storage under migration 026 INSERT RLS. It then calls a metadata-only finalization action. The server revalidates owner, state, filename and exact case/evidence/path binding; checks authoritative Storage metadata; fetches only bytes 0-7 with HTTP Range; validates the stored signature; and calls the unchanged `register_case_evidence` RPC. Verification or registration failures trigger best-effort server-only cleanup. Pending evidence remains staff-invisible and the audited staff-download path is unchanged.
+
+**Accepted preview limitations:** A browser disconnect can leave a private unregistered object, pre-registration objects are not covered by reservation-level quota concurrency, and cleanup is manual/operator-controlled. No automatic expiry exists. Durable reservations are deferred, and no migration 027 was created.
+
+**Local verification:** clean lockfile installation completed with the bundled npm 11 client. Lint and typecheck passed. All 90 unit tests passed. All 35 runnable integration tests passed, with the same three credential-gated security tests skipped. Security guardrails passed for eight application tables. The production build completed successfully. A read-only request against an existing private object confirmed HTTP 206, `Content-Range: bytes 0-7/941214`, `Content-Length: 8` and eight received bytes; Storage `info()` matched the bucket, exact path, size and MIME. Docker is unavailable locally, so pgTAP/database execution is deferred to the unchanged Database security tests workflow when the PR opens.
+
+**Operational boundary:** No migration was added or applied, no hosted row/object was changed, no Netlify deployment or staging project was created, and no real deployed 9-10 MiB acceptance test is claimed.
+
+**Lesson:** Keep large binary transport off buffered application functions while preserving server authority over registration. Direct upload is not direct trust: validate the stored object, keep the service role server-only and make orphan/concurrency trade-offs explicit.

@@ -15,7 +15,7 @@
 
 Target 12–20 November 2026 for approximately 15–20 approved owners and board members, using fictional data and individual accounts. The Google access-request form has been distributed. The preview retains Supabase email/password, existing customer/staff permissions, the dual-role test arrangement and a separate customer-only test account. It is a private interactive test, not a public launch, professional verification or government certification.
 
-Readiness requires realistic account/session tests, hosted email-flow checks and a full fictional-data journey. [Netlify's function limits](https://docs.netlify.com/build/functions/configuration/) are an unresolved gate: the app permits 10 MB evidence, while buffered function requests are documented at 6 MB and binary uploads may effectively be about 4.5 MB after encoding. A permitted 9–10 MB upload must work through the chosen staging architecture before invitations. This document records the risk; it does not redesign uploads.
+Readiness requires realistic account/session tests, hosted email-flow checks and a full fictional-data journey. The repository now bypasses [Netlify's buffered function limit](https://docs.netlify.com/build/functions/configuration/) for evidence bytes by uploading from the authenticated browser directly to private Supabase Storage, then using a metadata-only server finalizer. A permitted 9–10 MiB upload must still work through deployed Netlify plus isolated Supabase staging before invitations; repository tests alone do not close that gate.
 
 ## January 2027 staff-identity workstream
 

@@ -27,7 +27,8 @@ describe("case timeline and evidence versioning contract", () => {
 
   it("keeps the uploaded object cleanup attempt and does not expose database errors", () => {
     expect(evidenceActions).toContain("cleanupAfterRegistrationFailure(");
-    expect(evidenceActions).toContain("storageUploadFailureMessage");
+    expect(evidenceActions).toContain("cleanupAfterVerificationFailure(");
+    expect(evidenceActions).toContain("verifyStoredEvidenceObject(");
     expect(evidenceActions).not.toContain("registrationError.message");
   });
 

@@ -101,7 +101,7 @@ Do not add Stripe, Google Maps, Auth0, Cloudinary, OpenAI, paid GIS datasets, or
 
 ### Private-preview upload gate
 
-The current server-action upload path accepts evidence up to 10 MB, but Netlify documents a 6 MB buffered function request limit and approximately 4.5 MB effective binary payload after base64 overhead. Treat a successful permitted 9–10 MB upload in isolated staging as a release gate. Do not invite the board until this is proven or a separately reviewed $0-compatible upload architecture is adopted.
+The November repository implementation avoids Netlify's buffered-function limit by sending evidence bytes from the authenticated browser directly to private Supabase Storage, followed by metadata-only server verification and registration. This code path is not deployment proof: treat successful permitted 9–10 MiB uploads in isolated Netlify/Supabase staging as a release gate. If standard upload is unreliable, review Supabase TUS next; do not silently lower the limit.
 
 ### Payment decision
 

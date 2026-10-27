@@ -6,13 +6,16 @@ vi.mock("react", async (importOriginal) => ({
   ...await importOriginal<typeof import("react")>(),
   useActionState: () => [{ error: null, success: null }, vi.fn()],
   useMemo: (factory: () => unknown) => factory(),
+  useRef: (initial: unknown) => ({ current: initial }),
   useState: (initial: unknown) => {
     const index = hooks.cursor++;
     if (!(index in hooks.values)) hooks.values[index] = initial;
     return [hooks.values[index], (value: unknown) => { hooks.values[index] = value; }];
   },
 }));
-vi.mock("@/app/dashboard/cases/[id]/actions", () => ({ uploadCaseEvidenceAction: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+vi.mock("@/app/dashboard/cases/[id]/actions", () => ({ finalizeCaseEvidenceUploadAction: vi.fn() }));
+vi.mock("@/lib/supabase/client", () => ({ createSupabaseClient: vi.fn() }));
 vi.mock("@/app/ops/cases/actions", () => ({ transitionVerificationCaseAction: vi.fn() }));
 import { EvidenceUploadForm } from "@/components/cases/EvidenceUploadForm";
 import { StatusTransitionForm } from "@/components/cases/StatusTransitionForm";
@@ -68,6 +71,15 @@ describe("evidence upload category selection", () => {
     expect(field(tree, "uploadMode", "new").checked).toBe(true);
     expect(field(tree, "uploadMode", "replacement").disabled).toBe(true);
     expect(field(tree, "supersedesEvidenceId").value).toBe("");
+  });
+
+  it("disables duplicate submission while upload or finalization is active", () => {
+    hooks.values[1] = "uploading";
+    let tree = render();
+    expect(tree.find(({ type }) => type === "button")?.props).toMatchObject({ disabled: true });
+    hooks.values[1] = "finalizing";
+    tree = render();
+    expect(tree.find(({ type }) => type === "button")?.props).toMatchObject({ disabled: true });
   });
 });
 

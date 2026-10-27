@@ -85,6 +85,53 @@ SUPABASE_SERVICE_ROLE_KEY
 
 `NEXT_PUBLIC_SUPABASE_ANON_KEY` holds the client-safe publishable key used by this repository. `SUPABASE_SERVICE_ROLE_KEY` is server-only: never expose it to browser code, commit it, place it in documentation or paste it into chat. Rotate a privileged credential if it is exposed.
 
+## November direct evidence upload operations
+
+Expected path: `browser -> authenticated private Supabase Storage -> metadata-only server finalization -> register_case_evidence`. Evidence bytes must not pass through the Next.js/Netlify function. The browser uses the customer session and migration 026 INSERT RLS; only the server uses the service role for stored-object verification and best-effort cleanup.
+
+Troubleshoot by phase:
+
+- **Storage upload failure:** no finalization call should occur. Check the signed-in customer, owned case state, generated `documents/cases/...` path, bucket MIME/size limits and Storage/RLS logs.
+- **Server verification failure:** the object uploaded, but authoritative metadata, exact path binding, HTTP Range or magic-byte validation failed. The server logs a sanitized `stored_object_verification` phase and attempts deletion.
+- **Evidence registration failure:** stored-object validation passed, but `register_case_evidence` rejected current ownership/state, quota or version lineage. The server logs sanitized `registration` details and attempts deletion.
+- **Orphaned unregistered object:** an object exists in private Storage with no exact `case_evidence.storage_path` match, normally because the browser stopped before finalization. It is not registered evidence and is not staff-visible through the evidence workflow.
+
+### Conservative manual orphan cleanup
+
+For the November preview, cleanup is operator-controlled; there is no scheduler or automatic expiry. Before deleting any object:
+
+1. Confirm the object is in the private `documents` bucket and its path exactly matches `documents/cases/<case-uuid>/<evidence-uuid>/<random-uuid>.<pdf|jpg|png>`.
+2. Record its Storage creation timestamp and use a conservative age threshold (at least 24 hours for preview operations unless an incident procedure requires longer).
+3. Query `public.case_evidence` for an exact `storage_path` match. If any row references it, stop: registered evidence must never be deleted by orphan cleanup.
+4. Confirm no participant or operator is running an in-progress upload/test for that case and path.
+5. Delete only the confirmed unreferenced object through an authorized operator/server credential. Never grant customer DELETE permission and never delete by filename similarity, case prefix alone or age alone.
+6. Record the operator, time, exact reason and outcome without copying document contents or secrets into the log.
+
+Use a read-only reference check before deletion:
+
+```sql
+select id, verification_case_id, storage_path, created_at
+from public.case_evidence
+where storage_path = '<EXACT_STORAGE_OBJECT_PATH>';
+```
+
+An empty result is necessary but not sufficient; complete all other checks above. Durable reservations and automated expiry are deferred.
+
+### Staging acceptance for direct uploads
+
+In the isolated staging environment, use synthetic/redacted fixtures and separate customer/staff accounts. Record browser, runtime, timestamps and outcomes for:
+
+1. valid PDF uploads around 1 MiB, 5 MiB, 9 MiB and just under 10 MiB;
+2. valid JPEG/PNG near 9-10 MiB where practical;
+3. zero-byte, oversized, unsupported extension/MIME and MIME/signature mismatch rejection;
+4. interruption after Storage upload but before finalization, followed by the manual orphan check;
+5. wrong customer, ineligible case state, malformed/cross-case path and stale replacement rejection;
+6. pending evidence invisibility to staff before explicit submission/reply;
+7. staff visibility after release and a 60-second audited attachment download;
+8. repeated clicks/retries without overwrite, duplicate registration or false success.
+
+Do not approve preview invitations until a real permitted 9-10 MiB file succeeds through deployed Netlify plus isolated Supabase staging. If standard direct upload is unreliable, review TUS next rather than silently reducing the 10 MiB limit.
+
 ## Local setup and troubleshooting
 
 After pulling changes:

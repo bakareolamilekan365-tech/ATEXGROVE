@@ -14,9 +14,22 @@
 - **Hosting decision:** use Netlify Free for the Next.js application and a separate Supabase Free staging project, with GitHub for source/CI and Google Forms/Sheets for access requests and feedback. The budget is strictly ₦0 / $0. No Netlify or staging deployment is claimed.
 - **January 2027, not November acceptance:** Staff ID/password, possible authenticator MFA, separate staff/customer identities, employee customer-access controls and conflict-of-interest safeguards remain a later workstream.
 
-Operational gates still open: realistic multi-account isolation, real browser authentication transitions, hosted email confirmation/recovery edge cases, complete preview journeys and Netlify runtime compatibility. In particular, Netlify documents a 6 MB buffered function payload limit and about 4.5 MB effective binary limit after base64 overhead, while Atexgrove permits 10 MB evidence. A permitted 9–10 MB upload must pass through the chosen staging architecture before invitations; this task does not redesign uploads.
+Operational gates still open: realistic multi-account isolation, real browser authentication transitions, hosted email confirmation/recovery edge cases, complete preview journeys and Netlify runtime compatibility. Netlify's buffered function boundary is not used for evidence bytes by the direct-upload repository implementation described below. A permitted 9-10 MiB upload must still pass through deployed Netlify plus isolated Supabase staging before invitations.
 
 The current CI workflow uses Node 20 while installed Supabase JavaScript packages declare Node 22 or later; the latest run passed but emitted engine warnings. Align CI and the eventual Netlify runtime with a supported Node version in a separate reviewed change. The same run reported dependency vulnerabilities during installation; review and triage them without an automatic forced major-version upgrade.
+
+## November direct evidence upload - repository implementation (2026-10-27)
+
+**Before this implementation:** evidence bytes travelled `browser -> Next.js Server Action -> Supabase Storage`. That path could not reliably carry the permitted 9-10 MiB files through Netlify Free's buffered function limit.
+
+**Implemented on `fix/direct-evidence-upload`; CI and staging evidence pending:** the repository path is now `browser -> authenticated private Supabase Storage upload -> metadata-only Next.js finalization action -> existing register_case_evidence RPC`. The browser performs an early signature check for user feedback; the server then validates ownership, eligible case state, exact case/evidence/path binding, authoritative Storage metadata and a Range-fetched 8-byte signature prefix before registration. Failed verification or registration triggers best-effort server-only cleanup. Pending-evidence and staff-invisibility behavior from migration 026 is unchanged.
+
+- No schema migration was added; hosted migrations remain owner-confirmed `001`-`026`.
+- No hosted database or Storage mutation was performed by this implementation task. A read-only check confirmed that the existing private-object endpoint returned HTTP 206, `Content-Range: bytes 0-7/...`, and exactly eight bytes for an existing object; Storage `info()` matched bucket, path, size and MIME.
+- No Netlify deployment or staging environment was created. Repository tests cannot prove real 9-10 MiB staging reliability.
+- Standard authenticated Supabase upload is used. TUS remains the next reviewed transport if deployed 9-10 MiB testing is unreliable.
+- A browser disconnect after direct upload can leave an unregistered private object. Preview cleanup is manual and conservative; automatic reservation/expiry cleanup is deferred.
+- The registered-evidence limit remains authoritative in `register_case_evidence`; simultaneous unregistered uploads are not reservation-counted. This is an accepted small-cohort preview limitation, not production readiness.
 
 ## Login/session navigation correction (2026-10-27)
 

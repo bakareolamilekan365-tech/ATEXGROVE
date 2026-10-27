@@ -30,6 +30,16 @@ export const evidenceUploadSchema = z.object({
   supersedesEvidenceId: z.union([z.string().uuid(), z.literal("")]).optional(),
 });
 
+export const evidenceFinalizationSchema = evidenceUploadSchema.extend({
+  evidenceId: z.string().uuid(),
+  storagePath: z.string().min(1).max(512),
+  originalFilename: z.string().min(1).max(255),
+  mimeType: z.enum(evidenceMimeTypes),
+  sizeBytes: z.number().int().positive().max(MAX_EVIDENCE_FILE_SIZE),
+}).strict();
+
+export type EvidenceFinalizationInput = z.infer<typeof evidenceFinalizationSchema>;
+
 export const customerResponseSchema = z.object({
   caseId: z.string().uuid(),
   message: z.string().trim().min(2, "Add a response message.").max(2000),
@@ -103,4 +113,34 @@ export function buildEvidenceStoragePath(
   const extension = extensionForMime(mimeType);
   if (!extension) throw new Error("Unsupported evidence MIME type.");
   return `documents/cases/${caseId}/${evidenceId}/${randomId}.${extension}`;
+}
+
+const evidencePathPattern = /^documents\/cases\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.(pdf|jpg|png)$/i;
+
+export function parseEvidenceStoragePath(path: string) {
+  const match = evidencePathPattern.exec(path);
+  if (!match) return null;
+  return {
+    caseId: match[1].toLowerCase(),
+    evidenceId: match[2].toLowerCase(),
+    objectId: match[3].toLowerCase(),
+    extension: match[4].toLowerCase(),
+  };
+}
+
+export function evidenceStoragePathMatches(
+  path: string,
+  caseId: string,
+  evidenceId: string,
+  mimeType: string,
+) {
+  const parsed = parseEvidenceStoragePath(path);
+  const extension = extensionForMime(mimeType);
+  return Boolean(
+    parsed &&
+      extension &&
+      parsed.caseId === caseId.toLowerCase() &&
+      parsed.evidenceId === evidenceId.toLowerCase() &&
+      parsed.extension === extension,
+  );
 }

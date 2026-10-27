@@ -5,7 +5,7 @@ type EvidenceErrorLike = {
   error?: string;
 };
 
-export type EvidenceFailurePhase = "case_lookup" | "quota_check" | "storage_upload" | "registration" | "storage_cleanup";
+export type EvidenceFailurePhase = "case_lookup" | "quota_check" | "storage_upload" | "stored_object_verification" | "registration" | "storage_cleanup";
 
 function asEvidenceError(error: unknown): EvidenceErrorLike {
   return error && typeof error === "object" ? error as EvidenceErrorLike : {};
@@ -53,6 +53,23 @@ export async function cleanupAfterRegistrationFailure(
     logEvidenceFailure("storage_cleanup", cleanupError, privateValues);
   }
   return evidenceRegistrationFailureMessage(error);
+}
+
+export async function cleanupAfterVerificationFailure(
+  error: unknown,
+  storagePath: string,
+  filenames: readonly string[],
+  removeUploadedObject: () => Promise<{ error: unknown | null }>,
+) {
+  const privateValues = [...filenames, storagePath];
+  logEvidenceFailure("stored_object_verification", error, privateValues);
+  try {
+    const { error: cleanupError } = await removeUploadedObject();
+    if (cleanupError) logEvidenceFailure("storage_cleanup", cleanupError, privateValues);
+  } catch (cleanupError) {
+    logEvidenceFailure("storage_cleanup", cleanupError, privateValues);
+  }
+  return "The uploaded file could not be verified. Check its type and try again.";
 }
 
 export function storageUploadFailureMessage(error: unknown) {

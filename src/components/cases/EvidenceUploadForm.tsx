@@ -1,17 +1,19 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { finalizeCaseEvidenceUploadAction } from "@/app/dashboard/cases/[id]/actions";
 import {
-  uploadCaseEvidenceAction,
-  type EvidenceActionState,
-} from "@/app/dashboard/cases/[id]/actions";
+  uploadEvidenceDirectly,
+  type EvidenceUploadResult,
+} from "@/lib/case-evidence/direct-upload";
 import { evidenceTypeLabels, evidenceTypes } from "@/lib/case-evidence/validation";
 import { latestReplaceableEvidence } from "@/lib/case-evidence/versioning";
+import { createSupabaseClient } from "@/lib/supabase/client";
 import type { CaseEvidence } from "@/types/verification";
-import { SubmitButton } from "./SubmitButton";
 import styles from "./case-workflow.module.css";
 
-const initialState: EvidenceActionState = { error: null, success: null };
+const initialState: EvidenceUploadResult = { error: null, success: null };
 
 type ExistingEvidenceOption = {
   id: string;
@@ -26,7 +28,10 @@ export function EvidenceUploadForm({
   existingEvidence,
   defaultEvidenceType,
 }: Readonly<{ caseId: string; existingEvidence: ExistingEvidenceOption[]; defaultEvidenceType?: (typeof evidenceTypes)[number] }>) {
-  const [state, action] = useActionState(uploadCaseEvidenceAction, initialState);
+  const router = useRouter();
+  const inFlight = useRef(false);
+  const [state, setState] = useState(initialState);
+  const [stage, setStage] = useState<"idle" | "uploading" | "finalizing">("idle");
   const [evidenceType, setEvidenceType] = useState<(typeof evidenceTypes)[number] | "">(defaultEvidenceType ?? "");
   const [uploadMode, setUploadMode] = useState<"new" | "replacement">("new");
   const [predecessorId, setPredecessorId] = useState("");
@@ -61,8 +66,47 @@ export function EvidenceUploadForm({
     }
   }
 
+  async function submitEvidence(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setState(initialState);
+
+    try {
+      const form = new FormData(event.currentTarget);
+      const file = form.get("file");
+      if (!(file instanceof File)) {
+        setState({ error: "Choose a file to upload.", success: null });
+        return;
+      }
+
+      setStage("uploading");
+      const result = await uploadEvidenceDirectly(
+        createSupabaseClient(),
+        {
+          caseId,
+          evidenceType: String(form.get("evidenceType") ?? ""),
+          description: String(form.get("description") ?? ""),
+          supersedesEvidenceId: String(form.get("supersedesEvidenceId") ?? ""),
+          file,
+        },
+        async (metadata) => {
+          setStage("finalizing");
+          return finalizeCaseEvidenceUploadAction(metadata);
+        },
+      );
+      setState(result);
+      if (result.success) router.refresh();
+    } catch {
+      setState({ error: "The document could not be saved. Check your connection and try again.", success: null });
+    } finally {
+      setStage("idle");
+      inFlight.current = false;
+    }
+  }
+
   return (
-    <form action={action} className={styles.form}>
+    <form className={styles.form} onSubmit={submitEvidence}>
       <input type="hidden" name="caseId" value={caseId} />
       <div className={styles.field}>
         <label htmlFor="evidenceType">Document type</label>
@@ -108,7 +152,9 @@ export function EvidenceUploadForm({
       <div className={styles.notice}>Synthetic or properly redacted files only. Saved privately — not yet submitted to the review team.</div>
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       {state.success ? <p className={styles.success} role="status">{state.success}</p> : null}
-      <SubmitButton pendingLabel="Uploading...">Add document</SubmitButton>
+      <button type="submit" disabled={stage !== "idle"}>
+        {stage === "uploading" ? "Uploading..." : stage === "finalizing" ? "Validating and saving..." : "Add document"}
+      </button>
     </form>
   );
 }
