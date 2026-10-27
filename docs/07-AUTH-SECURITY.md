@@ -1,6 +1,6 @@
 # Atexgrove — Authentication, Authorization & Security
 
-## Pending evidence authorization (026, not hosted)
+## Pending evidence authorization (026 owner-confirmed hosted)
 
 Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
 
@@ -10,7 +10,7 @@ The case helper continues to exclude draft and `discarded_at` cases, even for pr
 
 All release operations lock the case and validate ownership/state. Request tokens prevent stale-page submissions targeting another round. The unique response reference prevents duplicate release/milestones. Staff resuming a case does not release pending evidence; cancellation/discard/closure leave it withheld. Privileged database operators and server service-role credentials remain trusted infrastructure boundaries, not end-user identities; never use them for application list queries.
 
-Migration 025 is hosted as verified 2026-10-25. Migration 026 has not been applied. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this correction does not claim a clean security-advisor report.
+Migration 025 is hosted as independently checked 2026-10-25. Migration 026 is subsequently owner-confirmed hosted, without a claimed apply timestamp or fresh independent ledger check. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this does not claim a clean security-advisor report.
 
 
 ## Security boundary and status
@@ -47,6 +47,8 @@ Local sign-out is **Implemented on main** through a POST action and was CI-verif
 ### Current implementation and security evidence
 
 See [STATUS.md](STATUS.md) for the single current record of hosted migrations, Storage policies, CI/database-test evidence, accepted advisor items and operational verification gaps.
+
+The 2026-10-27 login correction uses a fresh document request after browser-side password authentication instead of racing an App Router navigation with an immediate refresh. It supports only validated internal `?next=` destinations, with `/dashboard` as the fallback. Middleware replacement redirects preserve any refreshed Supabase cookies and the required private/no-cache response headers. Customer/staff workspace boundary links also request a fresh document, while staff routes continue to enforce `requireStaff` and RLS. Unit and integration regression coverage exists; real browser and isolated-preview verification remains pending.
 
 ### Future authentication hardening
 

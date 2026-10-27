@@ -13,18 +13,29 @@ export async function updateSupabaseSession(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
+  const copySessionState = (target: NextResponse) => {
+    response.cookies.getAll().forEach((cookie) => target.cookies.set(cookie));
+    ["cache-control", "expires", "pragma"].forEach((header) => {
+      const value = response.headers.get(header);
+      if (value) target.headers.set(header, value);
+    });
+    return target;
+  };
   const supabase = createServerClient(url, key, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet, headers) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) =>
           response.cookies.set(name, value, options),
+        );
+        Object.entries(headers).forEach(([name, value]) =>
+          response.headers.set(name, value),
         );
       },
     },
@@ -48,7 +59,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
-    const redirectResponse = NextResponse.redirect(loginUrl);
+    const redirectResponse = copySessionState(NextResponse.redirect(loginUrl));
     redirectResponse.headers.set("Cache-Control", "private, no-store, max-age=0");
     return redirectResponse;
   }
@@ -57,7 +68,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";
-    return NextResponse.redirect(dashboardUrl);
+    return copySessionState(NextResponse.redirect(dashboardUrl));
   }
 
   if (!isPublicPath) response.headers.set("Cache-Control", "private, no-store, max-age=0");

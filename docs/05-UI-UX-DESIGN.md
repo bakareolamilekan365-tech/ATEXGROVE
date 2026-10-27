@@ -47,6 +47,10 @@ Admin navigation appears only for authorized users and should expose only the re
 ## Dashboard behavior
 The dashboard content should depend on role. Do not show identical dashboards to all account types.
 
+### Approved staff design reference
+
+[`references/ui/Staff dashboard.pdf`](references/ui/Staff%20dashboard.pdf) is the updated Verification Lead design reference. The November UI may adopt its professional layout, typography and visual hierarchy while exposing only behavior that exists and is authorized. Mockup concepts such as handovers, second-review approval, team workload/capacity, Staff ID login and authenticator status are **Planned**, not implementation evidence. Different staff responsibilities may later receive distinct content rather than one universal staff dashboard.
+
 ## Project workspace
 Use a persistent project header and tabs:
 Overview | Land | Planning | Documents | Professionals | Feasibility

@@ -1,23 +1,19 @@
 # Atexgrove Operator Runbook
 
-## Controlled deployment — pending evidence correction (026)
+## Current migration baseline and historical 026 cutover
 
-**Do not deploy or apply this migration without explicit owner approval.** Migration 026 is merged but not hosted. The hosted baseline was checked read-only on 2026-10-25: migrations `001`–`025`. Do not edit or reapply those migrations.
+Migration 026 and its compatible application code are merged. The owner subsequently applied 026 and confirms numeric hosted history through `001`–`026`; the last independent read-only ledger check reached 025 on 2026-10-25. Do not reapply 026 to the existing hosted project, and do not claim an apply timestamp that was not recorded.
 
-1. Review PR #29 and its final app/database CI results. Disposable CI is not hosted deployment evidence. Prepare the merged compatible app build, backups and a controlled maintenance window. Do not automatically start the new app.
-2. After owner approval, pause customer writes and drain in-flight upload/response requests. Inspect pending uploads and confirm the target project is `apexgrove`. The compatibility backfill deliberately preserves previously visible evidence, not inferred historical submission consent.
-3. **Apply the migration second**, against the approved linked target: run `npx supabase migration list`, then `npx supabase db push --dry-run`; inspect that only `026_pending_evidence_submission.sql` is pending, then run `npx supabase db push`. Old app builds cannot call the replaced two-argument response RPC; the brief cutover is deliberate and fail closed. Migration 026 does not deploy app code automatically.
-4. **Run the new app third**, passing `p_request_event_id`; until 026 is applied, replies from this new app fail because its three-argument RPC does not exist. Both old and new app writes must remain paused during cutover; resume writes only after verifying draft privacy, pending replacement privacy, explicit batch release and concise response milestones with separate customer, lead, assignee and unrelated accounts.
-5. Verify the hosted ledger and database constraints separately and record the actual apply date/CI IDs. Never claim hosted deployment from a green workflow alone.
+The original cutover rationale remains important history: migration 026 removed `customer_respond_to_case(uuid,text)` and required `customer_respond_to_case(uuid,text,uuid)`. The safe sequence was compatible code, paused writes, migration, new app, then separate customer/lead/assignee/unrelated-account checks. Old application builds are incompatible with the three-argument RPC. Preserve this rule for rollback and incident decisions; never roll back to an app that expects the removed signature or broadly visible evidence.
 
 Do not roll back to an app that expects the old response RPC or broadly visible evidence. Prefer a reviewed forward fix; preserve pending data, event references and release audits. Do not reset/seed production or use privileged credentials for authorization testing.
 
 A legacy `needs_customer_info` row without any historical request milestone has no safe request token and cannot submit. Keep its files pending; use a reviewed forward repair of the request linkage or close/cancel and create a new request. Staff cannot resume review manually. Closure/cancellation never release pending files. A stale retry from a completed round returns only the old result and does not affect the new round.
 
 
-### Read-only hosted verification after approved 026 application
+### Optional read-only hosted verification
 
-These queries do not apply migrations. Run them only after the owner-approved migration, record actual outputs and apply time, and do not treat CI as hosted confirmation:
+These queries do not apply migrations. Run them only under a separately authorized read-only inspection, record actual outputs, and do not treat CI or owner confirmation as an independent ledger check:
 
 ```sql
 select version, name from supabase_migrations.schema_migrations
@@ -49,18 +45,18 @@ Owner requests do not move directly from chat into implementation. Record each r
 
 ## Apply reviewed Supabase migrations
 
-Run these commands from the repository root. Review the dry-run output before applying anything:
+For the future **separate Supabase Free staging project only**, run these commands from the repository root after its exact project reference has been approved. Stop if the displayed linked reference is not the isolated staging project. Never use this block against the existing hosted project:
 
 ```powershell
 npx supabase login
-npx supabase link --project-ref caueewwwnzwtuaiuabdt
+npx supabase link --project-ref <APPROVED_STAGING_PROJECT_REF>
 npx supabase migration list
 npx supabase db push --dry-run
 npx supabase db push
 npx supabase migration list
 ```
 
-Only run the real `db push` after the migration PR is reviewed, database CI is green and hosted application is explicitly approved. Never edit an already-applied migration; add a forward migration.
+Before the real staging `db push`, verify the dry run lists the reviewed sequence through `026_pending_evidence_submission.sql`, database CI is green, and the linked target is the approved staging ref. Never edit an already-applied migration; add a forward migration. No command in this runbook authorizes mutation of the existing hosted project.
 
 ## Add or update a staff member
 
@@ -129,7 +125,7 @@ For a migration that drops an RPC signature used by the current app, deploy in t
 
 Migrations `021` and `022` replace RPC signatures: `021` drops the old `create_verification_case` signature; `022` drops the previous `create_verification_case` and `assign_verification_case` signatures. An older app build still calling those signatures will fail after the corresponding migration is applied. Migration 022 was applied to hosted Supabase on 2026-10-23; migration 023 was applied after PR #26 merged (per owner confirmation); and `supabase migration list --linked` observed migrations `001`–`024` on 2026-10-23. The exact apply date for 024 is not available from the ledger. Apply future migrations only to the intended environment after the compatible code is ready.
 
-Migration `023_draft_case_with_uploads.sql` and migration `024_case_intake_and_consent.sql` replaced older creation/submission RPC signatures. The controlled deployment window for 024 is historical: the linked hosted migration ledger now records 024. Historical deployment note for 025 (now merged and hosted): 025 did not change RPC signatures; it adds an event kind and a unique evidence-version successor guard. The new app can read historical 021–024 timeline events and classifies legacy upload/reply events at render time. Before applying 025, deploy the app build that understands `document_uploaded`; do not leave an older app serving new event rows after the migration. Then apply 025 to the intended hosted project and verify a new upload, replacement and customer reply. Migration 025 is now hosted as verified 2026-10-25. Do not reapply it. The new 026 controlled deployment sequence appears at the top of this runbook and still requires owner approval.
+Migration `023_draft_case_with_uploads.sql` and migration `024_case_intake_and_consent.sql` replaced older creation/submission RPC signatures. The controlled deployment window for 024 is historical: the linked hosted migration ledger now records 024. Historical deployment note for 025: it did not change RPC signatures; it added an event kind and a unique evidence-version successor guard. Migration 025 is hosted as independently verified 2026-10-25, and migration 026 is subsequently owner-confirmed hosted. Do not reapply either migration to the existing hosted project.
 
 For future incompatible RPC changes, prefer adding versioned/new RPC names first, move the application to them, then remove old signatures in a later migration. When that is not practical, pause the affected workflow and use a controlled maintenance/deployment window; never imply that incompatible old and new versions are simultaneously supported.
 

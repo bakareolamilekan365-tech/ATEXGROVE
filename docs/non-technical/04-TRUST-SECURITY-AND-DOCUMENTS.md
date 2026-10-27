@@ -49,7 +49,7 @@ Sensitive actions should leave a useful history: who acted, what changed, when i
 
 ## Free-plan limitation
 
-The first prototype remains on Supabase Free. The exact availability and cost of leaked-password protection must be confirmed in the connected Supabase dashboard before the finding is formally accepted as a plan limitation. Any future feature that requires a paid plan must be clearly labelled before it becomes a commitment.
+The first prototype remains on Supabase Free. Supabase's current password-security documentation and pricing identify leaked-password protection as Pro-and-above, so the disabled control is an accepted private-preview limitation—not an enabled safeguard. Reassess it before production or a plan change. Any future paid feature must be clearly labelled before it becomes a commitment.
 
 ## Real documents
 

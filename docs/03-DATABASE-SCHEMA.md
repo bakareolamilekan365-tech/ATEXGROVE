@@ -1,10 +1,10 @@
 # Atexgrove — Database Schema
 
-## Pending evidence boundary — migration 026 (merged and CI-verified, not hosted)
+## Pending evidence boundary — migration 026 (merged, CI-verified and owner-confirmed hosted)
 
 Staff transitions from `needs_customer_info` permit only `closed` or `cancelled`, never `in_review`. The customer's explicit reply is the only resumption path and atomically releases all pending evidence; closure/cancellation keep it private. Customers can upload only in `draft` or `needs_customer_info`, and must wait for a staff request after submission.
 
-Current hosted baseline checked 2026-10-25 is through migration 025; old dated hosted observations below are historical.
+The last independent read-only hosted check reached migration 025 on 2026-10-25. The owner subsequently applied 026 and confirms numeric hosted history through `001`–`026`; no apply timestamp or fresh independent ledger inspection is claimed.
 
 `case_evidence.submitted_at` is nullable: NULL means pending customer submission. `submission_event_id` links release to the submitted-request or customer-response event. A non-null event requires a timestamp. Registration always leaves both NULL; clients retain SELECT only, with no direct release/update privilege. Metadata, uploader, creation time, type, storage reference, review state and immutable predecessor lineage remain intact. Submitted versions do not disappear merely because a pending replacement exists.
 
@@ -21,7 +21,7 @@ PostgreSQL with PostGIS.
 
 ## Schema status and implementation boundary
 
-This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted migration history `001`–`024` on 2026-10-23; migration 024's exact apply date was not reported by the ledger. Migration 025 is merged and hosted as checked on 2026-10-25; migration 026 is merged and CI-verified but not hosted.
+This document describes the current prototype's domain contract and the reserved shape of the future architecture; it is not a claim that every table listed below exists in the live database. `supabase migration list --linked` observed hosted history through 024 on 2026-10-23 and through 025 on 2026-10-25; those ledgers did not report original apply times. Migration 026 is merged, CI-verified and subsequently owner-confirmed hosted. See [STATUS.md](STATUS.md) for evidence qualifications.
 
 ## Conventions
 
@@ -35,7 +35,7 @@ This document describes the current prototype's domain contract and the reserved
 
 ## Current live application tables
 
-The current hosted application schema includes the foundation tables plus `staff_members`, `verification_cases`, `case_assignments`, `case_status_events`, Slice 2 `case_evidence` and migration 024's `case_consents` plus annual counter. Hosted migration history is at `024` as observed with the linked CLI on 2026-10-23.
+The current hosted application schema includes the foundation tables plus `staff_members`, `verification_cases`, `case_assignments`, `case_status_events`, Slice 2 `case_evidence`, migration 024's `case_consents` plus annual counter, migration 025's event/version guards and migration 026's pending-evidence submission fields. Hosted history through 026 is owner-confirmed; the last independent read-only ledger inspection reached 025.
 
 ### profiles
 
@@ -87,7 +87,7 @@ Audit records are required for important mutations, verification decisions, docu
 
 The first commercial workflow starts with a verification case, not a marketplace listing. A case may be created from site/request details before any `land_parcels` record exists. Any later parcel/listing link must be optional and follow-on.
 
-The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is hosted (applied 2026-10-23); migration `023` is hosted per owner confirmation; migration `024` is present in the linked hosted migration ledger (checked 2026-10-23). Migration `025` is merged and hosted (2026-10-25 ledger); 026 remains pending. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
+The Slice 1 tables below are defined by hosted migration `018`; realistic hosted-session testing remains an operational gate. Slice 2 evidence is deployed through migration `019`. Migration `021` is hosted (applied 2026-10-21); migration `022` is hosted (applied 2026-10-23); migration `023` is hosted per owner confirmation; migration `024` is present in the linked ledger checked 2026-10-23; migration `025` is merged and hosted in the 2026-10-25 ledger; and migration `026` is subsequently owner-confirmed hosted. Evidence review, report and feasibility tables remain **TARGET SCHEMA / PLANNED**.
 
 ### staff_members (Slice 1 repository implementation)
 

@@ -4,7 +4,7 @@ This folder explains Atexgrove for founders, partners, advisers, future team mem
 
 The files in the parent `docs/` folder remain the detailed source of truth. These versions explain the same direction in simpler language and must never be used to exaggerate what has been built.
 
-**Status date: 2026-10-25.** The linked hosted migration ledger reads `001`–`025`, checked after controlled history normalization on 2026-10-25. Migration 025 is merged and hosted. Migration 026 is implemented and CI-verified but is not hosted. See the technical [STATUS.md](../STATUS.md) for hosted status and open operational checks.
+**Current status:** migration 026 and its matching application behavior are merged and subsequently owner-confirmed hosted; the last independent read-only ledger check reached 025. A private November preview is planned on Netlify Free plus separate Supabase Free staging, but staging and browser acceptance are not complete. See the technical [STATUS.md](../STATUS.md) for evidence qualifications and open checks.
 
 ## Suggested reading order
 
