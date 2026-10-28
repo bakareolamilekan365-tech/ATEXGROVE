@@ -10,13 +10,12 @@ import {
   normalizeOriginalFilename,
   type EvidenceFinalizationInput,
 } from "@/lib/case-evidence/validation";
+import { isEvidenceStoragePathRegistered } from "@/lib/case-evidence/registered-path";
 import {
-  cleanupAfterRegistrationFailure,
-  cleanupAfterVerificationFailure,
+  evidenceRegistrationFailureMessage,
   logEvidenceFailure,
 } from "@/lib/case-evidence/upload-errors";
 import { verifyStoredEvidenceObject } from "@/lib/case-evidence/stored-object";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CASE_SERVICE_SCOPE_NOTICE_VERSION } from "@/lib/verification-cases/service-scope-notice";
 
 export type EvidenceActionState = { error: string | null; success: string | null };
@@ -29,11 +28,22 @@ export async function finalizeCaseEvidenceUploadAction(
   const { supabase, user } = await requireAuthenticatedUser();
   const parsed = evidenceFinalizationSchema.safeParse(input);
   if (!parsed.success) {
+    logEvidenceFailure(
+      "input_validation",
+      "invalid_finalization_metadata",
+      new Error("Finalization metadata failed schema validation."),
+    );
     return failure(parsed.error.issues[0]?.message ?? "Check the evidence details.");
   }
   const details = parsed.data;
   const normalizedFilename = normalizeOriginalFilename(details.originalFilename);
   if (normalizedFilename !== details.originalFilename) {
+    logEvidenceFailure(
+      "input_validation",
+      "unsafe_original_filename",
+      new Error("Original filename was not normalized."),
+      { caseId: details.caseId, evidenceId: details.evidenceId },
+    );
     return failure("The original filename was not normalized safely.");
   }
   if (!evidenceStoragePathMatches(
@@ -42,6 +52,12 @@ export async function finalizeCaseEvidenceUploadAction(
     details.evidenceId,
     details.mimeType,
   )) {
+    logEvidenceFailure(
+      "path_validation",
+      "invalid_storage_path",
+      new Error("Storage path failed strict binding validation."),
+      { caseId: details.caseId, evidenceId: details.evidenceId },
+    );
     return failure("The uploaded file path is invalid.");
   }
 
@@ -53,24 +69,52 @@ export async function finalizeCaseEvidenceUploadAction(
     .maybeSingle();
 
   if (caseLookupError) {
-    logEvidenceFailure("case_lookup", caseLookupError, [details.originalFilename, details.storagePath]);
+    logEvidenceFailure(
+      "case_lookup",
+      "case_lookup_failed",
+      caseLookupError,
+      { caseId: details.caseId, evidenceId: details.evidenceId },
+    );
     return failure("We could not check this case. Refresh the page and try again.");
   }
-  if (!verificationCase) return failure("This case was not found or is not yours.");
-
-  const removeUploadedObject = async () => {
-    const admin = createSupabaseAdminClient();
-    return admin.storage.from("documents").remove([details.storagePath]);
-  };
+  if (!verificationCase) {
+    logEvidenceFailure(
+      "case_lookup",
+      "case_not_found_or_forbidden",
+      new Error("Authorized case lookup returned no row."),
+      { caseId: details.caseId, evidenceId: details.evidenceId },
+    );
+    return failure("This case was not found or is not yours.");
+  }
 
   if (verificationCase.discarded_at || !["draft", "needs_customer_info"].includes(verificationCase.workflow_status)) {
-    await cleanupAfterVerificationFailure(
+    logEvidenceFailure(
+      "case_state",
+      "case_not_accepting_uploads",
       new Error("Case state changed before evidence finalization."),
-      details.storagePath,
-      [details.originalFilename],
-      removeUploadedObject,
+      { caseId: details.caseId, evidenceId: details.evidenceId },
     );
     return failure("This case is not accepting documents.");
+  }
+
+  try {
+    if (await isEvidenceStoragePathRegistered(details.storagePath)) {
+      logEvidenceFailure(
+        "duplicate_check",
+        "storage_path_already_registered",
+        new Error("Storage path is already registered."),
+        { caseId: details.caseId, evidenceId: details.evidenceId },
+      );
+      return failure("This upload has already been registered. Refresh the page to see it.");
+    }
+  } catch (error) {
+    logEvidenceFailure(
+      "duplicate_check",
+      "storage_path_lookup_failed",
+      error,
+      { caseId: details.caseId, evidenceId: details.evidenceId },
+    );
+    return failure("We could not safely check this upload. Refresh the page and try again.");
   }
 
   try {
@@ -80,13 +124,13 @@ export async function finalizeCaseEvidenceUploadAction(
       sizeBytes: details.sizeBytes,
     });
   } catch (error) {
-    const message = await cleanupAfterVerificationFailure(
+    logEvidenceFailure(
+      "stored_object_verification",
+      "stored_object_rejected",
       error,
-      details.storagePath,
-      [details.originalFilename],
-      removeUploadedObject,
+      { caseId: details.caseId, evidenceId: details.evidenceId },
     );
-    return failure(message);
+    return failure("The uploaded file could not be verified. Check its type and try again.");
   }
 
   let registrationError: unknown | null = null;
@@ -108,13 +152,13 @@ export async function finalizeCaseEvidenceUploadAction(
   }
 
   if (registrationError) {
-    const message = await cleanupAfterRegistrationFailure(
+    logEvidenceFailure(
+      "registration",
+      "registration_failed",
       registrationError,
-      details.storagePath,
-      [details.originalFilename],
-      removeUploadedObject,
+      { caseId: details.caseId, evidenceId: details.evidenceId },
     );
-    return failure(message);
+    return failure(evidenceRegistrationFailureMessage(registrationError));
   }
 
   revalidatePath(`/dashboard/cases/${details.caseId}`);

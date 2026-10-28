@@ -308,7 +308,7 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 
 **Cause:** The original private-evidence implementation predated selection of Netlify Free for the preview and combined binary transport with server registration.
 
-**Decision/fix:** The authenticated browser now performs cheap local validation and uploads the immutable object directly to private Supabase Storage under migration 026 INSERT RLS. It then calls a metadata-only finalization action. The server revalidates owner, state, filename and exact case/evidence/path binding; checks authoritative Storage metadata; fetches only bytes 0-7 with HTTP Range; validates the stored signature; and calls the unchanged `register_case_evidence` RPC. Verification or registration failures trigger best-effort server-only cleanup. Pending evidence remains staff-invisible and the audited staff-download path is unchanged.
+**Decision/fix (initial PR revision, superseded below):** The authenticated browser now performs cheap local validation and uploads the immutable object directly to private Supabase Storage under migration 026 INSERT RLS. It then calls a metadata-only finalization action. The server revalidates owner, state, filename and exact case/evidence/path binding; checks authoritative Storage metadata; fetches only bytes 0-7 with HTTP Range; validates the stored signature; and calls the unchanged `register_case_evidence` RPC. The initial revision attempted best-effort server-only cleanup after verification or registration failure; PR #32 security review found that unsafe because the deletion target came from the browser. Pending evidence remains staff-invisible and the audited staff-download path is unchanged.
 
 **Accepted preview limitations:** A browser disconnect can leave a private unregistered object, pre-registration objects are not covered by reservation-level quota concurrency, and cleanup is manual/operator-controlled. No automatic expiry exists. Durable reservations are deferred, and no migration 027 was created.
 
@@ -317,3 +317,17 @@ Related work: [PR #25](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pul
 **Operational boundary:** No migration was added or applied, no hosted row/object was changed, no Netlify deployment or staging project was created, and no real deployed 9-10 MiB acceptance test is claimed.
 
 **Lesson:** Keep large binary transport off buffered application functions while preserving server authority over registration. Direct upload is not direct trust: validate the stored object, keep the service role server-only and make orphan/concurrency trade-offs explicit.
+
+## 2026-10-28 - PR #32 privileged deletion security correction
+
+**Problem:** The first direct-upload revision could pass a browser-supplied `storagePath` to service-role Storage deletion after an ineligible case state, failed stored-object verification or failed database registration.
+
+**Root cause:** Path binding and customer ownership limited cross-customer reach but did not prove that the object was newly uploaded or unregistered. A forged finalization request could reuse an immutable evidence path from the same customer's case.
+
+**Security consequence:** A customer could cause deletion of their own already-registered evidence object, breaking evidence immutability and version-history guarantees even though the database row remained.
+
+**Correction:** Finalization no longer imports an admin client or any deletion helper. It strictly validates the full generated path, authorizes owned case/state, performs a global server-only exact-path reference check, then verifies authoritative Storage metadata/signature and calls the existing RPC. Any failure leaves Storage and evidence rows unchanged and emits only a fixed reason code plus case/evidence IDs. The database UNIQUE constraint remains the final concurrent-duplicate safeguard.
+
+**Regression tests:** Focused action tests cover ineligible/discarded cases, duplicate paths, verification/signature failures, registration errors and exceptions, cross-case/cross-customer attempts, malformed/encoded/traversal/extra-segment/extension paths and the normal success sequence. They assert that privileged deletion is never called. A source contract also prevents reintroducing admin deletion into finalization. These tests demonstrate call behavior under mocks; physical Storage persistence still requires isolated staging acceptance.
+
+**Lessons learned:** A path supplied by an authenticated browser is still untrusted and cannot be a privileged deletion authority. In preview, preserving potentially registered evidence is more important than automatic orphan cleanup. Reconciliation must be conservative, owner-approved and performed through the Storage API after a fresh exact-reference check.

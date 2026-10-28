@@ -87,35 +87,70 @@ SUPABASE_SERVICE_ROLE_KEY
 
 ## November direct evidence upload operations
 
-Expected path: `browser -> authenticated private Supabase Storage -> metadata-only server finalization -> register_case_evidence`. Evidence bytes must not pass through the Next.js/Netlify function. The browser uses the customer session and migration 026 INSERT RLS; only the server uses the service role for stored-object verification and best-effort cleanup.
+Expected path: `browser -> authenticated private Supabase Storage -> metadata-only server finalization -> register_case_evidence`. Evidence bytes must not pass through the Next.js/Netlify function. The browser uses the customer session and migration 026 INSERT RLS. The server may use the service role only for the global exact-reference check and authoritative stored-object verification; finalization never deletes the browser-supplied path.
 
 Troubleshoot by phase:
 
 - **Storage upload failure:** no finalization call should occur. Check the signed-in customer, owned case state, generated `documents/cases/...` path, bucket MIME/size limits and Storage/RLS logs.
-- **Server verification failure:** the object uploaded, but authoritative metadata, exact path binding, HTTP Range or magic-byte validation failed. The server logs a sanitized `stored_object_verification` phase and attempts deletion.
-- **Evidence registration failure:** stored-object validation passed, but `register_case_evidence` rejected current ownership/state, quota or version lineage. The server logs sanitized `registration` details and attempts deletion.
-- **Orphaned unregistered object:** an object exists in private Storage with no exact `case_evidence.storage_path` match, normally because the browser stopped before finalization. It is not registered evidence and is not staff-visible through the evidence workflow.
+- **Server verification failure:** the object uploaded, but authoritative metadata, exact path binding, HTTP Range or magic-byte validation failed. The server logs a minimal reason code plus case/evidence IDs and leaves the object unchanged.
+- **Evidence registration failure:** stored-object validation passed, but `register_case_evidence` rejected current ownership/state, quota or version lineage. The server records a minimal diagnostic and leaves the object unchanged. The UNIQUE path constraint remains the final concurrent-duplicate guard.
+- **Orphaned unregistered object:** an object exists in private Storage with no exact `case_evidence.storage_path` match, normally because the browser stopped or finalization rejected it. It is not registered evidence and is not staff-visible through the evidence workflow.
 
 ### Conservative manual orphan cleanup
 
-For the November preview, cleanup is operator-controlled; there is no scheduler or automatic expiry. Before deleting any object:
-
-1. Confirm the object is in the private `documents` bucket and its path exactly matches `documents/cases/<case-uuid>/<evidence-uuid>/<random-uuid>.<pdf|jpg|png>`.
-2. Record its Storage creation timestamp and use a conservative age threshold (at least 24 hours for preview operations unless an incident procedure requires longer).
-3. Query `public.case_evidence` for an exact `storage_path` match. If any row references it, stop: registered evidence must never be deleted by orphan cleanup.
-4. Confirm no participant or operator is running an in-progress upload/test for that case and path.
-5. Delete only the confirmed unreferenced object through an authorized operator/server credential. Never grant customer DELETE permission and never delete by filename similarity, case prefix alone or age alone.
-6. Record the operator, time, exact reason and outcome without copying document contents or secrets into the log.
-
-Use a read-only reference check before deletion:
+For the November preview, reconciliation is operator-controlled; there is no scheduler or automatic expiry. An authorized operator may first list conservative candidates with this read-only query. It returns internal object IDs, timestamps and non-sensitive metadata, not customer filenames, document contents or object paths:
 
 ```sql
-select id, verification_case_id, storage_path, created_at
-from public.case_evidence
-where storage_path = '<EXACT_STORAGE_OBJECT_PATH>';
+select
+  o.id as storage_object_id,
+  o.created_at,
+  o.updated_at,
+  case
+    when coalesce(o.metadata ->> 'size', '') ~ '^[0-9]+$'
+      then (o.metadata ->> 'size')::bigint
+    else null
+  end as size_bytes,
+  coalesce(o.metadata ->> 'mimetype', o.metadata ->> 'contentType') as mime_type
+from storage.objects o
+where o.bucket_id = 'documents'
+  and o.name ~* '^documents/cases/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(pdf|jpg|png)$'
+  and o.created_at < now() - interval '24 hours'
+  and not exists (
+    select 1
+    from public.case_evidence ce
+    where ce.storage_path = o.name
+  )
+order by o.created_at asc;
 ```
 
-An empty result is necessary but not sufficient; complete all other checks above. Durable reservations and automated expiry are deferred.
+For each candidate, complete every step below; never approve a prefix, batch or speculative deletion:
+
+1. An authorized operator records the candidate internal object ID and its age of at least 24 hours.
+2. The repository owner gives explicit approval for that one candidate deletion.
+3. Immediately before deletion, the operator performs a fresh lookup by object ID and confirms `registered = false`:
+
+   ```sql
+   select
+     o.id as storage_object_id,
+     o.bucket_id,
+     o.name as exact_storage_object_path,
+     o.created_at,
+     exists (
+       select 1
+       from public.case_evidence ce
+       where ce.storage_path = o.name
+     ) as registered
+   from storage.objects o
+   where o.id = '<APPROVED_STORAGE_OBJECT_UUID>'::uuid
+     and o.bucket_id = 'documents';
+   ```
+
+4. Stop if the row is absent, `registered` is true, the path is malformed, or any case/evidence record references the path. Registered evidence must never be deleted.
+5. Confirm with the tester/operator that no upload or finalization for this object is still in progress.
+6. Delete only that exact path through the authorized Supabase Storage API or Dashboard Storage action. Never run `DELETE` against `storage.objects`, never grant customer DELETE permission, and never delete by filename similarity, case prefix or age alone.
+7. Record a sanitized operational entry containing approval, operator, internal object ID, timestamp, reason and outcome. Do not copy the object path, original filename, contents, tokens or credentials into the record.
+
+Candidate status and an empty exact-reference result are necessary but not sufficient; complete every approval and in-progress check above. Durable reservations, automated expiry, upload reservations and stronger quota concurrency protection remain deferred.
 
 ### Staging acceptance for direct uploads
 

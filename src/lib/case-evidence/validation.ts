@@ -115,7 +115,12 @@ export function buildEvidenceStoragePath(
   return `documents/cases/${caseId}/${evidenceId}/${randomId}.${extension}`;
 }
 
-const evidencePathPattern = /^documents\/cases\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.(pdf|jpg|png)$/i;
+const uuidPattern = "([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})";
+const generatedUuidPattern = "([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})";
+const evidencePathPattern = new RegExp(
+  `^documents/cases/${uuidPattern}/${uuidPattern}/${generatedUuidPattern}\\.(pdf|jpg|png)$`,
+  "i",
+);
 
 export function parseEvidenceStoragePath(path: string) {
   const match = evidencePathPattern.exec(path);

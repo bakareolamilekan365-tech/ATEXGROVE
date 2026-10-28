@@ -5,6 +5,7 @@ vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({ createSupabaseAdminClient: vi.fn() }));
 vi.mock("@/lib/case-evidence/stored-object", () => ({ verifyStoredEvidenceObject: vi.fn() }));
+vi.mock("@/lib/case-evidence/registered-path", () => ({ isEvidenceStoragePathRegistered: vi.fn() }));
 import { customerRespondToCaseAction } from "@/app/dashboard/cases/[id]/actions";
 const initial = { error: null, success: null };
 function form(message = "Requested pages are now ready.") {
