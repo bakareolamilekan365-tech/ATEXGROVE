@@ -89,7 +89,7 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 - [x] **IMPLEMENTED IN REPOSITORY:** finalization rejects globally referenced paths before Storage verification; `case_evidence.storage_path` uniqueness remains the race-condition guard.
 - [x] **IMPLEMENTED IN REPOSITORY:** no failure path can automatically delete a browser-supplied Storage object; diagnostics are minimal and reason-coded.
 - [x] **LOCALLY VERIFIED:** the linked private-object endpoint returned HTTP 206 and exactly bytes 0-7 for an existing object; this read-only check is not deployed Netlify acceptance.
-- [ ] **AUTOMATED VERIFIED IN CI:** lint, typecheck, unit/integration suites, guardrails and build pass for this implementation revision.
+- [x] **AUTOMATED VERIFIED IN CI:** corrected commit `c015ccf` passed [application CI run 40674062503](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40674062503) and [database security run 40674062670](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40674062670).
 - [ ] **OPERATIONALLY PENDING:** create and isolate the approved Netlify/Supabase staging environment.
 - [ ] **OPERATIONALLY PENDING:** complete browser-direct uploads at approximately 1 MiB, 5 MiB, 9 MiB and near the permitted 10 MiB limit through deployed Netlify staging.
 - [ ] **OPERATIONALLY PENDING:** reject a staging file whose declared MIME/extension and stored magic bytes disagree.
