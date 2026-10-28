@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { CaseProgress } from "@/components/cases/CaseProgress";
 import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
 import { EvidenceChecklist } from "@/components/cases/EvidenceChecklist";
 import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
@@ -45,10 +46,11 @@ export default async function CustomerCasePage({
           <h1>{location.heading}</h1>
           {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
-            <span className={styles.demo}>Demo data · not official</span>
+            {item.is_demo_data ? <span className={styles.demo}>Demo data · not official</span> : null}
             <CaseStatusBadge status={item.workflow_status} />
           </div>
           <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
+          <CaseProgress status={item.workflow_status} />
           {item.workflow_status === "draft" ? <p className={styles.notice}>This request is saved as a draft. Staff cannot see it until you submit it.</p> : null}
         </div>
         <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard">Back to dashboard</Link>
@@ -81,7 +83,7 @@ export default async function CustomerCasePage({
               <p className={styles.eyebrow}>Private evidence</p>
               <h2>Document history ({evidence.length}/10)</h2>
             </div>
-            <span className={styles.demo}>Demo data / not official</span>
+            {item.is_demo_data ? <span className={styles.demo}>Demo data / not official</span> : null}
           </div>
           <p className={styles.muted}>Submission for review does not authenticate any document.</p>
           {evidence.length ? (

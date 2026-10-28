@@ -47,9 +47,41 @@ Admin navigation appears only for authorized users and should expose only the re
 ## Dashboard behavior
 The dashboard content should depend on role. Do not show identical dashboards to all account types.
 
+### Approved customer design reference
+
+[`references/ui/Customer dashboard v2.zip`](references/ui/Customer%20dashboard%20v2.zip) is the primary customer visual reference and supersedes `Customer dashboard-html.zip`. Its layout, spacing, customer actions, progress, document-history and activity-feed patterns apply only where real case, evidence and event records exist. Saved/pending evidence must remain visibly distinct from submitted evidence. Mockup names, case numbers, dates, documents and report concepts must never be hard-coded into the product.
+
 ### Approved staff design reference
 
 [`references/ui/Staff dashboard.pdf`](references/ui/Staff%20dashboard.pdf) is the updated Verification Lead design reference. The November UI may adopt its professional layout, typography and visual hierarchy while exposing only behavior that exists and is authorized. Mockup concepts such as handovers, second-review approval, team workload/capacity, Staff ID login and authenticator status are **Planned**, not implementation evidence. Different staff responsibilities may later receive distinct content rather than one universal staff dashboard.
+
+`Staff dashboard v2.zip` and `Staff dashboard.pdf` supersede `Staff work queue-html.zip` where they conflict. They are specifically Verification Lead references; Feasibility and Operations Lead experiences remain undefined beyond the real shared queue behavior currently implemented.
+
+## Current shared UI foundation (repository branch, not deployment evidence)
+
+The `ui/align-approved-design` branch introduces a shared presentation foundation without changing authentication, authorization, case or evidence semantics:
+
+- `SiteHeader` has signed-out, customer and staff states. Staff receive the real queue and the already-supported customer-workspace link, not invented Records, Team or handover routes.
+- `LoginForm` is the single email/password form used by `/login`; the public landing page links to the dedicated sign-in and conditional registration routes instead of embedding authentication fields. It preserves full-document post-authentication navigation and safe `?next=` handling.
+- `FormCard` standardizes `/login`, `/register`, `/forgot-password` and `/update-password` presentation.
+- `PreviewBanner` uses the single `NEXT_PUBLIC_PRIVATE_PREVIEW` flag. When enabled, public registration controls disappear and `/register` explains that approved accounts are required. This is presentation only; Supabase registration policy must be configured separately.
+- `ThemeSwitcher` offers Light, Dark and System modes in the approved header, stores only the display preference in browser storage, follows operating-system changes in System mode and uses an early inline initializer to avoid an incorrect-theme flash.
+- Customer progress, waiting-on-customer actions, document history and activity use real workflow/evidence/event records. Authenticated Help and Profile pages stay inside the customer shell and use existing authorized profile fields.
+- Staff tiles and board columns are computed from the seven existing workflow states. Dashboard groups show at most five cards, link to full filtered lists, and keep Closed and Cancelled separate.
+- The existing self-hosted Figtree dependency and SVG mark/wordmark under `public/logo` remain the only font and brand sources.
+- The landing hero uses the original project-owned image `public/images/atexgrove-built-environment-hero.png`; it adds no external runtime image or paid dependency.
+
+### Design tokens
+
+Touched light and dark colours are centralized in `src/app/globals.css`: primary `#0048B0`, hover `#003A91`, primary tint `#E3EDFB`, page/surface/text pairs, and warm warning, customer-supplied, checked and verification semantic pairs. Cards use a 20px radius and the approved two-layer shadow; buttons/nav pills use 999px radii and a 44px minimum target. The interface uses no decorative gradients.
+
+### Responsive and accessibility expectations
+
+The standard container is 1280px with 28px desktop and 16px phone padding. Staff boards may grow toward 1440px and stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
+
+### Explicitly deferred reference concepts
+
+Handovers, second review, team capacity, Staff ID authentication, authenticator/MFA status, unsupported staff navigation, due dates and notifications remain unimplemented. Styling does not make these product features current.
 
 ## Project workspace
 Use a persistent project header and tabs:

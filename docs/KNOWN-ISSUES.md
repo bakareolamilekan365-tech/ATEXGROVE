@@ -1,11 +1,14 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-27
+**Status date:** 2026-10-28
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
 
 | Item | Current status | Planned direction |
 | --- | --- | --- |
+| Approved-reference UI acceptance | **Branch implementation in progress:** `ui/align-approved-design` applies the current customer and Verification Lead visual references without adding mock-only functions. Repository rendering is not deployed-browser evidence. | Review desktop (1280px) and phone (390px) screenshots with authenticated customer, staff and dual-role accounts before merge/release. |
+| Authenticated UI browser acceptance | **Partially evidenced:** local Chrome checks cover public/auth pages, preview gating, 390px overflow and Light/Dark/System switching, persistence and system changes. They do not prove Supabase-backed customer/staff rendering. | Review customer, staff and dual-role accounts at desktop and phone widths, including Help/Profile, case/evidence screens and filtered staff lists. |
+| Private-preview registration gate | **UI-only branch behavior:** `NEXT_PUBLIC_PRIVATE_PREVIEW=true` hides public create-account controls and replaces the registration form with approved-account guidance. | Configure and verify the separate Supabase sign-up policy before preview access; do not treat a hidden form as an authorization control. |
 | Legacy duplicate response/resume timeline line | **Presentation-only heuristic:** `caseTimelineEvents` hides an unambiguous old fixed “resume” companion with the same case, actor and transition, within one second (also matching visibility and adjacent milestones; equal-timestamp pairs are handled conservatively). Historical rows and audits are unchanged in the database; unmatched/ambiguous history remains visible. | Preserve history; new 026 responses write one linked milestone. |
 | Corrections after submission | **Deliberate restriction:** customers cannot correct old submitted cases or add/replace evidence in `submitted`, `assigned` or `in_review`; they must wait for a staff information request. | Staff can request information to open the preparation window. No general customer-edit workflow is implemented. |
 | Legacy information request without a milestone | **Fails closed:** no safe response token exists. Staff cannot manually resume review to repair it. | A reviewed forward repair of the request linkage is required, or close/cancel and create a new request. Never release pending files as a workaround. |

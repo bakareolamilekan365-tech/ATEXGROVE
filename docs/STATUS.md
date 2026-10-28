@@ -1,8 +1,18 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-27
+**Status date:** 2026-10-28
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
+
+## Approved-reference UI alignment (2026-10-28; branch work, not deployed)
+
+**Current repository branch:** `ui/align-approved-design` restyles the public, authentication, customer and staff surfaces using `Customer dashboard v2.zip`, `Staff dashboard v2.zip` and `Staff dashboard.pdf` while exposing only existing behavior. It adds a real-logo shared header; a balanced landing page with a project-owned built-environment image and dedicated account-access links; reusable auth cards; one `NEXT_PUBLIC_PRIVATE_PREVIEW` presentation flag; authenticated customer Help/Profile pages; customer workflow progress; and a real-status-derived staff board. Figtree remains self-hosted.
+
+The shared header includes persistent Light, Dark and System preferences. An early initializer resolves the saved/operating-system choice before hydration, and System mode follows operating-system changes. Staff dashboard categories show no more than five cards before linking to filtered lists, and Closed and Cancelled remain distinct.
+
+This branch does not add a migration, change hosted Supabase/Storage, deploy an application, or intentionally change authentication, authorization, upload or evidence visibility. The private-preview registration gate is UI-only and does not replace separate Supabase configuration. Handovers, second review, team capacity, Staff ID login, authenticator/MFA state, due dates, unsupported navigation, notifications and reports remain unimplemented.
+
+Local lint, typecheck, 105 unit tests, 40 integration tests (with 3 environment-dependent skips), security guardrails and the production build passed during implementation. Chrome review covered the public and authentication surfaces at 1280px and 390px in light/dark modes, private-preview registration gating, mobile overflow, theme switching, refresh persistence and live System-theme changes. Final GitHub CI and authenticated customer/staff browser acceptance must still be recorded because repository tests do not create or mutate hosted users.
 
 ## Current baseline — migration 026 and private preview
 

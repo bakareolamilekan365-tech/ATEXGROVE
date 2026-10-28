@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { signOutAction } from "@/app/actions";
 import { redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { CaseProgress } from "@/components/cases/CaseProgress";
 import styles from "@/components/cases/case-workflow.module.css";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -51,6 +51,7 @@ export default async function DashboardPage({
   };
   const { request } = await searchParams;
   const ownCases = (cases ?? []) as VerificationCase[];
+  const waitingCases = ownCases.filter((item) => item.workflow_status === "draft" || item.workflow_status === "needs_customer_info");
 
   return (
     <main className={styles.shell}>
@@ -65,9 +66,8 @@ export default async function DashboardPage({
                 Staff · {staff.department} · {staff.is_lead ? "Lead" : "Member"}
               </span>
             ) : null}
-            <form action={signOutAction}><button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Sign out</button></form>
           </div>
-          <p className={styles.muted}>{roleCopy[role] ?? "Your customer workspace."}</p>
+          <p className={styles.muted}>{waitingCases.length ? `${waitingCases.length} ${waitingCases.length === 1 ? "case needs" : "cases need"} your attention.` : roleCopy[role] ?? "Your customer workspace."}</p>
         </div>
         <div className={styles.actions}>
           {staff ? <a className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</a> : null}
@@ -79,6 +79,15 @@ export default async function DashboardPage({
         <p className={styles.success} role="status">
           Request received. It is not yet verified and will enter the staff queue.
         </p>
+      ) : null}
+
+      {waitingCases.length ? (
+        <section className={styles.actionPanel} aria-labelledby="waiting-on-you-title">
+          <div><p className={styles.eyebrow}>Waiting on you</p><h2 id="waiting-on-you-title">Continue your open work</h2></div>
+          <div className={styles.actionLinks}>
+            {waitingCases.map((item) => <Link className={`${styles.button} ${styles.buttonSecondary}`} key={item.id} href={`/dashboard/cases/${item.id}`}>{item.case_number ?? "Open case"}</Link>)}
+          </div>
+        </section>
       ) : null}
 
       <div className={styles.cardHeader}>
@@ -100,13 +109,14 @@ export default async function DashboardPage({
             const location = caseLocationDisplay(item.area_name, item.area_lga);
             return <article className={styles.card} key={item.id}>
               <div className={styles.cardHeader}>
-                <span className={styles.demo}>Demo</span>
+                {item.is_demo_data ? <span className={styles.demo}>Demo</span> : null}
                 <CaseStatusBadge status={item.workflow_status} />
               </div>
               <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
               <h2>{location.heading}</h2>
               {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
               <p>{item.site_description}</p>
+              <CaseProgress status={item.workflow_status} compact />
               <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 {item.workflow_status === "draft" ? "Saved" : "Received"} {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}

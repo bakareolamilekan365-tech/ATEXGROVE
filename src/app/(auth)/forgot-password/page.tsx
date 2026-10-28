@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { FormCard } from "@/components/ui/FormCard";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
@@ -22,19 +24,17 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main>
-      <h1>Forgot password</h1>
+    <FormCard eyebrow="Account recovery" title="Forgot password" intro="Enter your account email. We return the same response whether or not the address is registered.">
       {submitted ? (
-        <p role="status">If an account exists for that email, a recovery link is on its way.</p>
+        <p className="form-message form-message--success" role="status">If an account exists for that email, a recovery link is on its way.</p>
       ) : (
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="recovery-email">Email</label>
-          <input id="recovery-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          {error ? <p role="alert">{error}</p> : null}
-          <button type="submit">Send recovery link</button>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-field"><label htmlFor="recovery-email">Email</label><input id="recovery-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
+          {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
+          <button className="button button--primary button--full" type="submit">Send recovery link</button>
         </form>
       )}
-      <p><a href="/login">Back to sign in</a></p>
-    </main>
+      <p><Link href="/login">Back to sign in</Link></p>
+    </FormCard>
   );
 }

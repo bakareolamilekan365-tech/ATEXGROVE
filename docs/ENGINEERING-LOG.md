@@ -4,6 +4,18 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-10-28 — Approved references contained more functionality than the product
+
+**Problem:** The customer and staff reference dashboards establish a strong visual direction but also contain names, records, due dates, notifications, handovers, second review, capacity and identity concepts that are not all implemented.
+
+**Cause:** A visual design artifact combines presentation examples and future product ideas; treating every visible element as a requirement would create fake data and bypass the repository's current scope and permission boundaries.
+
+**Correction:** The UI alignment uses the current customer v2 and Verification Lead references only for layout, typography, colour, cards and responsive hierarchy. Shared headers, dedicated account-access routes, auth cards, workflow progress and staff queue groupings consume real repository records and existing statuses. Closed and Cancelled are separate, each dashboard group is capped at five before a filtered list, and authenticated customer Help/Profile pages remain in the customer context. Mock-only functionality remains absent. `NEXT_PUBLIC_PRIVATE_PREVIEW` affects presentation only, and the existing Supabase authentication, RLS, server actions and evidence upload behavior remain unchanged. A persistent Light/Dark/System control uses CSS variables and an early theme initializer rather than a second layout system.
+
+**Verification:** Lint, typecheck, 105 unit tests, 40 integration tests (3 environment-dependent skips), security guardrails and the production build passed. Local Chrome review covered the public/auth surfaces at 1280px and 390px, light/dark presentation, preview registration gating, mobile overflow, theme refresh persistence and System-mode changes. Final GitHub CI and authenticated customer/staff browser review remain to be recorded before merge.
+
+**Lesson:** References guide visual decisions; `DECISIONS.md`, implementation and `STATUS.md` still determine accepted behavior, real capabilities and verification state.
+
 ## 2026-10-12 — Supabase-owned objects broke fresh-stack migrations
 
 Related work: [PR #9](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/9)
