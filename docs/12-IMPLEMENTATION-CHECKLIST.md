@@ -80,7 +80,23 @@ See [STATUS.md](STATUS.md) for the single current record of hosted deployment, i
 
 **Historical migration 023 branch evidence:** CI run [39948240236](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240236) passed lint, typecheck, 40 unit tests, 17 integration tests (3 skipped), security guardrails and production build. Database run [39948240244](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/39948240244) passed seven pgTAP suites (238 assertions) in a disposable Supabase environment. Migration 023 was subsequently applied after PR #26 merged, per owner confirmation.
 
-**Known Slice 2 limits:** no malware scanning is available in this free-plan cut, so files remain untrusted, download-only and limited to PDF/JPEG/PNG with server-side file-signature checks. Customers cannot retrieve their own uploaded files yet. The 10-file limit counts registered evidence rows; uploads that never complete registration are not counted, which is a known free-plan limitation despite server cleanup after a failed registration. Evidence is customer-supplied and unauthenticated. Real customer documents remain prohibited pending the privacy/legal readiness gate. Evidence review/findings, staff uploads, handover/escalation and preparer/approver separation remain later work. Draft retention/cleanup is undecided; draft evidence is not automatically deleted. The privileged `service_role`/database-operator path can still perform exceptional maintenance and must be controlled and audited.
+**Known Slice 2 limits:** no malware scanning is available in this free-plan cut, so files remain untrusted, download-only and limited to PDF/JPEG/PNG with server-side file-signature checks. Customers cannot retrieve their own uploaded files yet. The 10-file limit counts registered evidence rows; uploads that never complete registration are not counted. Finalization deliberately performs no automatic deletion because the submitted path is untrusted, so private unregistered orphans require conservative owner-approved reconciliation. Evidence is customer-supplied and unauthenticated. Real customer documents remain prohibited pending the privacy/legal readiness gate. Evidence review/findings, staff uploads, handover/escalation and preparer/approver separation remain later work. Draft retention/cleanup is undecided; draft evidence is not automatically deleted. The privileged `service_role`/database-operator path can still perform exceptional maintenance and must be controlled and audited.
+
+### November direct-upload readiness
+
+- [x] **IMPLEMENTED IN REPOSITORY:** evidence bytes upload from the authenticated browser directly to private Supabase Storage; the Next.js finalization action receives metadata only.
+- [x] **IMPLEMENTED IN REPOSITORY:** finalization rechecks ownership/state/path and verifies authoritative Storage size, MIME and an eight-byte signature prefix before calling `register_case_evidence`.
+- [x] **IMPLEMENTED IN REPOSITORY:** finalization rejects globally referenced paths before Storage verification; `case_evidence.storage_path` uniqueness remains the race-condition guard.
+- [x] **IMPLEMENTED IN REPOSITORY:** no failure path can automatically delete a browser-supplied Storage object; diagnostics are minimal and reason-coded.
+- [x] **LOCALLY VERIFIED:** the linked private-object endpoint returned HTTP 206 and exactly bytes 0-7 for an existing object; this read-only check is not deployed Netlify acceptance.
+- [x] **AUTOMATED VERIFIED IN CI:** corrected commit `c015ccf` passed [application CI run 40674062503](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40674062503) and [database security run 40674062670](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40674062670).
+- [ ] **OPERATIONALLY PENDING:** create and isolate the approved Netlify/Supabase staging environment.
+- [ ] **OPERATIONALLY PENDING:** complete browser-direct uploads at approximately 1 MiB, 5 MiB, 9 MiB and near the permitted 10 MiB limit through deployed Netlify staging.
+- [ ] **OPERATIONALLY PENDING:** reject a staging file whose declared MIME/extension and stored magic bytes disagree.
+- [ ] **OPERATIONALLY PENDING:** verify realistic multi-account upload isolation, pending-evidence staff invisibility, explicit release and audited staff download.
+- [ ] **OPERATIONALLY PENDING:** verify real browser/session behavior and exercise the manual orphan-cleanup procedure without deleting registered evidence.
+
+No migration 027 exists for this work. Potential private orphan objects and weaker pre-registration quota concurrency are accepted preview limitations; conservative owner-approved reconciliation is documented, while durable reservations and automated expiry remain deferred.
 
 ## Feasibility
 

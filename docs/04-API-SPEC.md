@@ -13,6 +13,22 @@ The last independent read-only hosted check reached 025 on 2026-10-25. Migration
 
 The existing hosted project must not reapply migration 026. Any isolated staging project must apply the reviewed sequence through 026 before running this application version; use the target-verification process in RUNBOOK. This documentation PR performs no database operation.
 
+## November evidence-upload application boundary
+
+The repository implementation uses this sequence for private evidence:
+
+1. The browser validates required metadata, the 10 MiB ceiling, allowed MIME and the PDF/JPEG/PNG signature for immediate feedback.
+2. The signed-in customer's Supabase browser client uploads the binary directly to the private `documents` bucket with `upsert: false` and a generated `documents/cases/<case-id>/<evidence-id>/<random-id>.<ext>` path.
+3. Migration 026 Storage INSERT RLS authorizes the owning customer and eligible `draft` or `needs_customer_info` state.
+4. The browser calls a Next.js finalization action with metadata and the generated path only. No `File`, `Blob`, multipart binary body or Base64 file enters the action.
+5. The server authenticates again and revalidates ownership, state, filename, MIME, size and exact case/evidence/path binding before any privileged Storage read.
+6. A narrow server-only lookup rejects any path already referenced by `case_evidence`; the database UNIQUE constraint remains the final race-condition safeguard.
+7. The server-only Storage boundary checks authoritative object metadata and fetches only bytes 0-7 with HTTP Range to validate the stored signature.
+8. Only then does the server call the unchanged `register_case_evidence` RPC; the evidence remains pending under migration 026 semantics.
+9. Any failure returns safe customer copy and records a minimal reason-coded diagnostic. Finalization never deletes the browser-supplied path; an unregistered private object is reconciled only through the owner-approved runbook.
+
+`register_case_evidence` remains the authoritative database registration, registered-count, version-lineage and audit boundary. Direct authenticated Storage SELECT, UPDATE and DELETE remain unavailable. Staff download authorization and signing are unchanged, and the service role never enters browser code. The service role may read authoritative object metadata/signature and globally test exact path references, but finalization cannot remove objects. Standard direct upload is the November transport; TUS is a later fallback only if deployed 9-10 MiB staging tests show unacceptable reliability.
+
 
 ## Principles
 - Consistent JSON response shapes

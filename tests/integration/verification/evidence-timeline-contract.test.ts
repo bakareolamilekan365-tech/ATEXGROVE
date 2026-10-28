@@ -6,6 +6,8 @@ const uploadForm = readFileSync("src/components/cases/EvidenceUploadForm.tsx", "
 const customerPage = readFileSync("src/app/dashboard/cases/[id]/page.tsx", "utf8");
 const staffPage = readFileSync("src/app/ops/cases/[id]/page.tsx", "utf8");
 const evidenceActions = readFileSync("src/app/dashboard/cases/[id]/actions.ts", "utf8");
+const evidenceErrors = readFileSync("src/lib/case-evidence/upload-errors.ts", "utf8");
+const evidenceMigration = readFileSync("supabase/migrations/019_private_case_evidence.sql", "utf8");
 
 describe("case timeline and evidence versioning contract", () => {
   it("records uploads as activity and keeps draft uploads out of staff scope until submission", () => {
@@ -25,9 +27,14 @@ describe("case timeline and evidence versioning contract", () => {
     expect(uploadForm).toContain("latestReplaceableEvidence");
   });
 
-  it("keeps the uploaded object cleanup attempt and does not expose database errors", () => {
-    expect(evidenceActions).toContain("cleanupAfterRegistrationFailure(");
-    expect(evidenceActions).toContain("storageUploadFailureMessage");
+  it("never routes browser-supplied paths to privileged deletion", () => {
+    expect(evidenceActions).toContain("verifyStoredEvidenceObject(");
+    expect(evidenceActions).toContain("isEvidenceStoragePathRegistered(");
+    expect(evidenceActions).not.toContain("createSupabaseAdminClient");
+    expect(evidenceActions).not.toContain(".remove(");
+    expect(evidenceErrors).not.toContain("removeUploadedObject");
+    expect(evidenceErrors).not.toContain("storage_cleanup");
+    expect(evidenceMigration).toContain("storage_path text not null unique");
     expect(evidenceActions).not.toContain("registrationError.message");
   });
 

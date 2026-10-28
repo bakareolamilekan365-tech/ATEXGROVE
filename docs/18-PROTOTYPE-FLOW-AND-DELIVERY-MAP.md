@@ -48,9 +48,11 @@ flowchart LR
     Browser --> Server[Next.js server actions and routes]
     Server --> Session[Supabase SSR session]
     Client --> Auth[Supabase Auth]
+    Client -->|Evidence binary; authenticated INSERT RLS| Storage[(Private Supabase Storage)]
     Session --> Auth
     Server --> Database[(PostgreSQL + PostGIS)]
-    Server --> Storage[(Private Supabase Storage)]
+    Browser -->|Evidence metadata only| Server
+    Server -->|Prefix verification, cleanup, signed staff download| Storage
     Case[Verification case and report UI] --> Server
     Map[Later MapLibre UI] --> Tiles[Map tile adapter]
     Map --> GeoJSON[Demo GeoJSON]

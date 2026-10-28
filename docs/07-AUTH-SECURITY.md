@@ -12,6 +12,14 @@ All release operations lock the case and validate ownership/state. Request token
 
 Migration 025 is hosted as independently checked 2026-10-25. Migration 026 is subsequently owner-confirmed hosted, without a claimed apply timestamp or fresh independent ledger check. Existing PostGIS and Auth advisor findings are unrelated and unchanged; this does not claim a clean security-advisor report.
 
+### November direct-upload security boundary
+
+The customer's authenticated Supabase session JWT authorizes only the direct Storage INSERT allowed by migration 026. Authentication does not make client metadata trustworthy: the metadata-only finalization action independently checks case ownership, non-discarded eligible state, normalized filename, MIME/size and exact case/evidence/path binding. Client signature validation is UX only. Before database registration, the server-only boundary checks Storage's authoritative metadata and an eight-byte HTTP Range prefix from the actual private object.
+
+The browser never receives the service-role credential. No authenticated Storage SELECT, UPDATE or DELETE policy is added, staff pending-evidence visibility remains denied, and the existing audited staff-download path is unchanged. Before privileged Storage metadata or Range access, finalization completes strict path binding, case ownership/state authorization and a global server-only exact-reference check. No browser-supplied path can reach privileged automatic deletion. Failed validation or registration leaves the private object unchanged, emits only a reason-coded diagnostic with case/evidence IDs, and may create an operator-reconciled orphan.
+
+For the small synthetic November cohort, an interrupted browser flow can leave a private unregistered object, and simultaneous unregistered uploads are not covered by reservation-level quota accounting. Manual conservative orphan cleanup is the preview control. Durable upload reservation, expiry and stronger concurrency control are deferred production hardening, not rejected security requirements. A deployed 9-10 MiB staging test remains mandatory.
+
 
 ## Security boundary and status
 

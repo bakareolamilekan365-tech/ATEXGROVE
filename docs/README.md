@@ -47,7 +47,7 @@ All synthetic records must be clearly labelled **DEMO DATA / NOT OFFICIAL**.
 24. `RELEASE-PLAN.md` — planned hosting/release approach
 25. `ENGINEERING-LOG.md` — dated problems, fixes and lessons
 
-Approved UI references are stored in `references/ui/`. The updated `Staff dashboard.pdf` guides the Verification Lead experience but does not make every visible mockup control an implemented feature.
+Supporting owner, UI and external engineering references are indexed in [`references/README.md`](references/README.md). UI material remains design-only; it does not make every visible mockup control an implemented feature.
 
 ## Important
 

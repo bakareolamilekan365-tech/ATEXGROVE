@@ -5,54 +5,46 @@ type EvidenceErrorLike = {
   error?: string;
 };
 
-export type EvidenceFailurePhase = "case_lookup" | "quota_check" | "storage_upload" | "registration" | "storage_cleanup";
+export type EvidenceFailurePhase =
+  | "input_validation"
+  | "path_validation"
+  | "case_lookup"
+  | "case_state"
+  | "duplicate_check"
+  | "storage_upload"
+  | "stored_object_verification"
+  | "registration";
+
+type EvidenceFailureContext = {
+  caseId?: string;
+  evidenceId?: string;
+};
 
 function asEvidenceError(error: unknown): EvidenceErrorLike {
   return error && typeof error === "object" ? error as EvidenceErrorLike : {};
 }
 
-function sanitizeDiagnostic(value: string, privateValues: readonly string[] = []) {
-  let safe = value;
-  for (const privateValue of privateValues) {
-    if (privateValue) safe = safe.split(privateValue).join("[redacted]");
-  }
-  return safe
-    .replace(/documents\/cases\/[^\s"']+/gi, "[storage-path]")
-    .replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, "[id]")
-    .replace(/[\r\n\t]+/g, " ")
-    .slice(0, 240);
+function safeDiagnosticCode(value: unknown) {
+  const text = String(value ?? "");
+  return /^[A-Za-z0-9_]{1,32}$/.test(text) ? text : null;
 }
 
-/** Safe, structured diagnostics; never logs account IDs, file bytes, or paths. */
+/** Safe diagnostics; never logs account IDs, filenames, file bytes, paths, or raw errors. */
 export function logEvidenceFailure(
   phase: EvidenceFailurePhase,
+  reasonCode: string,
   error: unknown,
-  privateValues: readonly string[] = [],
+  context: EvidenceFailureContext = {},
 ) {
   const detail = asEvidenceError(error);
   console.error("Case evidence operation failed", {
     phase,
-    code: detail.code ?? null,
-    statusCode: detail.statusCode ?? null,
-    message: sanitizeDiagnostic(detail.message ?? detail.error ?? "Unknown failure", privateValues),
+    reasonCode,
+    caseId: context.caseId ?? null,
+    evidenceId: context.evidenceId ?? null,
+    code: safeDiagnosticCode(detail.code),
+    statusCode: safeDiagnosticCode(detail.statusCode),
   });
-}
-
-export async function cleanupAfterRegistrationFailure(
-  error: unknown,
-  storagePath: string,
-  filenames: readonly string[],
-  removeUploadedObject: () => Promise<{ error: unknown | null }>,
-) {
-  const privateValues = [...filenames, storagePath];
-  logEvidenceFailure("registration", error, privateValues);
-  try {
-    const { error: cleanupError } = await removeUploadedObject();
-    if (cleanupError) logEvidenceFailure("storage_cleanup", cleanupError, privateValues);
-  } catch (cleanupError) {
-    logEvidenceFailure("storage_cleanup", cleanupError, privateValues);
-  }
-  return evidenceRegistrationFailureMessage(error);
 }
 
 export function storageUploadFailureMessage(error: unknown) {

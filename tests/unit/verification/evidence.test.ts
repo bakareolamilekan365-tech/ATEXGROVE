@@ -3,14 +3,16 @@ import { createAuthorizedEvidenceDownload } from "@/lib/case-evidence/download";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   buildEvidenceStoragePath,
+  evidenceStoragePathMatches,
   extensionForMime,
   hasValidEvidenceFileSignature,
   MAX_EVIDENCE_FILE_SIZE,
   normalizeOriginalFilename,
+  parseEvidenceStoragePath,
   validateEvidenceFile,
 } from "@/lib/case-evidence/validation";
 import { latestReplaceableEvidence } from "@/lib/case-evidence/versioning";
-import { cleanupAfterRegistrationFailure, evidenceRegistrationFailureMessage, storageUploadFailureMessage } from "@/lib/case-evidence/upload-errors";
+import { evidenceRegistrationFailureMessage, logEvidenceFailure, storageUploadFailureMessage } from "@/lib/case-evidence/upload-errors";
 
 vi.mock("@/lib/supabase/admin", () => ({
   createSupabaseAdminClient: vi.fn(),
@@ -52,6 +54,51 @@ describe("case evidence validation", () => {
     );
     expect(path).toBe("documents/cases/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333.pdf");
     expect(path).not.toContain("seller");
+    expect(parseEvidenceStoragePath(path)).toMatchObject({
+      caseId: "11111111-1111-4111-8111-111111111111",
+      evidenceId: "22222222-2222-4222-8222-222222222222",
+      extension: "pdf",
+    });
+    expect(evidenceStoragePathMatches(
+      path,
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+      "application/pdf",
+    )).toBe(true);
+    expect(evidenceStoragePathMatches(
+      path,
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "22222222-2222-4222-8222-222222222222",
+      "application/pdf",
+    )).toBe(false);
+    expect(evidenceStoragePathMatches(
+      path,
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+      "image/png",
+    )).toBe(false);
+    expect(parseEvidenceStoragePath("documents/cases/not-a-uuid/file.pdf")).toBeNull();
+  });
+
+  it("rejects traversal, encoded manipulation, extra segments and non-generated object IDs", () => {
+    const base = "documents/cases/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/33333333-3333-4333-8333-333333333333.pdf";
+    const invalid = [
+      base.replace("documents/cases", "other/cases"),
+      base.replace("33333333-3333-4333-8333-333333333333.pdf", "../file.pdf"),
+      base.replace("/33333333", "%2F33333333"),
+      base.replace(".pdf", "/extra.pdf"),
+      base.replace("33333333-3333-4333-8333-333333333333", "not-a-uuid"),
+      base.replace("33333333-3333-4333-8333-333333333333", "33333333-3333-1333-8333-333333333333"),
+    ];
+    for (const candidate of invalid) {
+      expect(parseEvidenceStoragePath(candidate)).toBeNull();
+      expect(evidenceStoragePathMatches(
+        candidate,
+        "11111111-1111-4111-8111-111111111111",
+        "22222222-2222-4222-8222-222222222222",
+        "application/pdf",
+      )).toBe(false);
+    }
   });
 });
 
@@ -76,21 +123,23 @@ describe("evidence replacement choices and safe errors", () => {
     expect(evidenceRegistrationFailureMessage({ code: "XX000", message: "secret database detail" })).toBe("The document could not be registered. Please try again.");
   });
 
-  it("attempts cleanup after failed registration and sanitizes server diagnostics", async () => {
-    const remove = vi.fn().mockResolvedValue({ error: null });
+  it("records only structured, sanitized finalization diagnostics", () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const message = await cleanupAfterRegistrationFailure(
+    logEvidenceFailure(
+      "registration",
+      "registration_failed",
       { code: "23505", message: "duplicate for documents/cases/11111111-1111-4111-8111-111111111111/file.pdf" },
-      "documents/cases/11111111-1111-4111-8111-111111111111/file.pdf",
-      ["private-name.pdf"],
-      remove,
+      {
+        caseId: "11111111-1111-4111-8111-111111111111",
+        evidenceId: "22222222-2222-4222-8222-222222222222",
+      },
     );
-    expect(remove).toHaveBeenCalledOnce();
-    expect(message).toContain("latest version");
     expect(log).toHaveBeenCalledOnce();
     const diagnostic = JSON.stringify(log.mock.calls);
-    expect(diagnostic).not.toContain("private-name.pdf");
-    expect(diagnostic).not.toContain("11111111-1111-4111-8111-111111111111");
+    expect(diagnostic).toContain("registration_failed");
+    expect(diagnostic).toContain("11111111-1111-4111-8111-111111111111");
+    expect(diagnostic).not.toContain("documents/cases");
+    expect(diagnostic).not.toContain("duplicate for");
     log.mockRestore();
   });
 });
