@@ -43,12 +43,13 @@ export function SiteHeader({
               <Link className="nav-pill" href="/dashboard">Home</Link>
               <Link className="nav-pill" href="/dashboard" aria-current={current === "cases" ? "page" : undefined}>My cases</Link>
               <Link className="nav-pill" href="/dashboard/help">Help</Link>
-              <Link className="nav-pill" href="/dashboard/settings">Profile</Link>
+              <Link className="nav-pill" href="/dashboard/settings">Settings</Link>
             </>
           ) : (
             <>
               <Link className="nav-pill" href="/ops/cases" aria-current={current === "queue" ? "page" : undefined}>My queue</Link>
               <Link className="nav-pill" href="/dashboard">Customer dashboard</Link>
+              <Link className="nav-pill" href="/ops/settings">Settings</Link>
             </>
           )}
         </nav>
@@ -57,10 +58,11 @@ export function SiteHeader({
 
         {state !== "signed-out" ? (
           <div className="site-account">
-            <div className="site-account__identity">
+            <Link className="site-account__identity" href={state === "staff" ? "/ops/profile" : "/dashboard/profile"} aria-label="Open your profile">
               <strong>{accountName || (state === "staff" ? "Staff member" : "Customer")}</strong>
               <span>{state === "staff" ? `${department || "Operations"} · ${isLead ? "Lead" : "Member"}` : "Customer"}</span>
-            </div>
+            </Link>
+            <Link className="account-avatar" href={state === "staff" ? "/ops/profile" : "/dashboard/profile"} aria-label="Open your profile" title="Open your profile">{(accountName?.trim().charAt(0) || (state === "staff" ? "S" : "C")).toLocaleUpperCase()}</Link>
             {state === "staff" ? <span className="status-tag status-tag--verification">Staff</span> : null}
             <form action={signOutAction}>
               <button className="button button--secondary" type="submit">Sign out</button>

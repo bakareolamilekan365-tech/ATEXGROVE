@@ -207,8 +207,16 @@
 .progress li small { color: inherit; }
 .progress .progressReached { color: var(--text-primary); }
 .progress .progressReached > span { background: var(--brand-primary); }
+.progress .progressAttention { color: var(--warning-text); }
+.progress .progressAttention > span { background: #d97706; }
+.progress .progressCancelled { color: var(--danger-text); }
+.progress .progressCancelled > span { background: #dc2626; }
 .progress li[aria-current="step"] { color: var(--brand-primary); }
+.progress li.progressAttention[aria-current="step"] { color: var(--warning-text); }
+.progress li.progressCancelled[aria-current="step"] { color: var(--danger-text); }
 .progress li[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--brand-primary-tint); }
+.progress li.progressAttention[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--warning-bg); }
+.progress li.progressCancelled[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--danger-bg); }
 .progressCompact { margin-top: 6px; gap: 5px; }
 .progressCompact li { min-width: 24px; flex-basis: 24px; }
 .progressCompact li strong { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }

@@ -1,8 +1,16 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-28
+**Status date:** 2026-10-29
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
+
+## PR #33 final UI correction (2026-10-29; implementation under review)
+
+The shared account avatar and name now open a workspace-specific Profile page. Customer and staff Settings show authorized account information, with staff department and role read only; profile edits update only the signed-in user's existing profile under RLS and report load/save errors. A compact header theme control switches Light/Dark; Settings offers Light/Dark/System. Authentication pages use a centered card and limited brand header; sign-in has an accessible password visibility control. Public information links open explicitly unpublished pages. Progress presentation no longer marks cancelled work complete and uses recorded customer-visible status events on both the customer dashboard and case page. The landing page gained additional illustrative imagery, explanation and FAQs. Loading and error states were added without new services.
+
+No migration, hosted service change or deployment is part of this PR. The current single contact preference remains unchanged. Multiple contact methods, primary/fallback ordering, consent and audited attempts require a separate backend design and migration. Department handover and report messages remain unavailable until genuine authorized events exist. Browser acceptance with customer, staff and dual-role accounts remains an operational check until it is actually performed; local/CI results for this correction are recorded in PR #33.
+
+**Local checks:** lint, typecheck, 108 unit tests, 41 integration tests (3 existing skips), security guardrails and production build passed. Four Playwright checks passed on the local production server for public information pages, login password visibility, theme persistence/System response and 390px reduced-motion/mobile layout. Desktop, mobile and dark public screenshots were inspected locally. Authenticated customer/staff profile saving and case journeys were not browser tested because isolated test accounts and services were unavailable. Final PR-head CI must be checked separately after this correction is pushed.
 
 ## Approved-reference UI alignment (2026-10-28; branch work, not deployed)
 

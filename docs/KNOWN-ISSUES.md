@@ -1,11 +1,14 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-28
+**Status date:** 2026-10-29
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
 
 | Item | Current status | Planned direction |
 | --- | --- | --- |
+| Multiple contact methods and fallback | **Planned:** case creation currently stores one contact preference and an optional consented phone number. | A later backend migration must define multiple methods, primary/fallback selection, consent and authorized communication-attempt records before the UI offers this choice. |
+| Department handover and report milestones | **Planned:** no corresponding authorized event exists for departmental completion, handover acceptance, report review or report ready. | Display customer-safe milestones only after reviewed event creation and visibility rules exist. |
+| PR #33 authenticated profile acceptance | **Repository correction:** customer/staff Profile and Settings are implemented with existing RLS; no new privilege or migration. | Browser verify loading, saving, return navigation and dual-role context using isolated customer/staff accounts before release. |
 | Approved-reference UI acceptance | **Branch implementation in progress:** `ui/align-approved-design` applies the current customer and Verification Lead visual references without adding mock-only functions. Repository rendering is not deployed-browser evidence. | Review desktop (1280px) and phone (390px) screenshots with authenticated customer, staff and dual-role accounts before merge/release. |
 | Authenticated UI browser acceptance | **Partially evidenced:** local Chrome checks cover public/auth pages, preview gating, 390px overflow and Light/Dark/System switching, persistence and system changes. They do not prove Supabase-backed customer/staff rendering. | Review customer, staff and dual-role accounts at desktop and phone widths, including Help/Profile, case/evidence screens and filtered staff lists. |
 | Private-preview registration gate | **UI-only branch behavior:** `NEXT_PUBLIC_PRIVATE_PREVIEW=true` hides public create-account controls and replaces the registration form with approved-account guidance. | Configure and verify the separate Supabase sign-up policy before preview access; do not treat a hidden form as an authorization control. |

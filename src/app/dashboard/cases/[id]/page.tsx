@@ -50,7 +50,7 @@ export default async function CustomerCasePage({
             <CaseStatusBadge status={item.workflow_status} />
           </div>
           <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
-          <CaseProgress status={item.workflow_status} />
+          <CaseProgress status={item.workflow_status} history={events.filter((event) => event.event_kind === "status_change" || event.event_kind === "information_requested").map((event) => event.to_status)} />
           {item.workflow_status === "draft" ? <p className={styles.notice}>This request is saved as a draft. Staff cannot see it until you submit it.</p> : null}
         </div>
         <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard">Back to dashboard</Link>

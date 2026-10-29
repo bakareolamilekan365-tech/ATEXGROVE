@@ -11,12 +11,15 @@ export function RegisterForm() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
     setError(null);
 
+    setCreating(true);
+    try {
     const { data, error: signUpError } = await createSupabaseClient().auth.signUp({
       email,
       password,
@@ -36,6 +39,8 @@ export function RegisterForm() {
       return;
     }
     setMessage("Check your email to confirm your account, then sign in.");
+    } catch { setError("We could not connect. Check your connection and try again."); }
+    finally { setCreating(false); }
   }
 
   return (
@@ -54,7 +59,7 @@ export function RegisterForm() {
       </div>
       {message ? <p className="form-message form-message--success" role="status">{message}</p> : null}
       {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
-      <button className="button button--primary button--full" type="submit">Create account</button>
+      <button className="button button--primary button--full" type="submit" disabled={creating}>{creating ? "Creating account…" : "Create account"}</button>
       <p className="muted small">Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
     </form>
   );

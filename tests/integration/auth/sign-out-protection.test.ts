@@ -34,6 +34,12 @@ describe("protected route after sign-out", () => {
     expect(response.headers.get("cache-control")).toContain("no-store");
   });
 
+  it("allows unpublished public information pages without a session", async () => {
+    auth.getUser.mockResolvedValue({ data: { user: null } });
+    const response = await updateSupabaseSession(new NextRequest("https://example.test/info/privacy"));
+    expect(response.status).toBe(200);
+  });
+
   it("preserves refreshed session cookies and cache headers on a redirect", async () => {
     auth.getUser.mockImplementation(async () => {
       auth.setAll?.(

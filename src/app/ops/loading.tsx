@@ -1,0 +1,1 @@
+export default function StaffLoading() { return <main className="page-container page-main" aria-busy="true"><p role="status">Loading your work queue…</p><div className="loading-grid" aria-hidden="true"><div /><div /><div /></div></main>; }

@@ -1,20 +1,14 @@
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { publicRegistrationEnabled } from "@/lib/config/private-preview";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Image from "next/image";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default async function AuthLayout({
+export default function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("full_name").eq("user_id", user.id).maybeSingle()
-    : { data: null };
   return (
     <>
-      <SiteHeader state={user ? "customer" : "signed-out"} accountName={profile?.full_name ?? user?.email} registrationEnabled={publicRegistrationEnabled()} />
+      <header className="auth-header"><Link className="site-brand" href="/" aria-label="Atexgrove home"><Image src="/logo/atexgrove-mark.svg" alt="" width={40} height={40} /><Image className="site-brand__wordmark" src="/logo/atexgrove-wordmark.svg" alt="Atexgrove" width={140} height={39} /></Link><Link className="auth-back" href="/">← Back to home</Link></header>
       <div className="auth-page">{children}</div>
     </>
   );

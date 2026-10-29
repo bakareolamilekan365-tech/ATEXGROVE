@@ -5,7 +5,7 @@ import { CaseProgress } from "@/components/cases/CaseProgress";
 import styles from "@/components/cases/case-workflow.module.css";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { StaffMember, VerificationCase } from "@/types/verification";
+import type { StaffMember, VerificationCase, VerificationCaseStatus } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { nextActionLabel } from "@/lib/verification-cases/next-action";
 
@@ -51,6 +51,15 @@ export default async function DashboardPage({
   };
   const { request } = await searchParams;
   const ownCases = (cases ?? []) as VerificationCase[];
+  const { data: progressEvents } = ownCases.length
+    ? await supabase.from("case_status_events").select("verification_case_id, to_status").eq("customer_visible", true).in("event_kind", ["status_change", "information_requested"]).in("verification_case_id", ownCases.map((item) => item.id))
+    : { data: [] as { verification_case_id: string; to_status: VerificationCaseStatus }[] };
+  const progressHistory = new Map<string, VerificationCaseStatus[]>();
+  for (const event of progressEvents ?? []) {
+    const history = progressHistory.get(event.verification_case_id) ?? [];
+    history.push(event.to_status as VerificationCaseStatus);
+    progressHistory.set(event.verification_case_id, history);
+  }
   const waitingCases = ownCases.filter((item) => item.workflow_status === "draft" || item.workflow_status === "needs_customer_info");
 
   return (
@@ -116,7 +125,7 @@ export default async function DashboardPage({
               <h2>{location.heading}</h2>
               {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
               <p>{item.site_description}</p>
-              <CaseProgress status={item.workflow_status} compact />
+              <CaseProgress status={item.workflow_status} history={progressHistory.get(item.id) ?? []} compact />
               <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
               <p className={`${styles.muted} ${styles.small}`}>
                 {item.workflow_status === "draft" ? "Saved" : "Received"} {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}

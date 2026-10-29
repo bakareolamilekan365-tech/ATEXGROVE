@@ -38,6 +38,7 @@ describe("approved shared UI", () => {
   it("shows customer navigation and identity without staff routes", () => {
     const header = SiteHeader({ state: "customer", accountName: "Test Customer" });
     expect(links(header)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard/help", "/dashboard/settings"]));
+    expect(links(header)).toContain("/dashboard/profile");
     expect(links(header)).not.toContain("/ops/cases");
     expect(text(header)).toContain("Test Customer");
     expect(text(header)).toContain("Customer");
@@ -45,7 +46,7 @@ describe("approved shared UI", () => {
 
   it("shows the real staff queue and supported customer-workspace link", () => {
     const header = SiteHeader({ state: "staff", accountName: "Test Staff", department: "Verification", isLead: true });
-    expect(links(header)).toEqual(expect.arrayContaining(["/ops/cases", "/dashboard"]));
+    expect(links(header)).toEqual(expect.arrayContaining(["/ops/cases", "/dashboard", "/ops/profile", "/ops/settings"]));
     expect(text(header)).toContain("Verification · Lead");
     expect(text(header)).not.toMatch(/Records|Team|Handovers/);
   });

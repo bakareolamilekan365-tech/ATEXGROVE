@@ -53,7 +53,7 @@ export async function updateSupabaseSession(request: NextRequest) {
     "/auth/callback",
   ];
   const isPublicPath =
-    publicPaths.includes(pathname) || pathname.startsWith("/api/");
+    publicPaths.includes(pathname) || pathname.startsWith("/info/") || pathname.startsWith("/api/");
 
   if (!user && !isPublicPath) {
     const loginUrl = request.nextUrl.clone();

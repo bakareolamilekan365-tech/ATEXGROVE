@@ -59,13 +59,21 @@ The dashboard content should depend on role. Do not show identical dashboards to
 
 ## Current shared UI foundation (repository branch, not deployment evidence)
 
+### PR #33 account and progress corrections (2026-10-29)
+
+The circular avatar and displayed name link to the authenticated user's profile in the current workspace. Customer and staff Profile pages load existing authorized `profiles` fields; Settings displays email and, for staff, read-only department/role. Profile editing cannot write staff permissions. The header has one compact Light/Dark toggle; Settings has Light/Dark/System, where System tracks OS changes. Auth pages use a centered card and a restrained brand/back-home header; login supports password visibility without changing password-manager attributes or the sign-in flow.
+
+Progress colours describe only supported states: blue for recorded completed transitions, amber for a customer information request, red for cancellation and grey for unreached steps. Current status is labelled in text. Closed and Cancelled are distinct. The eventual six-stage journey and cross-department handover messages remain Planned; no completion is displayed without a matching event.
+
+The current contact form stores one `contact_preference` and an optional consented phone number. Multiple methods, primary/fallback selection, communication-attempt records and fallback behavior are Planned backend work. Do not add a multi-select until its storage, authorization and tests are reviewed.
+
 The `ui/align-approved-design` branch introduces a shared presentation foundation without changing authentication, authorization, case or evidence semantics:
 
 - `SiteHeader` has signed-out, customer and staff states. Staff receive the real queue and the already-supported customer-workspace link, not invented Records, Team or handover routes.
 - `LoginForm` is the single email/password form used by `/login`; the public landing page links to the dedicated sign-in and conditional registration routes instead of embedding authentication fields. It preserves full-document post-authentication navigation and safe `?next=` handling.
 - `FormCard` standardizes `/login`, `/register`, `/forgot-password` and `/update-password` presentation.
 - `PreviewBanner` uses the single `NEXT_PUBLIC_PRIVATE_PREVIEW` flag. When enabled, public registration controls disappear and `/register` explains that approved accounts are required. This is presentation only; Supabase registration policy must be configured separately.
-- `ThemeSwitcher` offers Light, Dark and System modes in the approved header, stores only the display preference in browser storage, follows operating-system changes in System mode and uses an early inline initializer to avoid an incorrect-theme flash.
+- `ThemeSwitcher` offers a compact Light/Dark control in the header and full Light/Dark/System choices in Settings, stores only the display preference in browser storage, follows operating-system changes in System mode and uses an early inline initializer to reduce incorrect-theme flashing.
 - Customer progress, waiting-on-customer actions, document history and activity use real workflow/evidence/event records. Authenticated Help and Profile pages stay inside the customer shell and use existing authorized profile fields.
 - Staff tiles and board columns are computed from the seven existing workflow states. Dashboard groups show at most five cards, link to full filtered lists, and keep Closed and Cancelled separate.
 - The existing self-hosted Figtree dependency and SVG mark/wordmark under `public/logo` remain the only font and brand sources.

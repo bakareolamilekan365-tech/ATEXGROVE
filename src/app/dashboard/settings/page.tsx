@@ -1,6 +1,3 @@
-import { ProfileForm } from "@/components/profile/ProfileForm";
-import styles from "@/components/cases/case-workflow.module.css";
+import { AccountSettingsPage } from "@/components/profile/AccountPages";
 
-export default function DashboardSettingsPage() {
-  return <main className={styles.shell}><ProfileForm title="Profile settings" /></main>;
-}
+export default function DashboardSettingsPage() { return <AccountSettingsPage workspace="customer" />; }

@@ -4,6 +4,18 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-10-29 — PR #33 profile and presentation follow-up
+
+**Problem:** The account initial/name did not open a profile, shared Settings routes were placeholders, and the editable profile form hid load failures and could report success after a zero-row update. The header theme control was bulky, draft/cancelled progress was misleading, and auth pages carried the full site navigation.
+
+**Cause:** The first UI alignment concentrated on static visual structure; account navigation, confirmed write results and workflow-aware progress had not been connected to the existing authenticated data.
+
+**Fix:** Add customer/staff Profile and Settings routes, an avatar/name link, read-only staff role display, confirmed owner-scoped profile saves, compact theme toggle plus full settings choices, and progress derived from supported states and visible events. Center auth cards, add password visibility, expand the public page with project-owned/illustrative imagery and honest information placeholders, and add accessible loading/error recovery. No database or hosted changes.
+
+**Lesson:** A visual control must lead to a working authorized path; a saved profile is not confirmed until the owner-scoped update returns a row. Contact fallback and handover milestones remain backend work, not mock UI state.
+
+**Verification:** Local lint, typecheck, 108 unit tests, 41 integration tests (3 existing skips), guardrails and production build passed. Four public/auth Playwright checks passed after the public information route was added to the middleware allowlist. Authenticated customer/staff browser acceptance remains open. CI results for the final PR head belong in PR #33.
+
 ## 2026-10-28 — Approved references contained more functionality than the product
 
 **Problem:** The customer and staff reference dashboards establish a strong visual direction but also contain names, records, due dates, notifications, handovers, second review, capacity and identity concepts that are not all implemented.
