@@ -5,6 +5,14 @@ import { createVerificationCaseAction, type CaseFormState } from "@/app/dashboar
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { fctAreaCouncils, fctLocationsDisclaimer, listedAreasFor } from "@/lib/verification-cases/abuja-locations";
 import { SubmitButton } from "./SubmitButton";
+import {
+  clearDraftRecovery,
+  createStoredCaseDraft,
+  draftRecoveryKey,
+  hasRecoverableCaseDraft,
+  parseStoredCaseDraft,
+  type RecoverableCaseDraft,
+} from "@/lib/verification-cases/draft-recovery";
 import styles from "./case-workflow.module.css";
 
 const initialState: CaseFormState = { error: null };
@@ -12,9 +20,13 @@ const councilOptions: SelectOption[] = fctAreaCouncils.map(({ name }) => ({ valu
 type Values = { areaLga: string; areaName: string; areaIsListed: boolean; addressLine: string; siteDescription: string; notes: string; contactPreference: string; contactPhone: string; contactPhoneConsent: boolean; customerIntent: string; relationshipToLand: string; actingFor: string; principalName: string; authorityConfirmed: boolean };
 const emptyValues: Values = { areaLga: "", areaName: "", areaIsListed: true, addressLine: "", siteDescription: "", notes: "", contactPreference: "email", contactPhone: "", contactPhoneConsent: false, customerIntent: "", relationshipToLand: "", actingFor: "self", principalName: "", authorityConfirmed: false };
 
-export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: string }>) {
+export function NewCaseForm({ idempotencyKey, userId }: Readonly<{ idempotencyKey: string; userId: string }>) {
   const idempotencyKeyRef = useRef(idempotencyKey);
   const [values, setValues] = useState<Values>(emptyValues);
+  const [recoveryCandidate, setRecoveryCandidate] = useState<RecoverableCaseDraft | null>(null);
+  const [recoveryReady, setRecoveryReady] = useState(false);
+  const [deviceSaveState, setDeviceSaveState] = useState<"saved" | "failed" | null>(null);
+  const editedRef = useRef(false);
   const [state, action] = useActionState(createVerificationCaseAction, initialState);
   const errors = state.fieldErrors ?? {};
   const areaOptions = listedAreasFor(values.areaLga).map((area) => ({ value: area, label: area }));
@@ -35,13 +47,97 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
     if (state.firstInvalidField) document.getElementById(state.firstInvalidField)?.focus();
   }, [state]);
 
-  function update<K extends keyof Values>(key: K, value: Values[K]) { setValues((current) => ({ ...current, [key]: value })); }
+  useEffect(() => {
+    try {
+      const key = draftRecoveryKey(userId);
+      const raw = window.localStorage.getItem(key);
+      const recovered = parseStoredCaseDraft(raw);
+      if (raw && !recovered) window.localStorage.removeItem(key);
+      if (recovered) setRecoveryCandidate(recovered);
+      else setRecoveryReady(true);
+    } catch {
+      setRecoveryReady(true);
+      setDeviceSaveState("failed");
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (!recoveryReady || !editedRef.current) return;
+    const recoverable: RecoverableCaseDraft = {
+      customerIntent: values.customerIntent,
+      relationshipToLand: values.relationshipToLand,
+      areaLga: values.areaLga,
+      areaName: values.areaName,
+      areaIsListed: values.areaIsListed,
+      siteDescription: values.siteDescription,
+    };
+    const timeout = window.setTimeout(() => {
+      try {
+        if (hasRecoverableCaseDraft(recoverable)) {
+          window.localStorage.setItem(
+            draftRecoveryKey(userId),
+            JSON.stringify(createStoredCaseDraft(recoverable)),
+          );
+          setDeviceSaveState("saved");
+        } else {
+          clearDraftRecovery(window.localStorage, userId);
+          setDeviceSaveState(null);
+        }
+      } catch {
+        setDeviceSaveState("failed");
+      }
+    }, 600);
+    return () => window.clearTimeout(timeout);
+  }, [
+    recoveryReady,
+    userId,
+    values.areaIsListed,
+    values.areaLga,
+    values.areaName,
+    values.customerIntent,
+    values.relationshipToLand,
+    values.siteDescription,
+  ]);
+
+  function update<K extends keyof Values>(key: K, value: Values[K]) {
+    editedRef.current = true;
+    setValues((current) => ({ ...current, [key]: value }));
+  }
+  function restoreRecovery() {
+    if (!recoveryCandidate) return;
+    setValues((current) => ({ ...current, ...recoveryCandidate }));
+    setRecoveryCandidate(null);
+    setRecoveryReady(true);
+    setDeviceSaveState("saved");
+  }
+  function discardRecovery() {
+    try {
+      clearDraftRecovery(window.localStorage, userId);
+    } catch {
+      // The form remains usable when browser storage is unavailable.
+    }
+    setRecoveryCandidate(null);
+    setRecoveryReady(true);
+    setDeviceSaveState(null);
+  }
   function fieldError(id: string, message?: string) { return message ? <p className={styles.error} id={`${id}-error`}>{message}</p> : null; }
   function described(helpId: string, error?: string) { return error ? `${helpId} ${helpId.replace("-help", "-error")}` : helpId; }
 
   return (
     <form action={action} className={styles.form}>
       <input type="hidden" name="idempotencyKey" value={idempotencyKeyRef.current} />
+      {recoveryCandidate ? (
+        <div className={styles.recoveryPrompt} role="status">
+          <div>
+            <strong>Continue your unsaved request?</strong>
+            <p>We found request details saved on this device within the last 7 days.</p>
+          </div>
+          <div className={styles.actions}>
+            <button type="button" onClick={restoreRecovery}>Restore details</button>
+            <button className={styles.buttonSecondary} type="button" onClick={discardRecovery}>Discard device copy</button>
+          </div>
+        </div>
+      ) : null}
       <div className={styles.field}>
         <label htmlFor="customerIntent">What are you asking us to help with?</label>
         <select id="customerIntent" name="customerIntent" value={values.customerIntent} onChange={(event) => update("customerIntent", event.target.value)} required aria-invalid={Boolean(errors.customerIntent) || undefined}>
@@ -80,7 +176,7 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
       <div className={styles.field}>
         <label htmlFor="areaLga">FCT area council</label>
         <Select id="areaLga" name="areaLga" label="FCT area council" options={councilOptions} value={values.areaLga}
-          onChange={(areaLga) => setValues((current) => ({ ...current, areaLga, areaName: "", areaIsListed: true }))}
+          onChange={(areaLga) => { editedRef.current = true; setValues((current) => ({ ...current, areaLga, areaName: "", areaIsListed: true })); }}
           required describedBy={described("areaLga-help", errors.areaLga)} error={Boolean(errors.areaLga)} />
         <p className={styles.muted} id="areaLga-help">{fctLocationsDisclaimer}</p>
         {fieldError("areaLga", errors.areaLga)}
@@ -96,7 +192,7 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
           placeholder="Enter your area" minLength={2} maxLength={120} required aria-invalid={Boolean(errors.areaName) || undefined}
           aria-describedby={described("areaName-help", errors.areaName)} />}
         <p className={styles.muted} id="areaName-help">{values.areaIsListed ? "Choose an area from the starter list, or select the option below if it is missing." : "Enter the area name as you know it; it will be marked as unlisted."}</p>
-        <label className={styles.checkbox}><input type="checkbox" checked={!values.areaIsListed} onChange={(event) => setValues((current) => ({ ...current, areaIsListed: !event.target.checked, areaName: "" }))} /> My area isn&apos;t listed</label>
+        <label className={styles.checkbox}><input type="checkbox" checked={!values.areaIsListed} onChange={(event) => { editedRef.current = true; setValues((current) => ({ ...current, areaIsListed: !event.target.checked, areaName: "" })); }} /> My area isn&apos;t listed</label>
         <input type="hidden" name="areaIsListed" value={String(values.areaIsListed)} />
         {fieldError("areaName", errors.areaName)}
       </div>
@@ -149,6 +245,8 @@ export function NewCaseForm({ idempotencyKey }: Readonly<{ idempotencyKey: strin
       </div>
 
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
+      {deviceSaveState === "saved" ? <p className={styles.deviceSave} role="status">Saved on this device. This does not submit your request.</p> : null}
+      {deviceSaveState === "failed" ? <p className={styles.error} role="alert">This device could not save a recovery copy. Save the request to your account before leaving.</p> : null}
       <SubmitButton pendingLabel="Saving request...">Save and add documents</SubmitButton>
       <p className={styles.muted}>Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
     </form>

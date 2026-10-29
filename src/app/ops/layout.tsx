@@ -16,5 +16,5 @@ export default async function OperationsLayout({
   }
 
   const { data: profile } = await context.supabase.from("profiles").select("full_name").eq("user_id", context.user.id).maybeSingle();
-  return <><SiteHeader state="staff" accountName={profile?.full_name ?? context.user.email} department={context.staff.department} isLead={context.staff.is_lead} current="queue" />{children}</>;
+  return <><SiteHeader state="staff" accountName={profile?.full_name ?? context.user.email} accountUserId={context.user.id} department={context.staff.department} isLead={context.staff.is_lead} current="queue" />{children}</>;
 }

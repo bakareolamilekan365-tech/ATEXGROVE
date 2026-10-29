@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { signOutAction } from "@/app/actions";
 import { SiteNavigation, type SiteHeaderState } from "@/components/layout/SiteNavigation";
+import { SignOutButton } from "@/components/layout/SignOutButton";
 import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 
 export type { SiteHeaderState } from "@/components/layout/SiteNavigation";
@@ -9,12 +9,14 @@ export type { SiteHeaderState } from "@/components/layout/SiteNavigation";
 export function SiteHeader({
   state,
   accountName,
+  accountUserId,
   department,
   isLead,
   registrationEnabled = true,
 }: Readonly<{
   state: SiteHeaderState;
   accountName?: string | null;
+  accountUserId?: string;
   department?: string | null;
   isLead?: boolean;
   registrationEnabled?: boolean;
@@ -49,9 +51,7 @@ export function SiteHeader({
                 {state === "staff" ? <span className="status-tag status-tag--verification">Staff</span> : null}
                 <Link href={profileHref}>Profile</Link>
                 <Link href={settingsHref}>Settings</Link>
-                <form action={signOutAction}>
-                  <button type="submit">Sign out</button>
-                </form>
+                <SignOutButton userId={accountUserId} />
               </div>
             </details>
           </div>

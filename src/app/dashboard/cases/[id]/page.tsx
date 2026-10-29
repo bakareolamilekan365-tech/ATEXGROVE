@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
 import { CaseProgress } from "@/components/cases/CaseProgress";
+import { ClearDraftRecovery } from "@/components/cases/ClearDraftRecovery";
 import { CustomerResponseForm } from "@/components/cases/CustomerResponseForm";
 import { EvidenceChecklist } from "@/components/cases/EvidenceChecklist";
 import { CustomerCaseControls } from "@/components/cases/CustomerCaseControls";
@@ -19,8 +20,13 @@ export const dynamic = "force-dynamic";
 
 export default async function CustomerCasePage({
   params,
-}: Readonly<{ params: Promise<{ id: string }> }>) {
+  searchParams,
+}: Readonly<{
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ draft?: string }>;
+}>) {
   const { id } = await params;
+  const { draft } = await searchParams;
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
@@ -33,30 +39,111 @@ export default async function CustomerCasePage({
   if (!caseData) notFound();
 
   const item = caseData as VerificationCase;
+  if (item.discarded_at) redirect("/dashboard/cases");
   const events = caseTimelineEvents((eventData ?? []) as CaseStatusEvent[]);
   const evidence = (evidenceData ?? []) as CaseEvidence[];
   const customerActions = customerCaseActions(item.workflow_status);
   const location = caseLocationDisplay(item.area_name, item.area_lga);
+  const progressHistory = events
+    .filter((event) => event.event_kind === "status_change" || event.event_kind === "information_requested")
+    .map((event) => event.to_status);
 
   return (
     <main className={styles.shell}>
+      {draft === "created" ? <ClearDraftRecovery userId={user.id} /> : null}
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
           <h1>{location.heading}</h1>
           {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
           <div className={styles.metaRow}>
-            {item.is_demo_data ? <span className={styles.demo}>Demo data · not official</span> : null}
+            {item.is_demo_data ? <span className={styles.demo}>Demo data / not official</span> : null}
             <CaseStatusBadge status={item.workflow_status} />
           </div>
           <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
-          <CaseProgress status={item.workflow_status} history={events.filter((event) => event.event_kind === "status_change" || event.event_kind === "information_requested").map((event) => event.to_status)} />
-          {item.workflow_status === "draft" ? <p className={styles.notice}>This request is saved as a draft. Staff cannot see it until you submit it.</p> : null}
+          <CaseProgress status={item.workflow_status} history={progressHistory} />
+          {item.workflow_status === "draft" ? (
+            <p className={styles.notice}>
+              Your request is saved to your account. Submit it when you&apos;re ready. Staff cannot see it until then.
+            </p>
+          ) : null}
         </div>
-        <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard">Back to dashboard</Link>
+        <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard/cases">Back to My cases</Link>
       </div>
 
-      <div className={styles.twoColumn}>
+      <div className={styles.caseWorkspace}>
+        <div className={styles.caseEvidenceColumn}>
+          {customerActions.canUploadEvidence ? (
+            <section className={styles.panel}>
+              <h2>{item.workflow_status === "draft" ? "Document checklist" : "Add documents"}</h2>
+              <p className={styles.muted}>
+                Choose a category, then save the file privately. Saving a document does not submit this request.
+              </p>
+              <EvidenceChecklist caseId={item.id} evidence={evidence} />
+            </section>
+          ) : null}
+
+          <section className={styles.panel}>
+            <div className={styles.cardHeader}>
+              <div>
+                <p className={styles.eyebrow}>Private evidence</p>
+                <h2>Document history ({evidence.length}/10)</h2>
+              </div>
+              {item.is_demo_data ? <span className={styles.demo}>Demo data / not official</span> : null}
+            </div>
+            <p className={styles.muted}>Sharing a document for review does not authenticate it.</p>
+            {evidence.length ? (
+              <div className={styles.stack}>
+                {evidence.map((document) => {
+                  const predecessor = evidence.find((candidate) => candidate.id === document.supersedes_evidence_id);
+                  return (
+                    <article className={styles.card} key={document.id}>
+                      <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
+                      <p>{document.description}</p>
+                      <p className={styles.notice}>
+                        {document.submitted_at
+                          ? "Shared with the review team. The document has not been authenticated."
+                          : "Document saved. It will be shared with the review team when you submit your request."}
+                      </p>
+                      <p className={`${styles.muted} ${styles.small}`}>
+                        Uploaded {new Date(document.created_at).toLocaleString("en-NG")}
+                        {document.submitted_at ? ` / Submitted ${new Date(document.submitted_at).toLocaleString("en-NG")}` : ""}
+                      </p>
+                      <p className={`${styles.muted} ${styles.small}`}>
+                        {document.original_filename} / Version {document.version} / {(document.size_bytes / 1024).toFixed(1)} KB
+                      </p>
+                      {predecessor ? (
+                        <p className={`${styles.muted} ${styles.small}`}>
+                          Replacement for Version {predecessor.version} ({predecessor.original_filename})
+                        </p>
+                      ) : null}
+                      <span className={styles.demo}>Demo data / not official</span>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : <p className={styles.empty}>No documents added.</p>}
+          </section>
+        </div>
+
+        <aside className={styles.caseActionColumn}>
+          <CustomerCaseControls caseId={item.id} status={item.workflow_status} />
+          {item.workflow_status === "needs_customer_info" ? (
+            <section className={styles.panel}>
+              <h2>Respond to the review team</h2>
+              {item.information_request_event_id ? (
+                <CustomerResponseForm caseId={item.id} requestEventId={item.information_request_event_id} />
+              ) : (
+                <p className={styles.error}>
+                  This request needs a review-team refresh before you can submit a response. Your saved files remain private.
+                </p>
+              )}
+            </section>
+          ) : null}
+        </aside>
+      </div>
+
+      <div className={styles.caseDetailLower}>
         <section className={styles.panel}>
           <h2>Case timeline</h2>
           <p className={styles.muted}>Only updates approved for customer viewing appear here.</p>
@@ -77,45 +164,7 @@ export default async function CustomerCasePage({
           {eventError ? <p className={styles.error} role="alert">The timeline could not be loaded. Refresh to try again.</p> : null}
           {!eventError && events.length === 0 ? <p className={styles.empty}>No timeline activity yet.</p> : null}
         </section>
-        <section className={styles.panel}>
-          <div className={styles.cardHeader}>
-            <div>
-              <p className={styles.eyebrow}>Private evidence</p>
-              <h2>Document history ({evidence.length}/10)</h2>
-            </div>
-            {item.is_demo_data ? <span className={styles.demo}>Demo data / not official</span> : null}
-          </div>
-          <p className={styles.muted}>Submission for review does not authenticate any document.</p>
-          {evidence.length ? (
-            <div className={styles.stack}>
-              {evidence.map((document) => {
-                const predecessor = evidence.find((item) => item.id === document.supersedes_evidence_id);
-                return <article className={styles.card} key={document.id}>
-                  <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
-                  <p>{document.description}</p>
-                  <p className={styles.notice}>{document.submitted_at ? "Submitted for review — not authenticated" : "Saved — not yet submitted to the review team"}</p>
-                  <p className={`${styles.muted} ${styles.small}`}>Uploaded {new Date(document.created_at).toLocaleString("en-NG")}{document.submitted_at ? ` · Submitted ${new Date(document.submitted_at).toLocaleString("en-NG")}` : ""}</p>
-                  <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
-                  {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}
-                  <span className={styles.demo}>Demo data / not official</span>
-                </article>
-              })}
-            </div>
-          ) : <p className={styles.empty}>No documents added.</p>}
-        </section>
-        {customerActions.canUploadEvidence ? (
-          <section className={styles.panel}>
-            <h2>{item.workflow_status === "draft" ? "Document checklist" : "Add documents"}</h2>
-            <EvidenceChecklist caseId={item.id} evidence={evidence} />
-          </section>
-        ) : null}
-        <CustomerCaseControls caseId={item.id} status={item.workflow_status} />
-        {item.workflow_status === "needs_customer_info" ? (
-          <section className={styles.panel}>
-            <h2>Respond to the review team</h2>
-            {item.information_request_event_id ? <CustomerResponseForm caseId={item.id} requestEventId={item.information_request_event_id} /> : <p className={styles.error}>This request needs a review-team refresh before you can submit a response. Your saved files remain private.</p>}
-          </section>
-        ) : null}
+
         <aside className={styles.card}>
           <p className={styles.eyebrow}>{item.workflow_status === "draft" ? "Draft" : "Request received"}</p>
           <h2>Site details</h2>
@@ -126,7 +175,7 @@ export default async function CustomerCasePage({
           <p><strong>Area list status:</strong> {item.area_is_listed === null ? "Not recorded" : item.area_is_listed ? "Starter list" : "Customer-entered, not in starter list"}</p>
           <p><strong>Address:</strong> {item.address_line ?? "Not recorded"}</p>
           <p><strong>Contact:</strong> {item.contact_preference}</p>
-          <h3>Your intake details · Your claims, not verified</h3>
+          <h3>Your intake details. Your claims are not verified.</h3>
           <p><strong>Intent:</strong> {formatCustomerIntent(item.customer_intent)}</p>
           <p><strong>Relationship to land:</strong> {formatRelationshipToLand(item.relationship_to_land)}</p>
           <p><strong>Request for:</strong> {formatActingFor(item.acting_for, item.principal_name)}</p>

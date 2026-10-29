@@ -31,6 +31,7 @@ export default async function DashboardPage({
       .from("verification_cases")
       .select("id, case_number, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, discarded_at, customer_intent, relationship_to_land, acting_for, principal_name, authority_confirmed, created_at, updated_at")
       .eq("customer_user_id", user.id)
+      .is("discarded_at", null)
       .order("created_at", { ascending: false }),
   ]);
 

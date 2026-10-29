@@ -185,6 +185,34 @@
 
 .twoColumn { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr); gap: 1.25rem; align-items: start; }
 
+.caseWorkspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.75fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.caseEvidenceColumn, .caseActionColumn { display: grid; gap: 1.25rem; }
+.caseActionColumn { position: sticky; top: 96px; }
+.caseDetailLower {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  align-items: start;
+}
+.recoveryPrompt {
+  display: flex;
+  padding: 1rem 1.1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--brand-border);
+  border-radius: 16px;
+  background: var(--brand-primary-tint);
+}
+.recoveryPrompt p { margin: 0.25rem 0 0; }
+.deviceSave { margin: 0; color: var(--text-muted); font-weight: 700; }
+
 .actionPanel {
   display: flex;
   margin-bottom: 2rem;
@@ -249,6 +277,9 @@
 
 @media (max-width: 780px) {
   .twoColumn { grid-template-columns: 1fr; }
+  .caseWorkspace, .caseDetailLower { grid-template-columns: 1fr; }
+  .caseActionColumn { position: static; }
+  .recoveryPrompt { align-items: flex-start; flex-direction: column; }
   .headerRow { align-items: flex-start; }
   .shell { padding: 32px 16px 52px; }
   .actionPanel { align-items: flex-start; flex-direction: column; }

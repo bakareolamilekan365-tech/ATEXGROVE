@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <SiteHeader state="customer" accountName={profile?.full_name ?? user.email} current="cases" />
+      <SiteHeader state="customer" accountName={profile?.full_name ?? user.email} accountUserId={user.id} current="cases" />
       {children}
     </>
   );
