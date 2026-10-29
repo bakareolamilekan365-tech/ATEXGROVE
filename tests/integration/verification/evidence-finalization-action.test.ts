@@ -175,7 +175,7 @@ describe("metadata-only evidence finalization", () => {
     const { rpc } = authenticatedClient();
     await expect(finalizeCaseEvidenceUploadAction(validInput)).resolves.toMatchObject({
       error: null,
-      success: expect.stringContaining("not yet submitted"),
+      success: expect.stringContaining("shared with the review team when you submit"),
     });
     expect(mocks.verifyStoredEvidenceObject).toHaveBeenCalledWith({
       storagePath: path,

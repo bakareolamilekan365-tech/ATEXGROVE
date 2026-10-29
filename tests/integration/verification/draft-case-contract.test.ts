@@ -20,6 +20,17 @@ describe("draft case application/database contract", () => {
     expect(caseActions).toContain('rpc("discard_draft_case"');
     expect(caseActions).toContain('rpc("cancel_verification_case"');
     expect(caseActions).toContain("p_reason: reason");
+    expect(caseActions).toContain('redirect("/dashboard/cases")');
+  });
+
+  it("keeps discarded drafts out of customer navigation and direct detail access", () => {
+    const dashboard = readFileSync("src/app/dashboard/page.tsx", "utf8");
+    const caseList = readFileSync("src/app/dashboard/cases/page.tsx", "utf8");
+    const detail = readFileSync("src/app/dashboard/cases/[id]/page.tsx", "utf8");
+    expect(dashboard).toContain('.is("discarded_at", null)');
+    expect(caseList).toContain('.eq("customer_user_id", user.id)');
+    expect(caseList).toContain('.is("discarded_at", null)');
+    expect(detail).toContain('if (item.discarded_at) redirect("/dashboard/cases")');
   });
 
   it("replaces RPC signatures and writes explicit scope consent on submit", () => {

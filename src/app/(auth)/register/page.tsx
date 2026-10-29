@@ -1,83 +1,21 @@
-"use client";
-
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createSupabaseClient } from "@/lib/supabase/client";
-import styles from "@/components/cases/case-workflow.module.css";
+import Link from "next/link";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { FormCard } from "@/components/ui/FormCard";
+import { privatePreviewEnabled } from "@/lib/config/private-preview";
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setMessage(null);
-    setError(null);
-
-    const { data, error: signUpError } =
-      await createSupabaseClient().auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding/role`,
-        },
-      });
-
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
-
-    if (data.session) {
-      router.push("/onboarding/role");
-      router.refresh();
-      return;
-    }
-
-    setMessage("Check your email to confirm your account, then sign in.");
+  if (privatePreviewEnabled()) {
+    return (
+      <FormCard eyebrow="Private preview" title="Approved accounts only" intro="Public registration is unavailable during the private preview.">
+        <p className="muted">If you have an approved account, sign in with the email address provided to you.</p>
+        <Link className="button button--primary button--full" href="/login">Go to sign in</Link>
+      </FormCard>
+    );
   }
-
   return (
-    <main>
-      <h1>Create your account</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="full-name">Full name</label>
-        <input
-          id="full-name"
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          required
-        />
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          minLength={8}
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-        {message ? <p role="status">{message}</p> : null}
-        {error ? <p role="alert">{error}</p> : null}
-        <button type="submit">Create account</button>
-        <p className={styles.muted}>Atexgrove is a demo prototype. Use test details only and don&apos;t enter real land documents or sensitive personal data. A full privacy policy will be published before real use.</p>
-      </form>
-      <p>
-        <a href="/login">Already have an account?</a>
-      </p>
-    </main>
+    <FormCard eyebrow="New customer" title="Create your account" intro="Create a customer account to start and follow a request.">
+      <RegisterForm />
+      <p><Link href="/login">Already have an account?</Link></p>
+    </FormCard>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AssignmentForm } from "@/components/cases/AssignmentForm";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { CaseProgress } from "@/components/cases/CaseProgress";
 import { StatusTransitionForm } from "@/components/cases/StatusTransitionForm";
 import styles from "@/components/cases/case-workflow.module.css";
 import { downloadCaseEvidenceAction } from "@/app/ops/cases/actions";
@@ -56,7 +57,7 @@ export default async function OperationsCasePage({
   }
 
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${styles.shellStaff}`}>
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{item.department} · {item.case_number ?? "Not recorded"}</p>
@@ -66,6 +67,10 @@ export default async function OperationsCasePage({
             <span className={styles.demo}>Demo data · not official</span>
             <CaseStatusBadge status={item.workflow_status} />
           </div>
+          <CaseProgress
+            status={item.workflow_status}
+            history={events.filter((event) => event.event_kind === "status_change" || event.event_kind === "information_requested").map((event) => event.to_status)}
+          />
         </div>
         <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Back to queue</Link>
       </div>
@@ -107,7 +112,7 @@ export default async function OperationsCasePage({
                   return <article className={styles.card} key={document.id}>
                     <strong>{evidenceTypeLabels[document.evidence_type]}</strong>
                     <p>{document.description}</p>
-                  <p className={styles.notice}>{document.submitted_at ? "Submitted for review — not authenticated" : "Saved — not yet submitted to the review team"}</p>
+                  <p className={styles.notice}>{document.submitted_at ? "Shared with the review team. The document has not been authenticated." : "Document saved. It has not been shared with the review team."}</p>
                   <p className={`${styles.muted} ${styles.small}`}>Uploaded {new Date(document.created_at).toLocaleString("en-NG")}{document.submitted_at ? ` · Submitted ${new Date(document.submitted_at).toLocaleString("en-NG")}` : ""}</p>
                     <p className={`${styles.muted} ${styles.small}`}>{document.original_filename} · Version {document.version} · {(document.size_bytes / 1024).toFixed(1)} KB</p>
                     {predecessor ? <p className={`${styles.muted} ${styles.small}`}>Replacement for Version {predecessor.version} ({predecessor.original_filename})</p> : null}

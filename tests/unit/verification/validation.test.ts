@@ -110,9 +110,10 @@ describe("new verification case validation", () => {
   });
 
   it("renders draft receipt language as saved, not received", () => {
-    const dashboard = readFileSync(resolve(process.cwd(), "src/app/dashboard/page.tsx"), "utf8");
+    const statusLabels = readFileSync(resolve(process.cwd(), "src/lib/verification-cases/status.ts"), "utf8");
     const casePage = readFileSync(resolve(process.cwd(), "src/app/dashboard/cases/[id]/page.tsx"), "utf8");
-    expect(dashboard).toContain('item.workflow_status === "draft" ? "Saved" : "Received"');
+    expect(statusLabels).toContain('draft: "Draft"');
+    expect(statusLabels).not.toContain('draft: "Received"');
     expect(casePage).toContain('item.workflow_status === "draft" ? "Draft" : "Request received"');
   });
 

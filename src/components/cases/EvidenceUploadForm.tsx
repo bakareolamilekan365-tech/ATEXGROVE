@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useMemo, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { finalizeCaseEvidenceUploadAction } from "@/app/dashboard/cases/[id]/actions";
 import {
@@ -29,12 +29,14 @@ export function EvidenceUploadForm({
   defaultEvidenceType,
 }: Readonly<{ caseId: string; existingEvidence: ExistingEvidenceOption[]; defaultEvidenceType?: (typeof evidenceTypes)[number] }>) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const inFlight = useRef(false);
   const [state, setState] = useState(initialState);
   const [stage, setStage] = useState<"idle" | "uploading" | "finalizing">("idle");
   const [evidenceType, setEvidenceType] = useState<(typeof evidenceTypes)[number] | "">(defaultEvidenceType ?? "");
   const [uploadMode, setUploadMode] = useState<"new" | "replacement">("new");
   const [predecessorId, setPredecessorId] = useState("");
+  const [selectedFilename, setSelectedFilename] = useState("");
   const replacementOptions = useMemo(
     () => evidenceType === "" ? [] : latestReplaceableEvidence(
       existingEvidence.map((item) => ({
@@ -48,6 +50,13 @@ export function EvidenceUploadForm({
     ),
     [existingEvidence, evidenceType],
   );
+
+  useEffect(() => {
+    const form = formRef.current;
+    if (!form) return;
+    form.focus({ preventScroll: true });
+    form.scrollIntoView({ block: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, []);
 
   function changeEvidenceType(value: string) {
     if (value === "") {
@@ -106,7 +115,7 @@ export function EvidenceUploadForm({
   }
 
   return (
-    <form className={styles.form} onSubmit={submitEvidence}>
+    <form ref={formRef} tabIndex={-1} className={styles.form} onSubmit={submitEvidence} aria-label={`Add ${evidenceType === "" ? "case evidence" : evidenceTypeLabels[evidenceType]}`}>
       <input type="hidden" name="caseId" value={caseId} />
       <div className={styles.field}>
         <label htmlFor="evidenceType">Document type</label>
@@ -123,11 +132,11 @@ export function EvidenceUploadForm({
         <legend>Upload type</legend>
         <label>
           <input type="radio" name="uploadMode" value="new" checked={uploadMode === "new"} onChange={() => { setUploadMode("new"); setPredecessorId(""); }} />
-          <span><strong>New document</strong> — a separate record starting at Version 1</span>
+          <span><strong>New document:</strong> a separate record starting at Version 1</span>
         </label>
         <label>
           <input type="radio" name="uploadMode" value="replacement" checked={uploadMode === "replacement"} disabled={replacementOptions.length === 0} onChange={() => setUploadMode("replacement")} />
-          <span><strong>Replacement version</strong> — link a corrected file to the latest version</span>
+          <span><strong>Replacement version:</strong> link a corrected file to the latest version</span>
         </label>
       </fieldset>
       {uploadMode === "replacement" ? (
@@ -137,7 +146,7 @@ export function EvidenceUploadForm({
             <option value="" disabled>Select the latest version</option>
             {replacementOptions.map((document) => (
               <option key={document.id} value={document.id}>
-                {evidenceTypeLabels[document.evidence_type]} — Version {document.version} · {document.original_filename}
+                {evidenceTypeLabels[document.evidence_type]}: Version {document.version} / {document.original_filename}
               </option>
             ))}
           </select>
@@ -147,14 +156,16 @@ export function EvidenceUploadForm({
       ) : <input type="hidden" name="supersedesEvidenceId" value="" />}
       <div className={styles.field}>
         <label htmlFor="evidenceFile">PDF, JPG or PNG (maximum 10 MB)</label>
-        <input id="evidenceFile" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required />
+        <input id="evidenceFile" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required onChange={(event) => setSelectedFilename(event.target.files?.[0]?.name ?? "")} />
+        <span className={`${styles.muted} ${styles.small}`} role="status">{selectedFilename ? `Selected file: ${selectedFilename}` : "No file selected."}</span>
       </div>
-      <div className={styles.notice}>Synthetic or properly redacted files only. Saved privately — not yet submitted to the review team.</div>
+      <div className={styles.notice}>Synthetic or properly redacted files only. The document is saved privately and is not shared until you submit the request.</div>
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       {state.success ? <p className={styles.success} role="status">{state.success}</p> : null}
-      <button type="submit" disabled={stage !== "idle"}>
+      <button type="submit" disabled={stage !== "idle"} aria-describedby={stage !== "idle" ? "evidence-upload-stage" : undefined}>
         {stage === "uploading" ? "Uploading..." : stage === "finalizing" ? "Validating and saving..." : "Add document"}
       </button>
+      <span id="evidence-upload-stage" className="sr-only" aria-live="polite">{stage === "uploading" ? "Uploading document" : stage === "finalizing" ? "Validating and saving document" : ""}</span>
     </form>
   );
 }
