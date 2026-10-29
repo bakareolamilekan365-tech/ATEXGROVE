@@ -22,13 +22,14 @@ export function EvidenceChecklist({ caseId, evidence }: Readonly<{ caseId: strin
     <ul className={styles.stack}>
       {evidenceTypes.map((type) => {
         const count = evidence.filter((item) => item.evidence_type === type).length;
-        return <li className={styles.card} key={type}>
-          <div className={styles.cardHeader}><strong>{evidenceTypeLabels[type]}</strong><span>{count} supplied</span></div>
+        const selected = selectedType === type;
+        return <li className={`${styles.card} ${selected ? styles.evidenceSelected : ""}`} key={type}>
+          <div className={styles.cardHeader}><strong>{evidenceTypeLabels[type]}</strong><span>{selected ? "Selected" : `${count} supplied`}</span></div>
           <p className={styles.muted}>{guidance[type]}</p>
-          <button className={styles.button} type="button" aria-expanded={selectedType === type} onClick={() => setSelectedType(selectedType === type ? null : type)}>Add</button>
+          <button className={styles.button} type="button" aria-expanded={selected} aria-controls={`evidence-upload-${type}`} onClick={() => setSelectedType(selected ? null : type)}>{selected ? "Close upload form" : "Add document"}</button>
+          {selected ? <div id={`evidence-upload-${type}`} className={styles.evidenceInlineForm}><EvidenceUploadForm key={type} caseId={caseId} existingEvidence={existing} defaultEvidenceType={type} /></div> : null}
         </li>;
       })}
     </ul>
-    {selectedType ? <EvidenceUploadForm key={selectedType} caseId={caseId} existingEvidence={existing} defaultEvidenceType={selectedType} /> : null}
   </div>;
 }

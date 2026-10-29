@@ -5,7 +5,7 @@ import { requireStaff } from "@/lib/auth/guards";
 import { verificationCaseStatuses, type VerificationCase } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { formatCustomerIntent } from "@/lib/verification-cases/intake-labels";
-import { groupStaffCases, STAFF_DASHBOARD_CARD_LIMIT } from "@/lib/verification-cases/staff-queue";
+import { groupStaffCases } from "@/lib/verification-cases/staff-queue";
 
 export const dynamic = "force-dynamic";
 
@@ -91,7 +91,7 @@ export default async function CaseQueuePage({
                 <h2 id={`queue-${column.key}`}>{column.title}</h2>
                 <span>{column.cases.length}</span>
               </div>
-              {column.cases.length ? (filteredList ? column.cases : column.cases.slice(0, STAFF_DASHBOARD_CARD_LIMIT)).map((item) => {
+              {column.cases.length ? (filteredList ? column.cases : column.cases.slice(0, column.previewLimit)).map((item) => {
                 const location = caseLocationDisplay(item.area_name, item.area_lga);
                 return (
                   <article className={styles.queueCard} key={item.id}>

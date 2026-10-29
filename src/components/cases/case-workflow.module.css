@@ -148,6 +148,12 @@
   color: var(--text-primary);
   font: inherit;
 }
+.field input[type="file"] { padding: 0.55rem; cursor: pointer; }
+.field input[type="file"]::file-selector-button { min-height: 40px; margin-right: 0.75rem; padding: 0.45rem 0.8rem; border: 1px solid var(--brand-border); border-radius: 999px; background: var(--control-surface); color: var(--brand-primary); font: inherit; font-weight: 800; cursor: pointer; }
+.field input[type="file"]::file-selector-button:hover { background: var(--control-hover); }
+.evidenceSelected { border-color: var(--brand-primary); box-shadow: 0 0 0 3px var(--brand-primary-tint), var(--shadow-card); }
+.evidenceInlineForm { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--hairline); }
+.evidenceInlineForm form:focus { outline: none; }
 
 .field textarea { resize: vertical; }
 .fieldset { display: flex; flex-wrap: wrap; gap: 0.8rem 1.25rem; border: 0; padding: 0; }
@@ -211,12 +217,16 @@
 .progress .progressAttention > span { background: #d97706; }
 .progress .progressCancelled { color: var(--danger-text); }
 .progress .progressCancelled > span { background: #dc2626; }
+.progress .progressTerminal { color: var(--text-secondary); }
+.progress .progressTerminal > span { background: var(--neutral-chip-text); }
 .progress li[aria-current="step"] { color: var(--brand-primary); }
 .progress li.progressAttention[aria-current="step"] { color: var(--warning-text); }
 .progress li.progressCancelled[aria-current="step"] { color: var(--danger-text); }
+.progress li.progressTerminal[aria-current="step"] { color: var(--text-secondary); }
 .progress li[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--brand-primary-tint); }
 .progress li.progressAttention[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--warning-bg); }
 .progress li.progressCancelled[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--danger-bg); }
+.progress li.progressTerminal[aria-current="step"] > span { box-shadow: 0 0 0 3px var(--neutral-chip); }
 .progressCompact { margin-top: 6px; gap: 5px; }
 .progressCompact li { min-width: 24px; flex-basis: 24px; }
 .progressCompact li strong { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }

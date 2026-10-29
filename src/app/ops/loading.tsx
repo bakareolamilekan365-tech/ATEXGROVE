@@ -1,1 +1,3 @@
-export default function StaffLoading() { return <main className="page-container page-main" aria-busy="true"><p role="status">Loading your work queue…</p><div className="loading-grid" aria-hidden="true"><div /><div /><div /></div></main>; }
+import { StaffQueueSkeleton } from "@/components/ui/LoadingSkeletons";
+
+export default function StaffLoading() { return <StaffQueueSkeleton />; }

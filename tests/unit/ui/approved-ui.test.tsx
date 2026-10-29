@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import RegisterPage from "@/app/(auth)/register/page";
 import { PreviewBanner, PRIVATE_PREVIEW_MESSAGE } from "@/components/layout/PreviewBanner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SiteNavigation } from "@/components/layout/SiteNavigation";
 import { publicRegistrationEnabled } from "@/lib/config/private-preview";
 
 type Element = ReactElement<Record<string, unknown>>;
@@ -31,22 +32,27 @@ describe("approved shared UI", () => {
 
   it("shows only the approved signed-out navigation", () => {
     const header = SiteHeader({ state: "signed-out", registrationEnabled: true });
-    expect(links(header)).toEqual(expect.arrayContaining(["/", "/#how-it-works", "/#help", "/#contact", "/login", "/register"]));
-    expect(text(header)).toContain("Create account");
+    const navigation = SiteNavigation({ state: "signed-out", registrationEnabled: true });
+    expect(links(navigation)).toEqual(expect.arrayContaining(["/", "/#how-it-works", "/#help", "/#contact", "/login", "/register"]));
+    expect(text(navigation)).toContain("Create account");
+    expect(elements(header).some(({ props }) => props.src === "/logo/atexgrove-wordmark.svg")).toBe(true);
   });
 
   it("shows customer navigation and identity without staff routes", () => {
     const header = SiteHeader({ state: "customer", accountName: "Test Customer" });
-    expect(links(header)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard/help", "/dashboard/settings"]));
+    const navigation = SiteNavigation({ state: "customer", registrationEnabled: true });
+    expect(links(navigation)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard#my-cases", "/dashboard/help"]));
     expect(links(header)).toContain("/dashboard/profile");
-    expect(links(header)).not.toContain("/ops/cases");
+    expect(links(navigation)).not.toContain("/ops/cases");
     expect(text(header)).toContain("Test Customer");
     expect(text(header)).toContain("Customer");
   });
 
   it("shows the real staff queue and supported customer-workspace link", () => {
     const header = SiteHeader({ state: "staff", accountName: "Test Staff", department: "Verification", isLead: true });
-    expect(links(header)).toEqual(expect.arrayContaining(["/ops/cases", "/dashboard", "/ops/profile", "/ops/settings"]));
+    const navigation = SiteNavigation({ state: "staff", registrationEnabled: true });
+    expect(links(navigation)).toEqual(expect.arrayContaining(["/ops/cases", "/dashboard"]));
+    expect(links(header)).toEqual(expect.arrayContaining(["/ops/profile", "/ops/settings"]));
     expect(text(header)).toContain("Verification · Lead");
     expect(text(header)).not.toMatch(/Records|Team|Handovers/);
   });
@@ -59,7 +65,7 @@ describe("approved shared UI", () => {
   it("removes public registration controls in private-preview mode", () => {
     process.env.NEXT_PUBLIC_PRIVATE_PREVIEW = "true";
     expect(publicRegistrationEnabled()).toBe(false);
-    expect(text(SiteHeader({ state: "signed-out", registrationEnabled: false }))).not.toContain("Create account");
+    expect(text(SiteNavigation({ state: "signed-out", registrationEnabled: false }))).not.toContain("Create account");
     const page = RegisterPage();
     expect(page.props.title).toBe("Approved accounts only");
     expect(text(page)).not.toContain("Full name");

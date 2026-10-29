@@ -68,9 +68,17 @@ export async function updateSupabaseSession(request: NextRequest) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     dashboardUrl.search = "";
-    return copySessionState(NextResponse.redirect(dashboardUrl));
+    const dashboardResponse = copySessionState(NextResponse.redirect(dashboardUrl));
+    dashboardResponse.headers.set("Cache-Control", "private, no-store, max-age=0");
+    dashboardResponse.headers.set("Pragma", "no-cache");
+    dashboardResponse.headers.set("Expires", "0");
+    return dashboardResponse;
   }
 
-  if (!isPublicPath) response.headers.set("Cache-Control", "private, no-store, max-age=0");
+  if (!isPublicPath) {
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+  }
   return response;
 }

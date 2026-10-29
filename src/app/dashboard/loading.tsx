@@ -1,1 +1,3 @@
-export default function DashboardLoading() { return <main className="page-container page-main" aria-busy="true"><p role="status">Loading your cases…</p><div className="loading-grid" aria-hidden="true"><div /><div /><div /></div></main>; }
+import { CustomerDashboardSkeleton } from "@/components/ui/LoadingSkeletons";
+
+export default function DashboardLoading() { return <CustomerDashboardSkeleton />; }

@@ -1,5 +1,5 @@
 type LocalSignOutClient = {
-  auth: { signOut: (options: { scope: "local" }) => Promise<unknown> };
+  auth: { signOut: (options: { scope: "local" }) => Promise<{ error: { message?: string } | null }> };
 };
 
 export async function signOutLocalSession(client: LocalSignOutClient) {

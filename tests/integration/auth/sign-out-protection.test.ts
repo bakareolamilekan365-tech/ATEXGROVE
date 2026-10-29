@@ -40,6 +40,15 @@ describe("protected route after sign-out", () => {
     expect(response.status).toBe(200);
   });
 
+  it("marks authenticated protected responses private even when no cookie refresh is needed", async () => {
+    auth.getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    const response = await updateSupabaseSession(new NextRequest("https://example.test/dashboard"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toContain("no-store");
+    expect(response.headers.get("pragma")).toBe("no-cache");
+    expect(response.headers.get("expires")).toBe("0");
+  });
+
   it("preserves refreshed session cookies and cache headers on a redirect", async () => {
     auth.getUser.mockImplementation(async () => {
       auth.setAll?.(

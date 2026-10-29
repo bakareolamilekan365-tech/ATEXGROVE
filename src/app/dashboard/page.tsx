@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage({
   searchParams,
-}: Readonly<{ searchParams: Promise<{ request?: string }> }>) {
+}: Readonly<{ searchParams: Promise<{ request?: string; signout?: string }> }>) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -49,7 +49,7 @@ export default async function DashboardPage({
     professional: "Your platform role is not professional verification. Staff access is granted separately.",
     admin: "Administrative account type is separate from the scoped staff work queue.",
   };
-  const { request } = await searchParams;
+  const { request, signout } = await searchParams;
   const ownCases = (cases ?? []) as VerificationCase[];
   const { data: progressEvents } = ownCases.length
     ? await supabase.from("case_status_events").select("verification_case_id, to_status").eq("customer_visible", true).in("event_kind", ["status_change", "information_requested"]).in("verification_case_id", ownCases.map((item) => item.id))
@@ -90,6 +90,12 @@ export default async function DashboardPage({
         </p>
       ) : null}
 
+      {signout === "failed" ? (
+        <p className={styles.error} role="alert">
+          We could not sign you out. Your session is still active; please try again.
+        </p>
+      ) : null}
+
       {waitingCases.length ? (
         <section className={styles.actionPanel} aria-labelledby="waiting-on-you-title">
           <div><p className={styles.eyebrow}>Waiting on you</p><h2 id="waiting-on-you-title">Continue your open work</h2></div>
@@ -99,7 +105,7 @@ export default async function DashboardPage({
         </section>
       ) : null}
 
-      <div className={styles.cardHeader}>
+      <div className={styles.cardHeader} id="my-cases">
         <h2>My cases</h2>
         <span className={styles.demo}>Demo data · not official</span>
       </div>
