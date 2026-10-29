@@ -57,7 +57,7 @@ export default async function OperationsCasePage({
   }
 
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${styles.shellStaff}`}>
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{item.department} · {item.case_number ?? "Not recorded"}</p>

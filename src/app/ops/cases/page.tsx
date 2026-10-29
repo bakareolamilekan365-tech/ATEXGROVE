@@ -51,7 +51,7 @@ export default async function CaseQueuePage({
     : groupStaffCases(cases);
 
   return (
-    <main className={styles.shell}>
+    <main className={`${styles.shell} ${styles.shellStaff}`}>
       <div className={styles.headerRow}>
         <div>
           <p className={styles.eyebrow}>{staff.department} department</p>

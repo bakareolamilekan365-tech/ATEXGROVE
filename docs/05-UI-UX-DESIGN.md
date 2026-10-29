@@ -65,7 +65,7 @@ The circular avatar uses first-name/surname initials and opens a compact account
 
 Only one login request may be pending. While it is pending, login fields, visibility control and conflicting registration/recovery links are unavailable; a failed request restores them. This prevents page flashing or navigation races without changing Supabase authentication or safe `?next=` validation. Expected persistent Supabase sessions are not replaced with an unapproved idle timeout.
 
-Compact progress has four labels: Saved, Submitted, In review and Finished. Only the current stage is highlighted; an earlier stage is done only when the case record or event history records that milestone. Waiting on you is an amber note on In review. Closed replaces the bar with one neutral label and states that the review ended without a final land assessment. Cancelled replaces it with one red label. Green is not a case-status colour. Detailed history remains in the timeline.
+Compact progress has four reachable labels: Saved, Submitted, Reviewer assigned and In review. Only milestones supported by current case data or recorded status history are complete. Waiting on you is an amber note on the review milestone. Closed and Cancelled keep the journey visible, then explain the terminal outcome separately. Closure is administrative and must never imply successful land verification. Detailed history remains in the timeline.
 
 Customer Home is an overview of real counts, drafts, action-required requests and customer-safe activity. My Cases is a separate customer-owned list with search and status filters. Discarded drafts are not presented as cancelled requests. Before a server draft exists, device recovery is limited to intent, relationship, area/LGA and site description, is keyed to the user for seven days, and never uploads a file or submits a case.
 
@@ -81,8 +81,8 @@ The `ui/align-approved-design` branch introduces a shared presentation foundatio
 - Customer progress, waiting-on-customer actions, document history and activity use real workflow/evidence/event records. Authenticated Help and Profile pages stay inside the customer shell and use existing authorized profile fields.
 - Staff tiles and board columns are computed from the seven existing workflow states. Awaiting assignment, In review and Waiting on client show at most five overview cards; Closed and Cancelled show at most three. Every group links to its complete authorized filtered list.
 - Evidence upload forms render immediately below the selected one of the five supported categories, identify the selection and announce the chosen filename. Selection does not upload or submit a file; the existing secure direct-upload and explicit release boundaries remain unchanged.
-- Dashboard, queue and case-detail loading routes use content-shaped, non-interactive skeletons with a restrained pulse and accessible loading announcement. Empty, error and successful states remain separate.
-- The existing self-hosted Figtree dependency and approved SVG variants under `public/logo` remain the only font and brand sources. Wordmark is used in text-led headers; the mark is used at compact/mobile/icon sizes; construction imagery is never treated as a logo.
+- Dashboard, queue and case-detail loading routes use content-shaped, non-interactive skeletons with higher-contrast surfaces, a restrained reduced-motion-safe colour pulse and accessible loading announcements. Empty, error and successful states remain separate.
+- The existing self-hosted Figtree dependency and approved SVG variants under `public/logo` remain the only font and brand sources. Desktop headers show the blue architectural mark with the wordmark; compact/mobile contexts use the mark. Dark theme uses a restrained light brand plate rather than recolouring the supplied blue assets. Construction imagery is never treated as a logo.
 - The landing hero uses `public/images/atexgrove-built-environment-hero.webp`; the companion triptych is also stored as WebP. Each retains its original dimensions and is below 300 KB. Both are illustrative AI-generated images made by the project team; the exact tool/date are not recorded. Selected sections use IntersectionObserver-based reveals, but content is visible by default without JavaScript and reduced-motion removes transitions.
 
 ### Design tokens
@@ -91,7 +91,7 @@ Touched light and dark colours are centralized in `src/app/globals.css`: primary
 
 ### Responsive and accessibility expectations
 
-The standard container may grow to 1360px with 28px desktop and 16px phone padding. Staff boards may grow toward 1480px and stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
+The customer container may grow to approximately 1680px with 28px desktop and 16px phone padding. Staff workspaces may grow to 1760px and use additional horizontal space for real queue columns rather than stretching prose. Authentication forms and long-form reading widths remain compact. Staff boards stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
 
 ### Explicitly deferred reference concepts
 

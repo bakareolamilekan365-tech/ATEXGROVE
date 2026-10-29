@@ -80,7 +80,7 @@ export function AccountMenu({
           </div>
           <Link ref={firstLinkRef} role="menuitem" href={profileHref} onClick={close}>Profile</Link>
           <Link role="menuitem" href={settingsHref} onClick={close}>Settings</Link>
-          <SignOutButton userId={accountUserId} onBeforeSignOut={close} />
+          <SignOutButton userId={accountUserId} />
         </div>
       ) : null}
     </div>

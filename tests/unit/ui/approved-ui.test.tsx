@@ -36,6 +36,7 @@ describe("approved shared UI", () => {
     const navigation = SiteNavigation({ state: "signed-out", registrationEnabled: true });
     expect(links(navigation)).toEqual(expect.arrayContaining(["/", "/#how-it-works", "/#help", "/#contact", "/login", "/register"]));
     expect(text(navigation)).toContain("Create account");
+    expect(elements(header).some(({ props }) => props.src === "/logo/atexgrove-mark.svg")).toBe(true);
     expect(elements(header).some(({ props }) => props.src === "/logo/atexgrove-wordmark.svg")).toBe(true);
   });
 

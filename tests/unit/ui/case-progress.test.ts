@@ -4,42 +4,30 @@ import { caseProgressModel } from "@/components/cases/CaseProgress";
 describe("case progress", () => {
   it("uses the four labelled stages and highlights only the saved draft stage", () => {
     const model = caseProgressModel("draft");
-    expect(model.kind).toBe("stages");
-    if (model.kind !== "stages") return;
-    expect(model.stages.map((stage) => stage.label)).toEqual(["Saved", "Submitted", "In review", "Finished"]);
+    expect(model.stages.map((stage) => stage.label)).toEqual(["Saved", "Submitted", "Reviewer assigned", "In review"]);
     expect(model.stages.map((stage) => stage.state)).toEqual(["current", "later", "later", "later"]);
   });
 
-  it("marks only a recorded submitted milestone before the current review stage", () => {
-    const recorded = caseProgressModel("in_review", ["submitted"]);
-    const missing = caseProgressModel("in_review", []);
-    if (recorded.kind !== "stages" || missing.kind !== "stages") return;
-    expect(recorded.stages.map((stage) => stage.state)).toEqual(["done", "done", "current", "later"]);
-    expect(missing.stages.map((stage) => stage.state)).toEqual(["done", "later", "current", "later"]);
+  it("shows reviewer assignment as a distinct supported milestone", () => {
+    expect(caseProgressModel("assigned", ["submitted"]).stages.map((stage) => stage.state)).toEqual(["done", "done", "current", "later"]);
+    expect(caseProgressModel("in_review", ["submitted", "assigned"]).stages.map((stage) => stage.state)).toEqual(["done", "done", "done", "current"]);
   });
 
   it("shows waiting on the customer as an amber note on the review stage", () => {
     const model = caseProgressModel("needs_customer_info", ["submitted", "in_review"]);
-    if (model.kind !== "stages") return;
-    expect(model.stages.map((stage) => stage.state)).toEqual(["done", "done", "attention", "later"]);
+    expect(model.stages.map((stage) => stage.state)).toEqual(["done", "done", "done", "attention"]);
     expect(model.note).toContain("Waiting on you");
   });
 
-  it("replaces progress with a neutral closed outcome", () => {
-    expect(caseProgressModel("closed", ["submitted", "in_review"])).toEqual({
-      kind: "terminal",
-      tone: "closed",
-      label: "Closed",
-      description: "This request has been closed. The review ended without a final land assessment.",
-    });
+  it("retains recorded progress and explains a closed outcome separately", () => {
+    const model = caseProgressModel("closed", ["submitted", "assigned", "in_review"]);
+    expect(model.stages.map((stage) => stage.state)).toEqual(["done", "done", "done", "done"]);
+    expect(model.outcome).toEqual({ tone: "closed", label: "Closed", description: "This request has been closed. The review ended without a final land assessment." });
   });
 
-  it("replaces progress with a cancelled outcome instead of completed stages", () => {
-    expect(caseProgressModel("cancelled", ["submitted", "in_review"])).toEqual({
-      kind: "terminal",
-      tone: "cancelled",
-      label: "Cancelled",
-      description: "This request was cancelled.",
-    });
+  it("does not complete unrecorded milestones when a case is cancelled", () => {
+    const model = caseProgressModel("cancelled", ["submitted"]);
+    expect(model.stages.map((stage) => stage.state)).toEqual(["done", "done", "later", "later"]);
+    expect(model.outcome).toEqual({ tone: "cancelled", label: "Cancelled", description: "This request was cancelled." });
   });
 });

@@ -4,6 +4,18 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-10-29 - PR #33 final visual and sign-out correction
+
+**Problem:** The compact progress treatment hid the journey for terminal cases and included an unreachable Finished stage; wide-screen limits still left unused desktop space; broad neutral styling reduced workflow clarity; loading placeholders looked inactive; the desktop brand omitted its emblem; and selecting Sign out could fail.
+
+**Root cause:** Terminal progress returned before rendering milestones, container limits remained at 1360/1480px, status tokens were over-neutralized, skeleton animation changed mostly opacity, and the header hid the mark at desktop widths. The account menu also called its close callback from the submit button click, unmounting the form before the server action was guaranteed to submit.
+
+**Correction:** Keep the four reachable milestones Saved, Submitted, Reviewer assigned and In review for active and terminal cases, and show Closed/Cancelled as separate outcomes. Expand responsive customer/staff workspaces to approximately 1680/1760px, restore restrained semantic state colours, improve content-shaped skeleton contrast and pulse, and present the supplied mark plus wordmark on desktop. Keep the sign-out form mounted during submission; Supabase continues to clear only the local session and persistent sessions after a server restart remain normal.
+
+**Security and scope:** No migration, RLS, privilege, evidence-security, hosted setting or deployment changed. Draft recovery, discarded-draft filtering, customer case filters, upload controls and current customer/staff authorization remain intact. Real authenticated browser acceptance remains the owner's task.
+
+**Verification:** Twenty-one focused tests pass for progress, logo/header composition, menu submission behavior, Supabase local-scope sign-out and protected-route denial. Lint, typecheck and the production build pass. This is repository evidence, not a claim that a real browser session was signed out or that the visual result was owner-approved.
+
 ## 2026-10-29 - PR #33 customer acceptance correction
 
 **Problem:** Customer Home and My Cases were the same destination; event-derived progress produced confusing disconnected colours; discarded drafts appeared as cancellations; pre-server form input was lost after interruption; the case page separated uploads from submission; the avatar showed one initial and its menu stayed open; first visits inherited device dark mode; and two landing PNGs totalled about 4.9 MB.
