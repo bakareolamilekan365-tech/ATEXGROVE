@@ -25,7 +25,7 @@ describe("explicit customer response submission", () => {
       p_message: "Requested pages are now ready.", p_request_event_id: "22222222-2222-4222-8222-222222222222",
     });
     expect(result.error).toBeNull();
-    expect(result.success).toContain("not authenticated");
+    expect(result.success).toBe("Response submitted. Your documents are now available to the review team. They have not been authenticated.");
     expect(revalidatePath).toHaveBeenCalledWith("/ops/cases/11111111-1111-4111-8111-111111111111");
   });
   it("retains the existing required explanation", async () => {
