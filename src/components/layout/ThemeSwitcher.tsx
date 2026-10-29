@@ -14,7 +14,7 @@ function applyTheme(preference: ThemePreference) {
 }
 
 function useAppearance() {
-  const [preference, setPreference] = useState<ThemePreference>("system");
+  const [preference, setPreference] = useState<ThemePreference>("light");
   const [resolved, setResolved] = useState<"light" | "dark">("light");
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");

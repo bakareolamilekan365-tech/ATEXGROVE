@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SiteNavigation, type SiteHeaderState } from "@/components/layout/SiteNavigation";
-import { SignOutButton } from "@/components/layout/SignOutButton";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
 
 export type { SiteHeaderState } from "@/components/layout/SiteNavigation";
@@ -39,21 +39,14 @@ export function SiteHeader({
 
         {state !== "signed-out" ? (
           <div className="site-account">
-            <details className="account-menu">
-              <summary className="account-avatar" aria-label="Open account menu" title="Open account menu">
-                {(accountName?.trim().charAt(0) || (state === "staff" ? "S" : "C")).toLocaleUpperCase()}
-              </summary>
-              <div className="account-menu__panel">
-                <div className="account-menu__identity">
-                  <strong>{accountName || (state === "staff" ? "Staff member" : "Customer")}</strong>
-                  <span>{roleLabel}</span>
-                </div>
-                {state === "staff" ? <span className="status-tag status-tag--verification">Staff</span> : null}
-                <Link href={profileHref}>Profile</Link>
-                <Link href={settingsHref}>Settings</Link>
-                <SignOutButton userId={accountUserId} />
-              </div>
-            </details>
+            <AccountMenu
+              accountName={accountName}
+              accountUserId={accountUserId}
+              roleLabel={roleLabel}
+              profileHref={profileHref}
+              settingsHref={settingsHref}
+              fallbackInitial={state === "staff" ? "S" : "C"}
+            />
           </div>
         ) : null}
       </div>

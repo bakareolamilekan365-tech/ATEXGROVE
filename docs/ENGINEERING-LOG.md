@@ -4,6 +4,18 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-10-29 - PR #33 customer acceptance correction
+
+**Problem:** Customer Home and My Cases were the same destination; event-derived progress produced confusing disconnected colours; discarded drafts appeared as cancellations; pre-server form input was lost after interruption; the case page separated uploads from submission; the avatar showed one initial and its menu stayed open; first visits inherited device dark mode; and two landing PNGs totalled about 4.9 MB.
+
+**Cause:** The first UI pass reused the dashboard as both overview and list, treated raw status events as compact presentation, kept the new-case form only in React memory, used native `details` for the account menu and retained unoptimized generated-image exports. Theme fallback followed the operating system even though the accepted first-view design is Light.
+
+**Correction:** Add a customer-owned My Cases route with search/status filters and keep Home as a real overview. Exclude `discarded_at` rows from customer lists/counts and redirect discarded direct URLs. Replace compact progress with Saved, Submitted, In review and Finished, while Closed is neutral and Cancelled red. Add seven-day, user-keyed browser recovery for only intent, relationship, area/LGA and site description; clear it after server draft creation and sign-out. Recompose the case page around evidence plus an adjacent submission panel. Derive two initials, close the account menu on outside interaction/Escape/navigation/sign-out, widen content containers, keep the header sticky, and show a non-binding Developer suggestion. Default unsaved themes to Light while preserving explicit Dark/System choices. Replace both generated PNGs with same-dimension WebP files below 300 KB and record their project-team AI-generated provenance.
+
+**Security and data boundaries:** Recovery stores no phone number, principal name, free-text notes, token or file content and never invokes submission. Server drafts remain authoritative. Customer queries still bind `customer_user_id` to the authenticated user and RLS remains unchanged. No migration, hosted change, upload-security change or deployment is included.
+
+**Verification:** Local lint, typecheck and production build passed. Eleven essential focused test files passed with 59 tests covering recovery/expiry, discarded-versus-cancelled filtering, customer search/status filters, progress semantics, account-menu dismissal, first-visit Light/default theme behavior, relationship suggestion, explicit submission, protected logout routes and evidence finalization. The owner retains visual and manual browser acceptance; no Playwright, screenshot or visual-regression run is claimed.
+
 ## 2026-10-29 — PR #33 profile and presentation follow-up
 
 **Problem:** The account initial/name did not open a profile, shared Settings routes were placeholders, and the editable profile form hid load failures and could report success after a zero-row update. The staff header was overcrowded, customer navigation was duplicated, auth navigation could race a pending sign-in, password controls used shifting text, generic skeletons did not represent final content, document categories opened a remote form, and closed/cancelled progress was misleading.

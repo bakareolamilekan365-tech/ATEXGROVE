@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import RegisterPage from "@/app/(auth)/register/page";
 import { PreviewBanner, PRIVATE_PREVIEW_MESSAGE } from "@/components/layout/PreviewBanner";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { AccountMenu } from "@/components/layout/AccountMenu";
 import { SiteNavigation } from "@/components/layout/SiteNavigation";
 import { publicRegistrationEnabled } from "@/lib/config/private-preview";
 
@@ -42,18 +43,22 @@ describe("approved shared UI", () => {
     const header = SiteHeader({ state: "customer", accountName: "Test Customer" });
     const navigation = SiteNavigation({ state: "customer", registrationEnabled: true });
     expect(links(navigation)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard/cases", "/dashboard/help"]));
-    expect(links(header)).toContain("/dashboard/profile");
+    const accountMenu = elements(header).find((element) => element.type === AccountMenu);
+    expect(accountMenu?.props.profileHref).toBe("/dashboard/profile");
+    expect(accountMenu?.props.accountName).toBe("Test Customer");
     expect(links(navigation)).not.toContain("/ops/cases");
-    expect(text(header)).toContain("Test Customer");
-    expect(text(header)).toContain("Customer");
+    expect(accountMenu?.props.roleLabel).toBe("Customer");
   });
 
   it("shows the real staff queue and supported customer-workspace link", () => {
     const header = SiteHeader({ state: "staff", accountName: "Test Staff", department: "Verification", isLead: true });
     const navigation = SiteNavigation({ state: "staff", registrationEnabled: true });
     expect(links(navigation)).toEqual(expect.arrayContaining(["/ops/cases", "/dashboard"]));
-    expect(links(header)).toEqual(expect.arrayContaining(["/ops/profile", "/ops/settings"]));
-    expect(text(header)).toContain("Verification · Lead");
+    const accountMenu = elements(header).find((element) => element.type === AccountMenu);
+    expect(accountMenu?.props.profileHref).toBe("/ops/profile");
+    expect(accountMenu?.props.settingsHref).toBe("/ops/settings");
+    expect(accountMenu?.props.roleLabel).toContain("Verification");
+    expect(accountMenu?.props.roleLabel).toContain("Lead");
     expect(text(header)).not.toMatch(/Records|Team|Handovers/);
   });
 

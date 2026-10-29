@@ -25,7 +25,7 @@ export default function HomePage() {
             {preview ? <p className="landing-preview-note">Registration is limited to approved accounts.</p> : null}
           </div>
           <div className="landing-visual">
-            <Image src="/images/atexgrove-built-environment-hero.png" alt="Architectural plans, survey equipment and a building under construction" width={1792} height={896} priority sizes="(max-width: 960px) 100vw, 46vw" />
+            <Image src="/images/atexgrove-built-environment-hero.webp" alt="Illustrative architectural plans, survey equipment and a building under construction" width={1774} height={887} priority sizes="(max-width: 960px) 100vw, 46vw" />
             <div className="landing-visual__caption">
               <strong>One recorded request</strong>
               <span>Private evidence · customer-safe updates · clear limitations</span>

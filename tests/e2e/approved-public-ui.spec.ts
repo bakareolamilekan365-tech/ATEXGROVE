@@ -43,9 +43,11 @@ test("slow sign-in prevents duplicate submission and conflicting registration na
   expect(requests).toBe(1);
 });
 
-test("theme follows the device until a manual override and survives refresh", async ({ page }) => {
+test("theme starts light, respects manual choices and follows the device only in System mode", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.getByRole("button", { name: "Switch to dark appearance" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.getByRole("button", { name: "Switch to light appearance" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");

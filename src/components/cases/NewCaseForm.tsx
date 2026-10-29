@@ -5,6 +5,7 @@ import { createVerificationCaseAction, type CaseFormState } from "@/app/dashboar
 import { Select, type SelectOption } from "@/components/ui/Select";
 import { fctAreaCouncils, fctLocationsDisclaimer, listedAreasFor } from "@/lib/verification-cases/abuja-locations";
 import { SubmitButton } from "./SubmitButton";
+import { shouldSuggestDeveloperRelationship } from "@/lib/verification-cases/intake-labels";
 import {
   clearDraftRecovery,
   createStoredCaseDraft,
@@ -155,6 +156,11 @@ export function NewCaseForm({ idempotencyKey, userId }: Readonly<{ idempotencyKe
           <option value="occupier">Occupier</option><option value="developer">Developer</option><option value="agent_or_representative">Agent or representative</option><option value="other">Other</option>
         </select>
         <p className={styles.muted}>This is your claim about your relationship, not proof of ownership.</p>
+        {shouldSuggestDeveloperRelationship(values.customerIntent, values.relationshipToLand) ? (
+          <p className={styles.contextHint} role="note">
+            Developer may fit this request, but choose the relationship that accurately describes you. Owner and Occupier remain valid options.
+          </p>
+        ) : null}
         {fieldError("relationshipToLand", errors.relationshipToLand)}
       </div>
 

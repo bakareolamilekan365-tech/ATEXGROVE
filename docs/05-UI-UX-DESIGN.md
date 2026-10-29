@@ -61,11 +61,13 @@ The dashboard content should depend on role. Do not show identical dashboards to
 
 ### PR #33 account and progress corrections (2026-10-29)
 
-The circular avatar opens a compact account menu containing identity context, Profile, Settings and Sign out; redundant staff name/role/badge controls are not spread across the header. Customer and staff Profile pages load existing authorized `profiles` fields; Settings displays email and, for staff, read-only department/role. Profile editing cannot write staff permissions. The header has one compact Light/Dark toggle; Settings has Light/Dark/System, where System is the default without a saved choice and tracks OS changes. Light-mode circular controls use white surfaces; dark mode uses a contrasting dark surface. Auth pages use a centered card and a restrained wordmark/back-home header; login uses an accessible eye icon without changing password-manager attributes.
+The circular avatar uses first-name/surname initials and opens a compact account menu containing identity context, Profile, Settings and Sign out. It closes on outside interaction, Escape, navigation and sign-out. Customer and staff Profile pages load existing authorized `profiles` fields; Settings displays email and, for staff, read-only department/role. Profile editing cannot write staff permissions. The sticky header has one compact Light/Dark toggle; Settings has Light/Dark/System. Light is the default when no preference is saved, even on a dark-mode device. An explicitly saved System choice tracks operating-system changes. Light-mode circular controls use white surfaces; dark mode uses a contrasting dark surface.
 
 Only one login request may be pending. While it is pending, login fields, visibility control and conflicting registration/recovery links are unavailable; a failed request restores them. This prevents page flashing or navigation races without changing Supabase authentication or safe `?next=` validation. Expected persistent Supabase sessions are not replaced with an unapproved idle timeout.
 
-Progress colours describe only supported states: blue for recorded completed transitions, amber for a customer information request, red for cancellation and grey for unreached steps. Current and terminal status are labelled in text. An early Closed outcome remains neutral and explicitly says no verification result was issued; cancellation never implies success. The eventual six-stage journey and cross-department handover messages remain Planned; no completion is displayed without a matching event.
+Compact progress has four labels: Saved, Submitted, In review and Finished. Only the current stage is highlighted; an earlier stage is done only when the case record or event history records that milestone. Waiting on you is an amber note on In review. Closed replaces the bar with one neutral label and states that the review ended without a final land assessment. Cancelled replaces it with one red label. Green is not a case-status colour. Detailed history remains in the timeline.
+
+Customer Home is an overview of real counts, drafts, action-required requests and customer-safe activity. My Cases is a separate customer-owned list with search and status filters. Discarded drafts are not presented as cancelled requests. Before a server draft exists, device recovery is limited to intent, relationship, area/LGA and site description, is keyed to the user for seven days, and never uploads a file or submits a case.
 
 The current contact form stores one `contact_preference` and an optional consented phone number. Multiple methods, primary/fallback selection, communication-attempt records and fallback behavior are Planned backend work. Do not add a multi-select until its storage, authorization and tests are reviewed.
 
@@ -81,7 +83,7 @@ The `ui/align-approved-design` branch introduces a shared presentation foundatio
 - Evidence upload forms render immediately below the selected one of the five supported categories, identify the selection and announce the chosen filename. Selection does not upload or submit a file; the existing secure direct-upload and explicit release boundaries remain unchanged.
 - Dashboard, queue and case-detail loading routes use content-shaped, non-interactive skeletons with a restrained pulse and accessible loading announcement. Empty, error and successful states remain separate.
 - The existing self-hosted Figtree dependency and approved SVG variants under `public/logo` remain the only font and brand sources. Wordmark is used in text-led headers; the mark is used at compact/mobile/icon sizes; construction imagery is never treated as a logo.
-- The landing hero uses the original project-owned image `public/images/atexgrove-built-environment-hero.png`; it adds no external runtime image or paid dependency. Selected sections use IntersectionObserver-based reveals, but content is visible by default without JavaScript and reduced-motion removes transitions.
+- The landing hero uses `public/images/atexgrove-built-environment-hero.webp`; the companion triptych is also stored as WebP. Each retains its original dimensions and is below 300 KB. Both are illustrative AI-generated images made by the project team; the exact tool/date are not recorded. Selected sections use IntersectionObserver-based reveals, but content is visible by default without JavaScript and reduced-motion removes transitions.
 
 ### Design tokens
 
@@ -89,7 +91,7 @@ Touched light and dark colours are centralized in `src/app/globals.css`: primary
 
 ### Responsive and accessibility expectations
 
-The standard container is 1280px with 28px desktop and 16px phone padding. Staff boards may grow toward 1440px and stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
+The standard container may grow to 1360px with 28px desktop and 16px phone padding. Staff boards may grow toward 1480px and stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
 
 ### Explicitly deferred reference concepts
 

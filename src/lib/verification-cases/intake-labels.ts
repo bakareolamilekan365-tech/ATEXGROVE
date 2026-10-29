@@ -48,3 +48,10 @@ export function formatAuthorityConfirmation(
   if (value === null) return "Not recorded";
   return value ? "Confirmed by customer" : "Not applicable";
 }
+
+export function shouldSuggestDeveloperRelationship(
+  customerIntent: string,
+  relationshipToLand: string,
+) {
+  return customerIntent === "developing" && relationshipToLand === "";
+}
