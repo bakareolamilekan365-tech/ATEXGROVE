@@ -1,40 +1,101 @@
 import type { VerificationCaseStatus } from "@/types/verification";
 import styles from "./case-workflow.module.css";
 
-type Step = { status: VerificationCaseStatus; label: string };
-const base: Step[] = [
-  { status: "submitted", label: "Request received" },
-  { status: "assigned", label: "Reviewer assigned" },
-  { status: "in_review", label: "In review" },
-];
+export type ProgressStageState = "done" | "current" | "attention" | "later";
+export type ProgressStage = { key: "saved" | "submitted" | "review" | "finished"; label: string; state: ProgressStageState };
+export type CaseProgressModel =
+  | { kind: "stages"; stages: ProgressStage[]; note: string }
+  | { kind: "terminal"; tone: "closed" | "cancelled"; label: string; description: string };
 
-export function progressSteps(status: VerificationCaseStatus, history: readonly VerificationCaseStatus[] = []) {
-  if (status === "draft") return [{ status: "draft" as const, label: "Draft", state: "current" as const }, ...base.map((step) => ({ ...step, state: "later" as const }))];
-  const steps: Step[] = [...base];
-  if (status === "needs_customer_info") steps.push({ status: "needs_customer_info", label: "Your information needed" });
-  if (status === "closed") steps.push({ status: "closed", label: "Closed — no verification result issued" });
-  if (status === "cancelled") steps.push({ status: "cancelled", label: "Cancelled — work stopped" });
-  return steps.map((step) => ({
-    ...step,
-    state: step.status === status
-      ? status === "needs_customer_info"
-        ? "attention" as const
-        : status === "cancelled"
-          ? "cancelled" as const
-          : status === "closed"
-            ? "terminal" as const
-            : "current" as const
-      : history.includes(step.status)
-        ? "completed" as const
-        : "later" as const,
-  }));
+const stageLabels: Record<ProgressStage["key"], string> = {
+  saved: "Saved",
+  submitted: "Submitted",
+  review: "In review",
+  finished: "Finished",
+};
+
+export function caseProgressModel(
+  status: VerificationCaseStatus,
+  history: readonly VerificationCaseStatus[] = [],
+): CaseProgressModel {
+  if (status === "closed") {
+    return {
+      kind: "terminal",
+      tone: "closed",
+      label: "Closed",
+      description: "This request has been closed. The review ended without a final land assessment.",
+    };
+  }
+  if (status === "cancelled") {
+    return {
+      kind: "terminal",
+      tone: "cancelled",
+      label: "Cancelled",
+      description: "This request was cancelled.",
+    };
+  }
+
+  const currentStage: ProgressStage["key"] = status === "draft"
+    ? "saved"
+    : status === "submitted" || status === "assigned"
+      ? "submitted"
+      : "review";
+  const submittedRecorded = history.includes("submitted") || status === "submitted";
+  const stages = (Object.keys(stageLabels) as ProgressStage["key"][]).map((key): ProgressStage => {
+    if (key === currentStage) {
+      return { key, label: stageLabels[key], state: status === "needs_customer_info" ? "attention" : "current" };
+    }
+    if (key === "saved" && currentStage !== "saved") return { key, label: stageLabels[key], state: "done" };
+    if (key === "submitted" && currentStage === "review" && submittedRecorded) return { key, label: stageLabels[key], state: "done" };
+    return { key, label: stageLabels[key], state: "later" };
+  });
+  const note = status === "needs_customer_info"
+    ? "Waiting on you. The review team needs more information."
+    : status === "draft"
+      ? "Your request is saved. Submit it when you're ready."
+      : status === "submitted"
+        ? "Your request has been received."
+        : status === "assigned"
+          ? "A reviewer has been assigned."
+          : "Your request is being reviewed.";
+  return { kind: "stages", stages, note };
 }
 
-export function CaseProgress({ status, history = [], compact = false }: Readonly<{ status: VerificationCaseStatus; history?: readonly VerificationCaseStatus[]; compact?: boolean }>) {
-  const steps = progressSteps(status, history);
-  return <ol className={`${styles.progress} ${compact ? styles.progressCompact : ""}`} aria-label="Case progress">
-    {steps.map((step, index) => <li key={step.status} className={step.state === "completed" ? styles.progressReached : step.state === "attention" ? styles.progressAttention : step.state === "cancelled" ? styles.progressCancelled : step.state === "terminal" ? styles.progressTerminal : ""} aria-current={step.status === status ? "step" : undefined}>
-      <span aria-hidden="true" /><strong>{index + 1}. {step.label}</strong>{!compact ? <small>{step.state === "completed" ? "Completed milestone" : step.state === "attention" ? "Action required" : step.state === "cancelled" ? "Cancelled outcome" : step.state === "terminal" ? "Closed outcome" : step.state === "current" ? "Current stage" : "Not reached"}</small> : null}
-    </li>)}
-  </ol>;
+export function CaseProgress({
+  status,
+  history = [],
+  compact = false,
+}: Readonly<{
+  status: VerificationCaseStatus;
+  history?: readonly VerificationCaseStatus[];
+  compact?: boolean;
+}>) {
+  const model = caseProgressModel(status, history);
+  if (model.kind === "terminal") {
+    return (
+      <div className={`${styles.progressTerminalLabel} ${model.tone === "cancelled" ? styles.progressTerminalCancelled : styles.progressTerminalClosed}`} role="status">
+        <strong>{model.label}</strong>
+        <span>{model.description}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={compact ? styles.progressCompact : undefined}>
+      <ol className={styles.progress} aria-label="Case progress">
+        {model.stages.map((stage) => (
+          <li
+            key={stage.key}
+            className={stage.state === "done" ? styles.progressReached : stage.state === "attention" ? styles.progressAttention : ""}
+            aria-current={stage.state === "current" || stage.state === "attention" ? "step" : undefined}
+          >
+            <span aria-hidden="true" />
+            <strong>{stage.label}</strong>
+            {!compact ? <small>{stage.state === "done" ? "Recorded" : stage.state === "attention" ? "Action required" : stage.state === "current" ? "Current stage" : "Not reached"}</small> : null}
+          </li>
+        ))}
+      </ol>
+      <p className={`${styles.progressNote} ${status === "needs_customer_info" ? styles.progressNoteAttention : ""}`}>{model.note}</p>
+    </div>
+  );
 }

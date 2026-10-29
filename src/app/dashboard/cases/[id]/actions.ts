@@ -164,7 +164,7 @@ export async function finalizeCaseEvidenceUploadAction(
   revalidatePath(`/dashboard/cases/${details.caseId}`);
   return {
     error: null,
-    success: "Saved — not yet submitted to the review team",
+    success: "Document saved. It will be shared with the review team when you submit your request.",
   };
 }
 
@@ -243,5 +243,5 @@ export async function customerRespondToCaseAction(
 
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
-  return { error: null, success: "Response submitted. Documents released for review — not authenticated." };
+  return { error: null, success: "Response submitted. Your documents are now available to the review team. They have not been authenticated." };
 }

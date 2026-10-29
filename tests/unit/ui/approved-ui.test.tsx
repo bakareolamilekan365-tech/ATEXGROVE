@@ -41,7 +41,7 @@ describe("approved shared UI", () => {
   it("shows customer navigation and identity without staff routes", () => {
     const header = SiteHeader({ state: "customer", accountName: "Test Customer" });
     const navigation = SiteNavigation({ state: "customer", registrationEnabled: true });
-    expect(links(navigation)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard#my-cases", "/dashboard/help"]));
+    expect(links(navigation)).toEqual(expect.arrayContaining(["/dashboard", "/dashboard/cases", "/dashboard/help"]));
     expect(links(header)).toContain("/dashboard/profile");
     expect(links(navigation)).not.toContain("/ops/cases");
     expect(text(header)).toContain("Test Customer");

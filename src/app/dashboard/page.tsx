@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
-import { CaseProgress } from "@/components/cases/CaseProgress";
 import styles from "@/components/cases/case-workflow.module.css";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { StaffMember, VerificationCase, VerificationCaseStatus } from "@/types/verification";
+import { customerCaseCounts } from "@/lib/verification-cases/customer-cases";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { nextActionLabel } from "@/lib/verification-cases/next-action";
+import { timelineEventHeading } from "@/lib/verification-cases/status";
+import type { CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 
 export const dynamic = "force-dynamic";
 
@@ -15,25 +16,33 @@ export default async function DashboardPage({
   searchParams,
 }: Readonly<{ searchParams: Promise<{ request?: string; signout?: string }> }>) {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: cases, error: casesError }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, account_type, location_text, bio")
-      .eq("user_id", user.id)
-      .maybeSingle(),
+  const [{ data: profile }, { data: caseData, error: casesError }] = await Promise.all([
+    supabase.from("profiles").select("full_name, account_type").eq("user_id", user.id).maybeSingle(),
     supabase
       .from("verification_cases")
-      .select("id, case_number, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, discarded_at, customer_intent, relationship_to_land, acting_for, principal_name, authority_confirmed, created_at, updated_at")
+      .select("id, case_number, customer_user_id, created_by_user_id, creation_channel, jurisdiction, department, site_description, area_lga, area_name, area_is_listed, address_line, contact_phone, contact_phone_consent, customer_notes, contact_preference, current_stage, workflow_status, assigned_lead_user_id, is_demo_data, idempotency_key, discarded_at, customer_intent, relationship_to_land, acting_for, principal_name, authority_confirmed, information_request_event_id, created_at, updated_at")
       .eq("customer_user_id", user.id)
       .is("discarded_at", null)
-      .order("created_at", { ascending: false }),
+      .order("updated_at", { ascending: false }),
   ]);
+  const cases = (caseData ?? []) as VerificationCase[];
+  const counts = customerCaseCounts(cases);
+  const waitingCases = cases.filter((item) => item.workflow_status === "needs_customer_info");
+  const drafts = cases.filter((item) => item.workflow_status === "draft");
+  const active = cases.filter((item) => ["submitted", "assigned", "in_review"].includes(item.workflow_status));
+  const caseById = new Map(cases.map((item) => [item.id, item]));
+  const { data: activityData } = cases.length
+    ? await supabase
+        .from("case_status_events")
+        .select("*")
+        .eq("customer_visible", true)
+        .in("verification_case_id", cases.map((item) => item.id))
+        .order("created_at", { ascending: false })
+        .limit(5)
+    : { data: [] as CaseStatusEvent[] };
 
   let staff: StaffMember | null = null;
   try {
@@ -42,108 +51,95 @@ export default async function DashboardPage({
     if (!(error instanceof AuthorizationError)) throw error;
   }
 
-  const role = profile?.account_type ?? "buyer";
-  const roleCopy: Record<string, string> = {
-    buyer: "Submit and follow your land-verification requests in plain English.",
-    landowner: "Submit and follow requests without claiming ownership has been verified.",
-    developer: "Track early verification requests before later development workflows begin.",
-    professional: "Your platform role is not professional verification. Staff access is granted separately.",
-    admin: "Administrative account type is separate from the scoped staff work queue.",
-  };
   const { request, signout } = await searchParams;
-  const ownCases = (cases ?? []) as VerificationCase[];
-  const { data: progressEvents } = ownCases.length
-    ? await supabase.from("case_status_events").select("verification_case_id, to_status").eq("customer_visible", true).in("event_kind", ["status_change", "information_requested"]).in("verification_case_id", ownCases.map((item) => item.id))
-    : { data: [] as { verification_case_id: string; to_status: VerificationCaseStatus }[] };
-  const progressHistory = new Map<string, VerificationCaseStatus[]>();
-  for (const event of progressEvents ?? []) {
-    const history = progressHistory.get(event.verification_case_id) ?? [];
-    history.push(event.to_status as VerificationCaseStatus);
-    progressHistory.set(event.verification_case_id, history);
-  }
-  const waitingCases = ownCases.filter((item) => item.workflow_status === "draft" || item.workflow_status === "needs_customer_info");
-
   return (
     <main className={styles.shell}>
-      <div className={styles.headerRow}>
+      <section className={styles.dashboardHero}>
         <div>
-          <p className={styles.eyebrow}>Customer dashboard</p>
+          <p className={styles.eyebrow}>Customer home</p>
           <h1>Welcome{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
-          <div className={styles.roleBadges} aria-label="Account access">
-            <span className={styles.roleBadge}>Customer</span>
-            {staff ? (
-              <span className={styles.roleBadge}>
-                Staff · {staff.department} · {staff.is_lead ? "Lead" : "Member"}
-              </span>
-            ) : null}
-          </div>
-          <p className={styles.muted}>{waitingCases.length ? `${waitingCases.length} ${waitingCases.length === 1 ? "case needs" : "cases need"} your attention.` : roleCopy[role] ?? "Your customer workspace."}</p>
+          <p className={styles.muted}>
+            {waitingCases.length
+              ? `${waitingCases.length} ${waitingCases.length === 1 ? "request needs" : "requests need"} your attention.`
+              : active.length
+                ? `${active.length} ${active.length === 1 ? "request is" : "requests are"} currently in progress.`
+                : "Start a request or continue a saved draft when you are ready."}
+          </p>
         </div>
         <div className={styles.actions}>
           {staff ? <a className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</a> : null}
           <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
         </div>
-      </div>
+      </section>
 
-      {request === "submitted" ? (
-        <p className={styles.success} role="status">
-          Request received. It is not yet verified and will enter the staff queue.
-        </p>
-      ) : null}
+      {request === "submitted" ? <p className={styles.success} role="status">Request received. It is not yet verified and will enter the staff queue.</p> : null}
+      {signout === "failed" ? <p className={styles.error} role="alert">We could not sign you out. Your session is still active. Please try again.</p> : null}
 
-      {signout === "failed" ? (
-        <p className={styles.error} role="alert">
-          We could not sign you out. Your session is still active; please try again.
-        </p>
-      ) : null}
+      <section className={styles.statGrid} aria-label="Your case summary">
+        <Link className={styles.statCard} href="/dashboard/cases?status=active"><strong>{counts.active}</strong><span>In progress</span></Link>
+        <Link className={styles.statCard} href="/dashboard/cases?status=waiting"><strong>{counts.waiting}</strong><span>Waiting on you</span></Link>
+        <Link className={styles.statCard} href="/dashboard/cases?status=draft"><strong>{counts.draft}</strong><span>Saved drafts</span></Link>
+      </section>
 
-      {waitingCases.length ? (
-        <section className={styles.actionPanel} aria-labelledby="waiting-on-you-title">
-          <div><p className={styles.eyebrow}>Waiting on you</p><h2 id="waiting-on-you-title">Continue your open work</h2></div>
-          <div className={styles.actionLinks}>
-            {waitingCases.map((item) => <Link className={`${styles.button} ${styles.buttonSecondary}`} key={item.id} href={`/dashboard/cases/${item.id}`}>{item.case_number ?? "Open case"}</Link>)}
+      <div className={styles.dashboardOverview}>
+        <section className={styles.panel}>
+          <div className={styles.cardHeader}>
+            <div><p className={styles.eyebrow}>Next steps</p><h2>Requests requiring action</h2></div>
+            <Link className={styles.link} href="/dashboard/cases?status=waiting">View all</Link>
           </div>
+          {waitingCases.length ? (
+            <div className={styles.stack}>
+              {waitingCases.slice(0, 3).map((item) => {
+                const location = caseLocationDisplay(item.area_name, item.area_lga);
+                return <article className={styles.summaryRow} key={item.id}>
+                  <div><strong>{location.heading}</strong><span>{item.case_number ?? "Not recorded"}</span></div>
+                  <CaseStatusBadge status={item.workflow_status} />
+                  <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>Respond</Link>
+                </article>;
+              })}
+            </div>
+          ) : <p className={styles.empty}>Nothing needs your response right now.</p>}
         </section>
-      ) : null}
 
-      <div className={styles.cardHeader} id="my-cases">
-        <h2>My cases</h2>
-        <span className={styles.demo}>Demo data · not official</span>
+        <section className={styles.panel}>
+          <div className={styles.cardHeader}>
+            <div><p className={styles.eyebrow}>Saved work</p><h2>Active drafts</h2></div>
+            <Link className={styles.link} href="/dashboard/cases?status=draft">View all</Link>
+          </div>
+          {drafts.length ? (
+            <div className={styles.stack}>
+              {drafts.slice(0, 3).map((item) => (
+                <article className={styles.summaryRow} key={item.id}>
+                  <div><strong>{caseLocationDisplay(item.area_name, item.area_lga).heading}</strong><span>{nextActionLabel(item.workflow_status)}</span></div>
+                  <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>Continue draft</Link>
+                </article>
+              ))}
+            </div>
+          ) : <p className={styles.empty}>You have no saved drafts.</p>}
+        </section>
+
+        <section className={`${styles.panel} ${styles.activityPanel}`}>
+          <div className={styles.cardHeader}>
+            <div><p className={styles.eyebrow}>Latest updates</p><h2>Recent activity</h2></div>
+            <Link className={styles.link} href="/dashboard/cases">Open My cases</Link>
+          </div>
+          {(activityData ?? []).length ? (
+            <ol className={styles.timeline}>
+              {((activityData ?? []) as CaseStatusEvent[]).map((event) => {
+                const item = caseById.get(event.verification_case_id);
+                return <li key={event.id} data-kind={event.event_kind}>
+                  <strong>{timelineEventHeading(event)}</strong>
+                  <p>{item?.case_number ?? "Case update"}</p>
+                  <time className={`${styles.muted} ${styles.small}`} dateTime={event.created_at}>{new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(event.created_at))}</time>
+                  {item ? <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>Open case</Link> : null}
+                </li>;
+              })}
+            </ol>
+          ) : <p className={styles.empty}>No customer-visible activity yet.</p>}
+        </section>
       </div>
 
-      {casesError ? (
-        <p className={styles.error} role="alert">We could not load your cases.</p>
-      ) : ownCases.length === 0 ? (
-        <div className={styles.empty}>
-          <h2>No requests yet</h2>
-          <p>Start with an Abuja/FCT plot description.</p>
-          <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
-        </div>
-      ) : (
-        <div className={styles.grid}>
-          {ownCases.map((item) => {
-            const location = caseLocationDisplay(item.area_name, item.area_lga);
-            return <article className={styles.card} key={item.id}>
-              <div className={styles.cardHeader}>
-                {item.is_demo_data ? <span className={styles.demo}>Demo</span> : null}
-                <CaseStatusBadge status={item.workflow_status} />
-              </div>
-              <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
-              <h2>{location.heading}</h2>
-              {location.note ? <p className={`${styles.muted} ${styles.small}`}>{location.note}</p> : null}
-              <p>{item.site_description}</p>
-              <CaseProgress status={item.workflow_status} history={progressHistory.get(item.id) ?? []} compact />
-              <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
-              <p className={`${styles.muted} ${styles.small}`}>
-                {item.workflow_status === "draft" ? "Saved" : "Received"} {new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(item.created_at))}
-              </p>
-              <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>
-                {item.workflow_status === "draft" ? "Continue" : "See case timeline"}
-              </Link>
-            </article>
-          })}
-        </div>
-      )}
+      {casesError ? <p className={styles.error} role="alert">We could not load your case summary.</p> : null}
     </main>
   );
 }

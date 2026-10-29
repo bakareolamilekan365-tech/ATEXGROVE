@@ -7,7 +7,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Atexgrove",
-  description: "Land verification workflow prototype — demo data.",
+  description: "Land verification workflow prototype: demo data.",
 };
 
 export default function RootLayout({

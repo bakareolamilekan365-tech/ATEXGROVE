@@ -15,10 +15,10 @@ export function ActiveNavLink({ href, children }: Readonly<{ href: string; child
     return () => window.removeEventListener("hashchange", updateHash);
   }, [pathname]);
 
-  const current = href === "/dashboard#my-cases"
-    ? pathname === "/dashboard" && hash === "#my-cases"
-    : href === "/dashboard"
-      ? pathname === href && hash !== "#my-cases"
+  const current = href === "/dashboard"
+      ? pathname === href
+      : href === "/dashboard/cases"
+        ? pathname === href || (pathname.startsWith(`${href}/`) && pathname !== "/dashboard/cases/new")
       : href === "/ops/cases"
         ? pathname === href || pathname.startsWith(`${href}/`)
         : href === "/"

@@ -5,12 +5,12 @@ import type {
 } from "@/types/verification";
 
 export const caseStatusLabels: Record<VerificationCaseStatus, string> = {
-  draft: "Draft — not submitted",
-  submitted: "Received — not yet verified",
-  assigned: "Assigned — not yet verified",
-  in_review: "In review — not yet verified",
-  needs_customer_info: "More information needed",
-  closed: "Closed — no verification result issued",
+  draft: "Draft",
+  submitted: "Received",
+  assigned: "Assigned",
+  in_review: "In review",
+  needs_customer_info: "Waiting on you",
+  closed: "Closed",
   cancelled: "Cancelled",
 };
 
@@ -20,8 +20,8 @@ export const customerSafeStatusMessages: Readonly<
   submitted: "Request submitted by customer.",
   in_review: "Your case is now in review.",
   needs_customer_info: "The review team needs more information from you.",
-  closed: "This case was closed. No verification result was issued.",
-  cancelled: "This case was cancelled.",
+  closed: "This request has been closed. The review ended without a final land assessment.",
+  cancelled: "This request was cancelled.",
 };
 
 export const caseStatusEventKindLabels: Readonly<

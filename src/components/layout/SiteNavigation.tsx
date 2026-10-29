@@ -20,7 +20,7 @@ export function SiteNavigation({ state, registrationEnabled }: Readonly<{ state:
       ) : state === "customer" ? (
         <>
           {item("/dashboard", "Home")}
-          {item("/dashboard#my-cases", "My cases")}
+          {item("/dashboard/cases", "My cases")}
           {item("/dashboard/help", "Help")}
         </>
       ) : (

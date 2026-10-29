@@ -132,11 +132,11 @@ export function EvidenceUploadForm({
         <legend>Upload type</legend>
         <label>
           <input type="radio" name="uploadMode" value="new" checked={uploadMode === "new"} onChange={() => { setUploadMode("new"); setPredecessorId(""); }} />
-          <span><strong>New document</strong> — a separate record starting at Version 1</span>
+          <span><strong>New document:</strong> a separate record starting at Version 1</span>
         </label>
         <label>
           <input type="radio" name="uploadMode" value="replacement" checked={uploadMode === "replacement"} disabled={replacementOptions.length === 0} onChange={() => setUploadMode("replacement")} />
-          <span><strong>Replacement version</strong> — link a corrected file to the latest version</span>
+          <span><strong>Replacement version:</strong> link a corrected file to the latest version</span>
         </label>
       </fieldset>
       {uploadMode === "replacement" ? (
@@ -146,7 +146,7 @@ export function EvidenceUploadForm({
             <option value="" disabled>Select the latest version</option>
             {replacementOptions.map((document) => (
               <option key={document.id} value={document.id}>
-                {evidenceTypeLabels[document.evidence_type]} — Version {document.version} · {document.original_filename}
+                {evidenceTypeLabels[document.evidence_type]}: Version {document.version} / {document.original_filename}
               </option>
             ))}
           </select>
@@ -159,7 +159,7 @@ export function EvidenceUploadForm({
         <input id="evidenceFile" name="file" type="file" accept="application/pdf,image/jpeg,image/png" required onChange={(event) => setSelectedFilename(event.target.files?.[0]?.name ?? "")} />
         <span className={`${styles.muted} ${styles.small}`} role="status">{selectedFilename ? `Selected file: ${selectedFilename}` : "No file selected."}</span>
       </div>
-      <div className={styles.notice}>Synthetic or properly redacted files only. Saved privately — not yet submitted to the review team.</div>
+      <div className={styles.notice}>Synthetic or properly redacted files only. The document is saved privately and is not shared until you submit the request.</div>
       {state.error ? <p className={styles.error} role="alert">{state.error}</p> : null}
       {state.success ? <p className={styles.success} role="status">{state.success}</p> : null}
       <button type="submit" disabled={stage !== "idle"} aria-describedby={stage !== "idle" ? "evidence-upload-stage" : undefined}>

@@ -44,7 +44,7 @@ export function formatAuthorityConfirmation(
   value: boolean | null,
   actingFor: VerificationCase["acting_for"],
 ) {
-  if (actingFor === "self") return "Not applicable — acting for self";
+  if (actingFor === "self") return "Not applicable. Acting for self.";
   if (value === null) return "Not recorded";
   return value ? "Confirmed by customer" : "Not applicable";
 }

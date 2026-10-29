@@ -1,32 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { progressSteps } from "@/components/cases/CaseProgress";
+import { caseProgressModel } from "@/components/cases/CaseProgress";
 
 describe("case progress", () => {
-  it("does not show cancellation as completed work", () => {
-    const steps = progressSteps("cancelled");
-    expect(steps.at(-1)).toMatchObject({ label: "Cancelled — work stopped", state: "cancelled" });
-    expect(steps.some((step) => step.state === "completed")).toBe(false);
+  it("uses the four labelled stages and highlights only the saved draft stage", () => {
+    const model = caseProgressModel("draft");
+    expect(model.kind).toBe("stages");
+    if (model.kind !== "stages") return;
+    expect(model.stages.map((stage) => stage.label)).toEqual(["Saved", "Submitted", "In review", "Finished"]);
+    expect(model.stages.map((stage) => stage.state)).toEqual(["current", "later", "later", "later"]);
   });
 
-  it("highlights a customer information request in amber without inventing later completion", () => {
-    const steps = progressSteps("needs_customer_info", ["submitted", "assigned", "in_review"]);
-    expect(steps.at(-1)).toMatchObject({ state: "attention" });
-    expect(steps.slice(0, 3).every((step) => step.state === "completed")).toBe(true);
+  it("marks only a recorded submitted milestone before the current review stage", () => {
+    const recorded = caseProgressModel("in_review", ["submitted"]);
+    const missing = caseProgressModel("in_review", []);
+    if (recorded.kind !== "stages" || missing.kind !== "stages") return;
+    expect(recorded.stages.map((stage) => stage.state)).toEqual(["done", "done", "current", "later"]);
+    expect(missing.stages.map((stage) => stage.state)).toEqual(["done", "later", "current", "later"]);
   });
 
-  it("marks only recorded prior transitions complete", () => {
-    const steps = progressSteps("closed", ["submitted"]);
-    expect(steps.map((step) => step.state)).toEqual(["completed", "later", "later", "terminal"]);
-    expect(steps.at(-1)?.label).toContain("no verification result");
+  it("shows waiting on the customer as an amber note on the review stage", () => {
+    const model = caseProgressModel("needs_customer_info", ["submitted", "in_review"]);
+    if (model.kind !== "stages") return;
+    expect(model.stages.map((stage) => stage.state)).toEqual(["done", "done", "attention", "later"]);
+    expect(model.note).toContain("Waiting on you");
   });
 
-  it("keeps partial cancellation history separate from the terminal outcome", () => {
-    const steps = progressSteps("cancelled", ["submitted", "assigned"]);
-    expect(steps.map((step) => step.state)).toEqual(["completed", "completed", "later", "cancelled"]);
+  it("replaces progress with a neutral closed outcome", () => {
+    expect(caseProgressModel("closed", ["submitted", "in_review"])).toEqual({
+      kind: "terminal",
+      tone: "closed",
+      label: "Closed",
+      description: "This request has been closed. The review ended without a final land assessment.",
+    });
   });
 
-  it("does not invent a completed milestone when historical events are missing", () => {
-    const steps = progressSteps("assigned", []);
-    expect(steps.map((step) => step.state)).toEqual(["later", "current", "later"]);
+  it("replaces progress with a cancelled outcome instead of completed stages", () => {
+    expect(caseProgressModel("cancelled", ["submitted", "in_review"])).toEqual({
+      kind: "terminal",
+      tone: "cancelled",
+      label: "Cancelled",
+      description: "This request was cancelled.",
+    });
   });
 });

@@ -55,7 +55,7 @@ describe("case form UI helpers", () => {
     expect(formatRelationshipToLand("developer")).toBe("Developer");
     expect(formatRelationshipToLand("agent_or_representative")).toBe("Agent or representative");
     expect(formatActingFor("organisation", "A demo organisation")).toBe("Organisation: A demo organisation");
-    expect(formatAuthorityConfirmation(null, "self")).toBe("Not applicable — acting for self");
+    expect(formatAuthorityConfirmation(null, "self")).toBe("Not applicable. Acting for self.");
     expect(formatAuthorityConfirmation(null, null)).toBe("Not recorded");
     expect(formatCustomerIntent(null)).toBe("Not recorded");
   });

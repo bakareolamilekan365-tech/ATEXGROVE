@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { CaseStatusBadge } from "@/components/cases/CaseStatusBadge";
+import { CaseProgress } from "@/components/cases/CaseProgress";
 import styles from "@/components/cases/case-workflow.module.css";
 import { requireStaff } from "@/lib/auth/guards";
-import { verificationCaseStatuses, type VerificationCase } from "@/types/verification";
+import { verificationCaseStatuses, type VerificationCase, type VerificationCaseStatus } from "@/types/verification";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { formatCustomerIntent } from "@/lib/verification-cases/intake-labels";
 import { groupStaffCases } from "@/lib/verification-cases/staff-queue";
@@ -35,6 +36,15 @@ export default async function CaseQueuePage({
   if (department) query = query.eq("department", department);
   const { data, error } = await query;
   const cases = (data ?? []) as VerificationCase[];
+  const { data: progressEvents } = cases.length
+    ? await supabase.from("case_status_events").select("verification_case_id, to_status").in("event_kind", ["status_change", "information_requested"]).in("verification_case_id", cases.map((item) => item.id))
+    : { data: [] as { verification_case_id: string; to_status: VerificationCaseStatus }[] };
+  const progressHistory = new Map<string, VerificationCaseStatus[]>();
+  for (const event of progressEvents ?? []) {
+    const history = progressHistory.get(event.verification_case_id) ?? [];
+    history.push(event.to_status as VerificationCaseStatus);
+    progressHistory.set(event.verification_case_id, history);
+  }
   const { data: profile } = await supabase.from("profiles").select("full_name").eq("user_id", staff.user_id).maybeSingle();
   const columns = filteredList
     ? groupStaffCases(cases).filter((column) => column.cases.length > 0)
@@ -100,6 +110,7 @@ export default async function CaseQueuePage({
                     <h3>{location.heading}</h3>
                     <p className={styles.muted}>{formatCustomerIntent(item.customer_intent)} · {item.department}</p>
                     <p>{item.site_description}</p>
+                    <CaseProgress status={item.workflow_status} history={progressHistory.get(item.id) ?? []} compact />
                     <Link className={`${styles.button} ${styles.buttonSecondary}`} href={`/ops/cases/${item.id}`}>Open case</Link>
                   </article>
                 );
