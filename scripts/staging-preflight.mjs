@@ -1,5 +1,7 @@
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, URL } from "node:url";
 import { resolve } from "node:path";
+import process from "node:process";
+import console from "node:console";
 
 // Build-time safety gate only. This does not verify credentials, provision infrastructure,
 // apply SQL migrations, or prove that Supabase Auth sign-up is disabled.
