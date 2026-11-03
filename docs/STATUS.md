@@ -1,10 +1,23 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-27
+**Status date:** 2026-11-03 (current snapshot above the retained October history)
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
 
-## Current baseline — migration 026 and private preview
+## Verified staging snapshot — 2026-11-03
+
+This snapshot supersedes earlier current-status claims below where they conflict; older engineering evidence is preserved as dated history.
+
+- **Deployed isolated staging:** separate Netlify/Supabase environment exists. The staging migration ledger was independently queried and lists `001`–`026`.
+- **Observed limited acceptance:** two Auth accounts; one active Verification Lead distinct from the customer; one numbered, submitted synthetic case; one registered private-evidence object with submission consent and a recorded `draft → submitted` transition. The user confirmed the corrected Lead sees the case in the staff queue.
+- **Not verified:** full Lead evidence access, regular-officer assignment, unrelated-account denial/RLS abuse tests, email recovery/redirects, provider-level public-signup restrictions, Board access, backup/restore, and 5/9–10 MiB upload reliability. One small PNG upload succeeded, not the full size range.
+- **Repository:** deployed `main` baseline `4f9fe95`; PR #33 (`bcf0ced`) is open, unmerged and paused pending visual/functional audit. PR #34 (`63ab63b`) is open as a draft staging-preflight PR; its build guards must not be treated as active on the published Netlify production-context deployment.
+- **Scope:** existing private-preview feature scope remains frozen. Newly approved organizational/operational directions require later design and review; they are not implemented for preview merely because approved.
+- **Schedule:** 12–20 November 2026 was the original provisional target. Postponement is under consideration; no replacement date is decided. Board/Owner preview accounts are not provisioned.
+- **Security:** the repository is public. Do not add private executive correspondence, test-user identifiers, real evidence or credentials to these documentation updates.
+
+Read [RELEASE-PLAN.md](RELEASE-PLAN.md) for outstanding gates and [DOCS-AUDIT-2026-11-03.md](DOCS-AUDIT-2026-11-03.md) for document interpretation.
+## Earlier baseline — October 2026 (historical; superseded where noted)
 
 - **Implemented and merged:** PR #29 added `026_pending_evidence_submission.sql` and compatible application behavior. PR #30 normalized the repository filenames for migrations 025 and 026; migration 025's hosted history marker was changed to numeric `025` on 2026-10-25 without rerunning its SQL.
 - **Owner-confirmed hosted:** after the last documented read-only check through 025, the owner applied migration 026 and confirmed that hosted migration history now uses numeric versions `001`–`026`. This is a subsequent owner-confirmed fact, not a fresh independent ledger inspection; no apply date or time is claimed.
@@ -57,7 +70,7 @@ Validation is recorded in PR #29 and the dated engineering-log entry. This migra
 
 **Prior baseline verification (does not cover the latest follow-up patch), code commit `18cc17b99469ba2915b51a301dccc0aff4c7b7e2`:** [App CI 40176136069](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40176136069) passed lint, typecheck, 70 unit tests, 26 integration tests (3 existing credential-gated skips), security guardrails and production build. [Database CI 40176136055](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40176136055) passed all nine regular pgTAP suites (436 assertions), then reset its disposable LOCAL database to 025, seeded historical fixtures, applied the real 026 file and passed 13 upgrade assertions: **449 database assertions total**. Tests exercise authenticated owners, leads, assignees, scoped application admins and out-of-scope users. Local Playwright completed with four existing placeholder tests skipped; this is not full browser acceptance evidence. No hosted migration, merge or deployment was performed.
 
-## Current hosted state
+## Earlier hosted baseline — historical; not the separate staging project
 
 - **Current / owner-confirmed hosted:** migration history is consistent through numeric versions `001`–`026`. The last independent read-only ledger inspection reached 025 on 2026-10-25; the later 026 application is owner-confirmed and has no claimed apply timestamp.
 - **Current / hosted:** the `documents` bucket is private, has a 10 MB object limit and allows only PDF, JPEG and PNG MIME types.

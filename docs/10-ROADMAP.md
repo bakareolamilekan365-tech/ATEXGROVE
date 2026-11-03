@@ -2,7 +2,9 @@
 
 The roadmap separates the working prototype from future architecture. A phase is not complete because a screen exists: the relevant persistence, authorization, failure handling, tests and trust boundaries must work together.
 
-**Planning status (updated 2026-10-14):** the verification-first Abuja/FCT controlled-pilot order is accepted in `DECISIONS.md`. Open questions may refine staffing, report wording, policy and data sources, but new implementation should not revert to a marketplace-first sequence without recording a replacement decision.
+**Current delivery note (2026-11-03):** Isolated staging exists, the feature scope for the next private preview is frozen, PR #34 is active in draft and PR #33 is paused/unmerged. Limited staging tests passed, but Board access and end-to-end readiness have not. The November 12–20 window is provisional; postponement is being considered, not decided. The phases below remain a roadmap, not an order to build extra preview features. See [STATUS.md](STATUS.md).
+
+**Historical planning status (updated 2026-10-14):** the verification-first Abuja/FCT controlled-pilot order is accepted in `DECISIONS.md`. Open questions may refine staffing, report wording, policy and data sources, but new implementation should not revert to a marketplace-first sequence without recording a replacement decision.
 
 ## Phase 0 — Architecture / Design Lock
 

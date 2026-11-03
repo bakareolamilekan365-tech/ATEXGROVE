@@ -6,6 +6,9 @@ This folder contains the focused markdown specifications required to build the f
 
 For founder, partner, and non-engineering explanations, start with [`non-technical/README.md`](non-technical/README.md). The plain-language library summarizes the project story, product, security approach, roadmap, current progress, decisions, and working method without replacing these detailed specifications.
 
+## Current documentation orientation — 2026-11-03
+
+**Read [STATUS.md](STATUS.md) first.** An isolated staging website and Supabase project now exist, and limited customer/Verification Lead smoke tests passed. The feature scope is frozen; PR #34 (staging preflight) is active but still draft/unmerged; PR #33 (UI) is paused and unmerged. The original November 12–20 preview date may be postponed, with no approved replacement date. This folder contains both live guidance and historical or future specifications. See [DOCS-AUDIT-2026-11-03.md](DOCS-AUDIT-2026-11-03.md) for the dated authority map.
 ## Current delivery journey
 
 The accepted delivery order puts the verification service before a land-discovery marketplace. `DECISIONS.md` is the decision source of truth. The remaining items in `OPEN-QUESTIONS-FOUNDER.md` refine people, policy, data and operational details; they do not reopen whether GIS or marketplace work comes first.
@@ -14,7 +17,7 @@ The accepted delivery order puts the verification service before a land-discover
 2. Start a land-verification and development-feasibility case.
 3. Identify the Abuja/FCT site and submit synthetic or properly redacted private supporting evidence for the initial pilot; an existing listing or parcel is not required.
 4. Route the case through assignment, evidence review, notes, status changes, and audit events.
-5. Produce a reviewed Land & Development Report with explicit source and authority labels.
+5. **Planned:** produce a reviewed Land & Development Report with explicit source and authority labels; report authorization is not operational in the frozen preview.
 6. Add land discovery, mapping, projects, professionals, and wider development workflows only after the case workflow is proven.
 
 All synthetic records must be clearly labelled **DEMO DATA / NOT OFFICIAL**.
@@ -57,6 +60,6 @@ The original master prompt can remain as a product-vision document. These files 
 
 ## Status
 
-**Current status:** migration 026 and compatible application code are merged and subsequently owner-confirmed hosted; the last independent read-only ledger inspection reached 025 on 2026-10-25. The accepted private-preview stack is Netlify Free plus a separate Supabase Free staging project at a strict ₦0 / $0 budget. Check [STATUS.md](STATUS.md) for evidence qualifications, implemented behavior and open operational gates. Operational docs are indexed above.
+**Current status (2026-11-03):** Staging migrations `001`–`026` were independently confirmed. Limited customer submission, private evidence registration and Verification Lead queue visibility passed. Full security, large-upload, role and Board-access readiness remains incomplete. See [STATUS.md](STATUS.md).
 
 Historical sections in `17-PROJECT-AUDIT.md` retain the status that was true on their stated dates. Use the latest dated audit addendum and the implementation itself for current status.

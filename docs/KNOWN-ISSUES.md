@@ -1,8 +1,23 @@
 # Atexgrove Known Issues
 
-**Status date:** 2026-10-27
+**Status date:** 2026-11-03 (new exceptions first; historical rows retained)
 
 This list distinguishes current gaps from planned work. It is not a production-readiness claim.
+
+## Current open items — 2026-11-03
+
+| Item | Observation | Remaining gate |
+| --- | --- | --- |
+| Staging release | Two accounts, one submitted synthetic case, one private evidence object and corrected Lead visibility confirmed | Full role/isolation, evidence-download, staff workflow and large-file tests |
+| Board access | No Board/Owner accounts provisioned; Netlify team-login restriction is not proof every invited external user can enter | Verify account provisioning, provider signup restrictions and site-access capability |
+| PR #34 | Draft, unmerged; production-context fail-closed enforcement not established | Review and test relevant Netlify contexts |
+| PR #33 | Paused, open, unmerged; final-head screenshot/browser acceptance absent | Audit original screenshot/UI requests against code and approved references |
+| Auth-page background | The blurred architectural login/signup background reported by the technical lead is an audit candidate, distinct from landing hero imagery | Confirm implementation against the target branch and visually accept before closing |
+| Theme conflict | PR #33 describes Light first-visit default; later technical decisions mention System | Explicitly reconcile the requirement rather than silently changing it |
+| Schedule | November 12–20 was provisional; postponement is being considered, not finalized | Confirm timing only after readiness review |
+
+The older rows below describe their original dated baseline; where they disagree, the new [STATUS.md](STATUS.md) staging snapshot governs.
+
 
 | Item | Current status | Planned direction |
 | --- | --- | --- |

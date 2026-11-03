@@ -1,5 +1,16 @@
 # Product backlog — master list
 
+## Current triage — 2026-11-03
+
+- **Active:** draft PR #34 and isolated staging acceptance (provider signup restrictions, role isolation, staff flow, upload sizes, access and security/recovery gates).
+- **Paused:** PR #33 UI; preserve all earlier screenshot reports, including the blurred login/signup background, case-card proportions, filters, progress semantics, account/theme behavior and staff queue. Audit the actual branch before marking reports fixed or creating overlapping tasks.
+- **Frozen preview:** no additional Feasibility/Operations, North/South staffing, handovers, formal approvals or executive dashboards. These are future requirements, not current development tasks.
+- **Timing:** original 12–20 November period is provisional; postponement considered, not decided. Board accounts have not been created.
+- **Evidence discipline:** passing a one-case staging smoke test does not establish complete role, negative RLS, email or large-upload acceptance.
+
+The October backlog below remains a historical requirements inventory; consult [STATUS.md](STATUS.md) for what is actually implemented and verified.
+
+
 ## 2026-10-25 focused workflow correction
 
 Follow-up patch in PR #29: empty required upload category, no staff resume from awaiting information, terminal actions that preserve pending privacy, and matching decision/known-issue/cutover documentation. Verified at `29d31036b2a4a8208bafbc8cfc7cc4a5083d4def`: [app run 40194071878](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071878) and [database run 40194071685](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40194071685) passed. Migration 026 is subsequently owner-confirmed hosted; the last independent read-only ledger check reached 025. Previous CI below describes prior revisions only.
