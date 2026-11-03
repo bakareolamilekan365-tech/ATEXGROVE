@@ -1,33 +1,26 @@
 # Release plan
 
-**Status: 2026-11-03 — isolated staging exists; preview invitation NOT approved.** This supersedes the earlier plan that said staging and hosting were not configured.
+**Planned, not implemented.** This document records the intended release approach; it is not a claim that hosting, previews, rollback automation or a staging database are configured.
 
-## Frozen scope and provisional schedule
+## Planned hosting and review flow
 
-The private executive preview demonstrates only existing, reviewed verification-first capabilities using fictional data. No new features or organizational restructuring are authorized for this frozen scope. The original **12–20 November 2026** target may be postponed; no new date has been approved. Do not announce dates or issue invitations until readiness and access are confirmed.
+- Use Netlify Free for the Next.js private-preview application; this decision supersedes Vercel as the selected near-term provider.
+- Use a separate Supabase Free staging project for Auth, database and private Storage. Never point preview testing at the existing hosted project.
+- Keep GitHub for source control/CI and Google Forms/Sheets for access requests and participant feedback.
+- Keep the strict preview budget at ₦0 / $0; do not add paid providers or automatic upgrades.
+- Create private review/deploy previews only after configuration and access controls are approved. Neither Netlify staging nor account provisioning is currently claimed complete.
+- Apply database changes only through the reviewed, tested, forward-only migration process described in [RUNBOOK.md](RUNBOOK.md).
 
-## Environment and branch status
+## Provisional November 2026 preview
 
-- The separate staging Supabase ledger has migrations `001`–`026`; a ready Netlify deployment has supported limited customer and Verification Lead smoke tests.
-- `main` (`4f9fe95`) is the deployed baseline. PR #33 is open, paused and unmerged, so its UI work has not been visually accepted or deployed on `main`.
-- PR #34 is a draft/unmerged staging-preflight PR. A preview/branch-build guard does not automatically protect the deployed Netlify production-context build.
-- The site uses Netlify team-login restrictions. Free-tier access by Board members must be validated rather than assumed.
-- The budget remains **₦0 / $0**. Use separate staging credentials, never the existing hosted Supabase project's credentials, and do not introduce paid integrations.
+Target 12–20 November 2026 for approximately 15–20 approved owners and board members, using fictional data and individual accounts. The Google access-request form has been distributed. The preview retains Supabase email/password, existing customer/staff permissions, the dual-role test arrangement and a separate customer-only test account. It is a private interactive test, not a public launch, professional verification or government certification.
 
-## Outstanding invitation gates
+Readiness requires realistic account/session tests, hosted email-flow checks and a full fictional-data journey. The repository now bypasses [Netlify's buffered function limit](https://docs.netlify.com/build/functions/configuration/) for evidence bytes by uploading from the authenticated browser directly to private Supabase Storage, then using a metadata-only server finalizer. A permitted 9–10 MiB upload must still work through deployed Netlify plus isolated Supabase staging before invitations; repository tests alone do not close that gate.
 
-1. Confirm Supabase Auth provider-level signup restrictions, individual account provisioning, email confirmation/recovery and redirect settings.
-2. Test customer, Verification Lead, regular-staff and unrelated-user permissions, including negative RLS tests and forbidden actions.
-3. Complete an end-to-end fictional case journey including Lead evidence access, assignment, staff updates and genuine customer-visible milestones.
-4. Test synthetic uploads near 1, 5 and 9–10 MiB, interrupted uploads, registration state and safe orphan handling. Only a small PNG upload has passed the observed staging check.
-5. Review security-advisor findings, dependency/runtime support, Netlify build-context safeguards, backup/recovery and the ability of Board participants to access the private site.
-6. Rehearse the actual demonstration with controlled fictional accounts and label incomplete or demonstration-only capabilities honestly.
-7. Obtain a deliberate readiness and scheduling decision before sending invitations.
+## January 2027 staff-identity workstream
 
-No Board/Owner preview accounts have yet been provisioned. No real client evidence, public launch, official verification, payment collection or unapproved staff privileges are permitted.
+Staff ID/password, possible authenticator MFA, separate staff/customer identities, employee customer-access controls and conflict-of-interest safeguards are planned separately. They are not November acceptance requirements and are not implemented by the current preview.
 
-## Later architecture
+## Why blue-green is not needed yet
 
-Detailed staffing hierarchy, North/South coverage, Feasibility, Operations, handover acceptance, approvals, professional reports, governance and CEO/Board interfaces are separate post-preview design and implementation concerns. Earlier January staff-identity targets remain planning targets, not delivery evidence.
-
-See [STATUS.md](STATUS.md), [RUNBOOK.md](RUNBOOK.md) and [KNOWN-ISSUES.md](KNOWN-ISSUES.md).
+The prototype has one shared Supabase database, so switching between two web application versions would not switch or isolate database state. Blue-green hosting would add operational complexity without making database migrations reversible. The practical protection is to test migrations on staging, keep them forward-only, maintain backups/recovery procedures, and deploy compatible application/database changes through review. Revisit blue-green deployment if the product later has production scale or infrastructure that justifies it.
