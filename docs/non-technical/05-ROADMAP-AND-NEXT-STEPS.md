@@ -1,70 +1,30 @@
 # Roadmap and next steps
 
-## The delivery order
+**Updated 3 November 2026.** This describes the delivery order; it does not certify that every step works.
 
-The roadmap has been reorganized around a verification-first service:
+## Current position
 
-### Phase 0 — Agree the direction
+The team uses a verification-first Abuja/FCT approach. A separate staging website and database exist, with migrations `001`–`026`. A fictional customer request was submitted with a private image. A separate Verification Lead account can see the case in its work queue.
 
-The controlled Abuja/FCT pilot, six-stage journey, responsibility boundaries, trust-label structure, no-payment rule and real-document readiness gate are agreed. Named reviewers, report wording, retention periods, company details and licensed data sources remain open.
+This is **not** a completed Board preview, real verification service or public launch. Regular-staff assignment, negative access checks, large uploads, provider-level signup restrictions, recovery, backups and Board access remain to be tested.
 
-### Phase 1 — Foundation
+## What comes next (frozen preview scope)
 
-Accounts, profiles, organizations, database protection, private-storage rules, tests, and a basic dashboard.
+1. Finish the isolated staging-readiness work around draft PR #34.
+2. Test real permitted and forbidden flows with controlled fictional customer, Lead and staff accounts.
+3. Check evidence uploads, account security, email recovery and private site access.
+4. Rehearse and make a formal readiness decision before inviting anyone.
+5. Preserve PR #33 UI feedback for later review; it remains paused and unmerged.
 
-This phase is near completion. PR #9 is merged, migrations `001`-`017` are deployed, and both general CI and temporary-database pgTAP workflows passed for the merged PR head. Hosted-user document isolation, hosted account-email flows, the remaining Supabase advisor findings and the `organization_actor_role` anonymous-permission fix still require closure or an explicit risk decision.
+The originally suggested **12–20 November 2026** preview is provisional. Postponement is under consideration, with no confirmed new date. No new features are being added simply because of the date.
 
-### Phase 2 — Verification case and private evidence
+## Later planned phases
 
-Build the first real business journey:
+- Strengthen the verification and evidence journey before offering real services.
+- Develop feasibility assessments and an evidence-labelled Land & Development Report with appropriate professional review.
+- Plan the new organizational structure, Operations processes, approvals, handovers and company-wide oversight as separately reviewed work.
+- Only later extend into land discovery, GIS, professional participation and project workspaces.
 
-- customer request form;
-- Abuja site details;
-- private evidence upload;
-- case submission;
-- staff work queue;
-- assignment and handover;
-- status history and review notes;
-- permission checks and audit history.
+No real client evidence without legal/privacy readiness, official verification promises, customer payments, risky AI automation, paid dependencies or unnecessary infrastructure rebuilding.
 
-The case follows six customer-facing stages: request received, documents in, document checks, site and map, development options, and report. A customer may start it directly or receive audited staff assistance. A human lead controls assignment, and a suitably qualified second reviewer is required for consequential conclusions.
-
-This is the next implementation phase.
-
-### Phase 3 — Feasibility and report
-
-Add clear assumptions, repeatable calculations, discipline-appropriate second review, and delivery of a deliberately limited report. The report must separate Atexgrove review, professional conclusions, official-source evidence, estimates and unresolved matters.
-
-### Phase 4 — Controlled land discovery and maps
-
-Add clearly labelled demonstration parcels, filters, map views, and source information after the controlled case workflow works.
-
-### Phase 5 — Projects and professionals
-
-Allow completed cases or parcels to become controlled project workspaces with scoped participation.
-
-### Phase 6 — Release confidence
-
-Complete full user-journey testing, accessibility, failure states, operational checks, and a deployable preview.
-
-## What happens immediately
-
-1. Add and test a forward migration that removes anonymous execute access from `organization_actor_role`.
-2. Test real email confirmation and password recovery, including invalid/expired links.
-3. Test hosted cross-user document isolation using realistic authenticated sessions.
-4. Review the remaining Supabase security and performance findings and either fix or explicitly accept each one.
-5. Confirm no exposed service-role secret remains in use and rotate any credential that was shared outside secure storage.
-6. Complete and professionally review the terms, privacy, consent, retention/deletion and incident rules before accepting real evidence.
-7. Identify the first pilot participants and qualified second reviewers.
-8. Design and build the Phase 2 journey from database rules to a simple working interface using synthetic/redacted evidence first.
-
-## What should not happen next
-
-- another open-ended foundation rewrite;
-- polished disconnected screens;
-- public land marketplace work before the case workflow;
-- payments;
-- AI processing of real pilot documents;
-- Kubernetes or complex infrastructure;
-- claims that planned features already work.
-
+See [current status](../STATUS.md) and [release plan](../RELEASE-PLAN.md).
