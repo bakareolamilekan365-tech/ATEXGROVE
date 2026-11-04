@@ -5,6 +5,10 @@ import console from "node:console";
 
 // Build-time safety gate only. This does not verify credentials, provision infrastructure,
 // apply SQL migrations, or prove that Supabase Auth sign-up is disabled.
+const approvedNetlifySiteId = "c36c8384-8a73-42df-a19f-b2debd6c7ea5";
+const approvedStagingRef = "rogovqltseeqdugsjood";
+const existingHostedRef = "caueewwwnzwtuaiuabdt";
+
 export function validateStagingEnvironment(env) {
   const failures = [];
   const stagingRef = (env.STAGING_SUPABASE_PROJECT_REF || "").trim();
@@ -13,13 +17,16 @@ export function validateStagingEnvironment(env) {
 
   if (!validRef.test(stagingRef)) failures.push("Set STAGING_SUPABASE_PROJECT_REF to the approved 20-character staging project ref.");
   if (!validRef.test(productionRef)) failures.push("Set PRODUCTION_SUPABASE_PROJECT_REF to the existing hosted project's 20-character ref.");
+  if (stagingRef !== approvedStagingRef) failures.push("STAGING_SUPABASE_PROJECT_REF must identify the approved staging project.");
+  if (productionRef !== existingHostedRef) failures.push("PRODUCTION_SUPABASE_PROJECT_REF must identify the existing hosted project.");
   if (stagingRef && productionRef && stagingRef === productionRef) failures.push("Staging and production project refs must differ.");
+  if (stagingRef === existingHostedRef) failures.push("The existing hosted Supabase project cannot be used as staging.");
 
   const urlString = (env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   try {
     const url = new URL(urlString);
     if (url.protocol !== "https:" ||
-        url.hostname !== `${stagingRef}.supabase.co` ||
+        url.hostname !== `${approvedStagingRef}.supabase.co` ||
         url.username || url.password || url.port || url.pathname !== "/" ||
         url.search || url.hash) {
       failures.push("NEXT_PUBLIC_SUPABASE_URL must be the exact approved staging Supabase project origin.");
@@ -31,7 +38,10 @@ export function validateStagingEnvironment(env) {
   if (!(env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim()) failures.push("Set the staging NEXT_PUBLIC_SUPABASE_ANON_KEY.");
   if (!(env.SUPABASE_SERVICE_ROLE_KEY || "").trim()) failures.push("Set the staging SUPABASE_SERVICE_ROLE_KEY in server-only Netlify environment settings.");
   if (env.NEXT_PUBLIC_PRIVATE_PREVIEW !== "true") failures.push("NEXT_PUBLIC_PRIVATE_PREVIEW must be true for staging.");
-  if (env.CONTEXT === "production") failures.push("This staging preflight must not run in a production deploy context.");
+  if (env.SITE_ID !== approvedNetlifySiteId) failures.push("Staging builds require the approved Netlify SITE_ID.");
+  if (env.CONTEXT !== "production" && env.CONTEXT !== "deploy-preview" && env.CONTEXT !== "branch-deploy") {
+    failures.push("Unsupported Netlify deployment context for staging.");
+  }
   return failures;
 }
 
@@ -42,7 +52,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     for (const failure of failures) console.error(`- ${failure}`);
     process.exitCode = 1;
   } else {
-    console.log("Staging preflight PASSED. Project isolation and private-preview flags are consistent.");
-    console.log("This does not confirm account restrictions, database migrations, deployment, or storage access.");
+    console.log("Staging preflight PASSED. Approved site/project identifiers and private-preview flag match.");
+    console.log("This does not confirm credential ownership, account restrictions, database migrations, deployment, or storage access.");
   }
 }

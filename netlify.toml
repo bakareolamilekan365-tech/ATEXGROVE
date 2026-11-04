@@ -1,11 +1,8 @@
-# Only preview/branch builds are gated here. Production does NOT run this staging check.
-# Netlify secrets and Supabase project keys must be configured in Netlify's
-# deploy-context-specific environment settings, never in this file.
+# Every build context runs the staging guard before Next.js compilation.
+# Netlify secrets and Supabase project keys belong in Netlify's environment
+# settings, never in this file.
+[build]
+  command = "node scripts/staging-preflight.mjs && npm run build"
+
 [build.environment]
   NODE_VERSION = "22"
-
-[context.deploy-preview]
-  command = "node scripts/staging-preflight.mjs && npm run build"
-
-[context.branch-deploy]
-  command = "node scripts/staging-preflight.mjs && npm run build"
