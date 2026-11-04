@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { validateStagingEnvironment } from "../scripts/staging-preflight.mjs";
 
-const stagingRef = "aaaaaaaaaaaaaaaaaaaa";
-const productionRef = "bbbbbbbbbbbbbbbbbbbb";
+const stagingRef = "rogovqltseeqdugsjood";
+const productionRef = "caueewwwnzwtuaiuabdt";
 const valid = {
+  SITE_ID: "c36c8384-8a73-42df-a19f-b2debd6c7ea5",
   STAGING_SUPABASE_PROJECT_REF: stagingRef,
   PRODUCTION_SUPABASE_PROJECT_REF: productionRef,
   NEXT_PUBLIC_SUPABASE_URL: `https://${stagingRef}.supabase.co`,
@@ -40,8 +41,8 @@ test("rejects missing staging keys without revealing values", () => {
   assert.ok(errors.every((e) => !e.includes("test-server-only-value")));
 });
 
-test("rejects public registration flag and production deploy context", () => {
-  const bad = { ...valid, NEXT_PUBLIC_PRIVATE_PREVIEW: "false", CONTEXT: "production" };
+test("rejects public registration flag and unsupported deploy context", () => {
+  const bad = { ...valid, NEXT_PUBLIC_PRIVATE_PREVIEW: "false", CONTEXT: "unknown" };
   assert.equal(validateStagingEnvironment(bad).length, 2);
 });
 

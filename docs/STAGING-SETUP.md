@@ -23,6 +23,7 @@
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: staging's client-safe publishable/anon key
    - `SUPABASE_SERVICE_ROLE_KEY`: **staging-only server secret**, never a browser variable or repository value
    - `NEXT_PUBLIC_PRIVATE_PREVIEW=true`
+   - `SITE_ID`: supplied automatically as a read-only Netlify build variable. It must identify the approved site in **Production, Deploy Preview and Branch Deploy**; do not configure it manually in Netlify.
 4. Do **not** allow shared/fallback Netlify variables to point any permitted context at the existing hosted project. Review each variable's build/function scope and deployment-context values. Do not commit secrets to `netlify.toml`, workflows, issues or source files.
 5. This repository configuration requests Node 22 for builds. Confirm the effective build/runtime versions from the Netlify deployment logs; the preflight does not verify them.
 
@@ -34,7 +35,7 @@ Every Netlify build context, including the approved site's `production` context,
 node scripts/staging-preflight.mjs && npm run build
 ```
 
-The preflight fails for an unknown context; for a `production` context without the exact approved `SITE_ID`, staging ref and hosted-project ref; or for malformed/mismatched project URL/ref, use of the known hosted project as staging, missing keys, or disabled private preview. Deploy Preview and Branch Deploy remain supported. The global build command runs the preflight before Next.js compilation. It prints configuration problem names, **never credential values**.
+The preflight accepts only `production`, `deploy-preview` and `branch-deploy`. **Every** supported context requires the exact approved `SITE_ID`, staging ref and existing-hosted ref, as well as the exact staging HTTPS origin, required keys and private-preview flag. Internally consistent declarations for a different project still fail. Missing or unknown contexts fail. The global build command runs the preflight before Next.js compilation. It prints configuration problem names, **never credential values**. Netlify documents `SITE_ID` as a [read-only build variable](https://docs.netlify.com/build/configure-builds/environment-variables/).
 
 Run the isolated regression tests without credentials:
 

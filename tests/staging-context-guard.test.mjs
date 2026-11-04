@@ -7,6 +7,7 @@ const stagingRef = "rogovqltseeqdugsjood";
 const hostedRef = "caueewwwnzwtuaiuabdt";
 const syntheticPublishableKey = "synthetic-publishable-key";
 const syntheticServerKey = "synthetic-server-key";
+const supportedContexts = ["production", "deploy-preview", "branch-deploy"];
 
 const valid = {
   SITE_ID: approvedSiteId,
@@ -19,16 +20,22 @@ const valid = {
   NEXT_PUBLIC_PRIVATE_PREVIEW: "true",
 };
 
-test("allows the approved site's production context with staging configuration", () => {
-  assert.deepEqual(validateStagingEnvironment(valid), []);
+test("allows the exact approved configuration in every supported context", () => {
+  for (const context of supportedContexts) {
+    assert.deepEqual(validateStagingEnvironment({ ...valid, CONTEXT: context }), []);
+  }
 });
 
-test("rejects a different site in the production context", () => {
-  assert.ok(validateStagingEnvironment({ ...valid, SITE_ID: "00000000-0000-0000-0000-000000000000" }).length > 0);
+test("rejects a different site in every supported context", () => {
+  for (const context of supportedContexts) {
+    assert.ok(validateStagingEnvironment({ ...valid, CONTEXT: context, SITE_ID: "00000000-0000-0000-0000-000000000000" }).length > 0);
+  }
 });
 
-test("rejects a missing site ID in the production context", () => {
-  assert.ok(validateStagingEnvironment({ ...valid, SITE_ID: undefined }).length > 0);
+test("rejects a missing site ID in every supported context", () => {
+  for (const context of supportedContexts) {
+    assert.ok(validateStagingEnvironment({ ...valid, CONTEXT: context, SITE_ID: undefined }).length > 0);
+  }
 });
 
 test("rejects the existing hosted project even when the staging declaration is changed", () => {
@@ -41,13 +48,26 @@ test("rejects the existing hosted project even when the staging declaration is c
   assert.ok(failures.some((message) => message.includes("cannot be used as staging")));
 });
 
-test("rejects a production-context build with an unapproved staging project", () => {
+test("rejects an alternative staging project in every supported context", () => {
   const otherRef = "cccccccccccccccccccc";
-  assert.ok(validateStagingEnvironment({
-    ...valid,
-    STAGING_SUPABASE_PROJECT_REF: otherRef,
-    NEXT_PUBLIC_SUPABASE_URL: `https://${otherRef}.supabase.co`,
-  }).length > 0);
+  for (const context of supportedContexts) {
+    assert.ok(validateStagingEnvironment({
+      ...valid,
+      CONTEXT: context,
+      STAGING_SUPABASE_PROJECT_REF: otherRef,
+      NEXT_PUBLIC_SUPABASE_URL: `https://${otherRef}.supabase.co`,
+    }).length > 0);
+  }
+});
+
+test("rejects an incorrect existing-hosted project declaration in every supported context", () => {
+  for (const context of supportedContexts) {
+    assert.ok(validateStagingEnvironment({
+      ...valid,
+      CONTEXT: context,
+      PRODUCTION_SUPABASE_PROJECT_REF: "dddddddddddddddddddd",
+    }).length > 0);
+  }
 });
 
 test("rejects missing credentials and disabled private preview", () => {
@@ -58,7 +78,7 @@ test("rejects missing credentials and disabled private preview", () => {
 
 test("continues to allow deploy-preview and branch-deploy staging contexts", () => {
   for (const context of ["deploy-preview", "branch-deploy"]) {
-    assert.deepEqual(validateStagingEnvironment({ ...valid, CONTEXT: context, SITE_ID: undefined }), []);
+    assert.deepEqual(validateStagingEnvironment({ ...valid, CONTEXT: context }), []);
   }
 });
 
