@@ -1,8 +1,38 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-10-27
+**Status date:** 2026-10-29
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
+
+## PR #33 user-acceptance correction (2026-10-29; implementation under review)
+
+The account avatar now derives first-name/surname initials and opens a keyboard-accessible workspace-specific menu for Profile, Settings and Sign out. The menu closes on outside interaction, Escape, navigation and sign-out. Customer Home is a real overview and My Cases is a separate `/dashboard/cases` destination with customer-owned search, status filters and grouped drafts, active work, waiting-on-customer, closed and cancelled requests. Discarded drafts are excluded from every customer list/count and redirect away from direct customer URLs without deleting retained rows or evidence.
+
+Light/Dark/System remains available, but Light is now the first-visit default regardless of device preference. A saved choice is respected and an explicit System choice follows operating-system changes. The early initializer uses the same Light fallback to prevent an incorrect dark flash. The compact header remains sticky so account and theme controls stay available without a floating overlay.
+
+Authentication pages use a centered card and limited brand header. Sign-in uses stable eye/eye-off icons, rejects duplicate submissions and disables conflicting registration/recovery navigation while authentication is pending. Supabase cookie persistence across a Next.js server restart is expected behavior, not an idle-timeout claim. Explicit logout is retained; a failed local session clear does not falsely send the user to a signed-out page. Protected responses and authenticated redirects carry private/no-store headers. An inactivity or absolute-session timeout remains a separate policy decision.
+
+Progress uses one shared four-stage journey: Saved, Submitted, Reviewer assigned and In review. The unreachable Finished stage has been removed. A milestone is marked complete only when the current case state or recorded status history supports it. Waiting on you remains an amber review-state note. Closed and Cancelled retain the recorded journey and add a separate outcome explanation; closure never implies a successful land assessment or official verification.
+
+Before the first server draft exists, the new-request form can save only intent, relationship, area/LGA and site-description text in account-scoped browser storage for seven days. Phone numbers, principal names, free-text notes and file contents are excluded. The UI distinguishes "Saved on this device" from "Saved to your account"; recovery never submits a case and clears after draft creation or sign-out. The case page keeps document preparation/history beside a desktop-sticky submission panel while preserving direct-to-Supabase evidence security and deliberate submission.
+
+Customer workspaces can grow to approximately 1680px and staff workspaces to 1760px on wide screens while forms and long-form text retain bounded readable widths. Workflow badges use restrained semantic blue, teal, amber and red treatments; ordinary role, Demo and secondary metadata remain neutral. Content-shaped loading skeletons use higher-contrast surfaces and reduced-motion-safe colour pulsing. Desktop headers show the supplied blue architectural mark with the wordmark; compact screens use the mark.
+
+The two landing illustrations are now WebP assets at their original dimensions and below 300 KB each. They are project-team AI-generated illustrative assets; the exact tool and date are unknown and documented in `public/images/README.md`.
+
+No migration, hosted service change or deployment is part of this PR. The current single contact preference remains unchanged. Multiple contact methods, primary/fallback ordering, consent and audited attempts require a separate backend design and migration. Department handover and report messages remain unavailable until genuine authorized events exist. Browser acceptance with customer, staff and dual-role accounts remains an operational check until it is actually performed; local/CI results for this correction are recorded in PR #33.
+
+**Verification:** local lint, typecheck and production build pass. The final acceptance correction adds 21 focused passing checks across progress semantics, supplied brand use, account-menu/form behavior, local-scope Supabase sign-out and protected-route denial after the session is absent. Earlier focused tests cover draft recovery, discarded-versus-cancelled filtering, customer search/status filters, first-visit Light behavior, relationship guidance, explicit submission and evidence finalization. The owner will perform visual inspection and authenticated browser acceptance. No Playwright, screenshot or visual-regression run is claimed for this correction. GitHub CI for the new final head must be recorded after push; prior runs remain historical evidence only.
+
+## Approved-reference UI alignment (2026-10-28; branch work, not deployed)
+
+**Current repository branch:** `ui/align-approved-design` restyles the public, authentication, customer and staff surfaces using `Customer dashboard v2.zip`, `Staff dashboard v2.zip` and `Staff dashboard.pdf` while exposing only existing behavior. It adds a real-logo shared header; a balanced landing page with a project-owned built-environment image and dedicated account-access links; reusable auth cards; one `NEXT_PUBLIC_PRIVATE_PREVIEW` presentation flag; authenticated customer Help/Profile pages; customer workflow progress; and a real-status-derived staff board. Figtree remains self-hosted.
+
+The shared header includes persistent Light, Dark and System preferences. The unsaved first-visit default is Light; an early initializer applies it before hydration. Saved choices are respected and an explicit System choice follows operating-system changes. Staff dashboard categories show no more than five active cards and three terminal cards before linking to complete filtered lists; Closed and Cancelled remain distinct.
+
+This branch does not add a migration, change hosted Supabase/Storage, deploy an application, or intentionally change authentication, authorization, upload or evidence visibility. The private-preview registration gate is UI-only and does not replace separate Supabase configuration. Handovers, second review, team capacity, Staff ID login, authenticator/MFA state, due dates, unsupported navigation, notifications and reports remain unimplemented.
+
+Local lint, typecheck, 105 unit tests, 40 integration tests (with 3 environment-dependent skips), security guardrails and the production build passed during implementation. Chrome review covered the public and authentication surfaces at 1280px and 390px in light/dark modes, private-preview registration gating, mobile overflow, theme switching, refresh persistence and live System-theme changes. Final GitHub CI and authenticated customer/staff browser acceptance must still be recorded because repository tests do not create or mutate hosted users.
 
 ## Current baseline — migration 026 and private preview
 

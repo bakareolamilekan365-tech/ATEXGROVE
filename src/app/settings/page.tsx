@@ -1,7 +1,3 @@
-export default function SettingsPage() {
-  return (
-    <main>
-      <h1>Settings</h1>
-    </main>
-  );
-}
+import { redirect } from "next/navigation";
+
+export default function SettingsPage() { redirect("/dashboard/settings"); }

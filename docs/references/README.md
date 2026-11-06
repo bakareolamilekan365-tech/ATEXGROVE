@@ -12,6 +12,8 @@ This directory keeps supporting material discoverable without confusing referenc
 
 [`ui/`](ui/) contains dashboard, work-queue and visual-design references. These are design references only and must not be treated as evidence that a feature, control or workflow is implemented.
 
+For current UI work, [`ui/Customer dashboard v2.zip`](ui/Customer%20dashboard%20v2.zip) supersedes `Customer dashboard-html.zip` as the customer visual reference. `Staff dashboard v2.zip` and `Staff dashboard.pdf` are the current **Verification Lead** visual references; they do not define Feasibility or Operations Lead behavior. The older customer and staff files remain historical references where they do not conflict with the current versions.
+
 ### Engineering/system-design references
 
 [`system-design/`](system-design/) indexes selected external material used to reason about architecture, scalability, storage, reliability, security and trade-offs. External repositories are linked rather than copied.

@@ -3,7 +3,7 @@ import { findTypeaheadOption, nextSelectIndex, selectSubmittedValue } from "@/co
 import { mapCaseFormIssues } from "@/lib/verification-cases/form-errors";
 import { caseLocationDisplay, LEGACY_LOCATION_NOTE } from "@/lib/verification-cases/location-display";
 import { newVerificationCaseSchema } from "@/lib/verification-cases/validation";
-import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand } from "@/lib/verification-cases/intake-labels";
+import { formatActingFor, formatAuthorityConfirmation, formatCustomerIntent, formatRelationshipToLand, shouldSuggestDeveloperRelationship } from "@/lib/verification-cases/intake-labels";
 
 const options = [{ value: "AMAC", label: "AMAC" }, { value: "Bwari", label: "Bwari" }, { value: "Kuje", label: "Kuje" }];
 
@@ -55,8 +55,14 @@ describe("case form UI helpers", () => {
     expect(formatRelationshipToLand("developer")).toBe("Developer");
     expect(formatRelationshipToLand("agent_or_representative")).toBe("Agent or representative");
     expect(formatActingFor("organisation", "A demo organisation")).toBe("Organisation: A demo organisation");
-    expect(formatAuthorityConfirmation(null, "self")).toBe("Not applicable — acting for self");
+    expect(formatAuthorityConfirmation(null, "self")).toBe("Not applicable. Acting for self.");
     expect(formatAuthorityConfirmation(null, null)).toBe("Not recorded");
     expect(formatCustomerIntent(null)).toBe("Not recorded");
+  });
+
+  it("suggests Developer only when development is selected and no relationship exists", () => {
+    expect(shouldSuggestDeveloperRelationship("developing", "")).toBe(true);
+    expect(shouldSuggestDeveloperRelationship("developing", "owner")).toBe(false);
+    expect(shouldSuggestDeveloperRelationship("buying", "")).toBe(false);
   });
 });

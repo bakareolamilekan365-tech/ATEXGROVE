@@ -4,6 +4,54 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-10-29 - PR #33 final visual and sign-out correction
+
+**Problem:** The compact progress treatment hid the journey for terminal cases and included an unreachable Finished stage; wide-screen limits still left unused desktop space; broad neutral styling reduced workflow clarity; loading placeholders looked inactive; the desktop brand omitted its emblem; and selecting Sign out could fail.
+
+**Root cause:** Terminal progress returned before rendering milestones, container limits remained at 1360/1480px, status tokens were over-neutralized, skeleton animation changed mostly opacity, and the header hid the mark at desktop widths. The account menu also called its close callback from the submit button click, unmounting the form before the server action was guaranteed to submit.
+
+**Correction:** Keep the four reachable milestones Saved, Submitted, Reviewer assigned and In review for active and terminal cases, and show Closed/Cancelled as separate outcomes. Expand responsive customer/staff workspaces to approximately 1680/1760px, restore restrained semantic state colours, improve content-shaped skeleton contrast and pulse, and present the supplied mark plus wordmark on desktop. Keep the sign-out form mounted during submission; Supabase continues to clear only the local session and persistent sessions after a server restart remain normal.
+
+**Security and scope:** No migration, RLS, privilege, evidence-security, hosted setting or deployment changed. Draft recovery, discarded-draft filtering, customer case filters, upload controls and current customer/staff authorization remain intact. Real authenticated browser acceptance remains the owner's task.
+
+**Verification:** Twenty-one focused tests pass for progress, logo/header composition, menu submission behavior, Supabase local-scope sign-out and protected-route denial. Lint, typecheck and the production build pass. This is repository evidence, not a claim that a real browser session was signed out or that the visual result was owner-approved.
+
+## 2026-10-29 - PR #33 customer acceptance correction
+
+**Problem:** Customer Home and My Cases were the same destination; event-derived progress produced confusing disconnected colours; discarded drafts appeared as cancellations; pre-server form input was lost after interruption; the case page separated uploads from submission; the avatar showed one initial and its menu stayed open; first visits inherited device dark mode; and two landing PNGs totalled about 4.9 MB.
+
+**Cause:** The first UI pass reused the dashboard as both overview and list, treated raw status events as compact presentation, kept the new-case form only in React memory, used native `details` for the account menu and retained unoptimized generated-image exports. Theme fallback followed the operating system even though the accepted first-view design is Light.
+
+**Correction:** Add a customer-owned My Cases route with search/status filters and keep Home as a real overview. Exclude `discarded_at` rows from customer lists/counts and redirect discarded direct URLs. Replace compact progress with Saved, Submitted, In review and Finished, while Closed is neutral and Cancelled red. Add seven-day, user-keyed browser recovery for only intent, relationship, area/LGA and site description; clear it after server draft creation and sign-out. Recompose the case page around evidence plus an adjacent submission panel. Derive two initials, close the account menu on outside interaction/Escape/navigation/sign-out, widen content containers, keep the header sticky, and show a non-binding Developer suggestion. Default unsaved themes to Light while preserving explicit Dark/System choices. Replace both generated PNGs with same-dimension WebP files below 300 KB and record their project-team AI-generated provenance.
+
+**Security and data boundaries:** Recovery stores no phone number, principal name, free-text notes, token or file content and never invokes submission. Server drafts remain authoritative. Customer queries still bind `customer_user_id` to the authenticated user and RLS remains unchanged. No migration, hosted change, upload-security change or deployment is included.
+
+**Verification:** Local lint, typecheck and production build passed. Eleven essential focused test files passed with 59 tests covering recovery/expiry, discarded-versus-cancelled filtering, customer search/status filters, progress semantics, account-menu dismissal, first-visit Light/default theme behavior, relationship suggestion, explicit submission, protected logout routes and evidence finalization. The owner retains visual and manual browser acceptance; no Playwright, screenshot or visual-regression run is claimed.
+
+## 2026-10-29 — PR #33 profile and presentation follow-up
+
+**Problem:** The account initial/name did not open a profile, shared Settings routes were placeholders, and the editable profile form hid load failures and could report success after a zero-row update. The staff header was overcrowded, customer navigation was duplicated, auth navigation could race a pending sign-in, password controls used shifting text, generic skeletons did not represent final content, document categories opened a remote form, and closed/cancelled progress was misleading.
+
+**Cause:** The first UI alignment concentrated on static visual structure; account navigation, confirmed write results and workflow-aware progress had not been connected to the existing authenticated data.
+
+**Fix:** Add customer/staff Profile and Settings routes, confirmed owner-scoped profile saves, a compact avatar account menu, active anchor-aware navigation, compact theme toggle plus full settings choices, and white light-mode icon surfaces. Center auth headings, replace Show/Hide with stable accessible eye icons, gate duplicate sign-in and conflicting links while pending, preserve safe fresh navigation, make failed logout explicit and apply no-store headers. Recompose the landing hero, add reduced-motion-aware scroll reveals, replace generic loaders with content-shaped skeletons, render evidence forms inline with the selected category, split staff preview limits (5 active / 3 terminal), and derive progress from recorded visible events with neutral closure and red cancellation. No database or hosted changes.
+
+**Lesson:** A visual control must lead to a working authorized path; a saved profile is not confirmed until the owner-scoped update returns a row. A browser-held Supabase session surviving a Next.js restart is normal; timeout policy must not be invented as a UI fix. Terminal outcomes, loading placeholders and evidence controls must describe real state rather than imply completion. Contact fallback and handover milestones remain backend work, not mock UI state.
+
+**Verification:** Local lint, typecheck, 115 unit tests, 42 integration tests (3 existing skips), guardrails and production build passed. Six public/auth Playwright checks passed, including a delayed mocked-auth request proving one request and blocked conflicting navigation, plus theme, reduced-motion, mobile-overflow and scroll-reveal checks. Desktop/mobile homepage and desktop login screenshots were inspected. [Application CI run 40857465562](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40857465562) and [database-security run 40857465626](https://github.com/bakareolamilekan365-tech/ATEXGROVE/actions/runs/40857465626) passed for correction commit `ded21eb`. Authenticated customer/staff session, case, queue and Storage acceptance remains open because isolated accounts were unavailable.
+
+## 2026-10-28 — Approved references contained more functionality than the product
+
+**Problem:** The customer and staff reference dashboards establish a strong visual direction but also contain names, records, due dates, notifications, handovers, second review, capacity and identity concepts that are not all implemented.
+
+**Cause:** A visual design artifact combines presentation examples and future product ideas; treating every visible element as a requirement would create fake data and bypass the repository's current scope and permission boundaries.
+
+**Correction:** The UI alignment uses the current customer v2 and Verification Lead references only for layout, typography, colour, cards and responsive hierarchy. Shared headers, dedicated account-access routes, auth cards, workflow progress and staff queue groupings consume real repository records and existing statuses. Closed and Cancelled are separate; active overview groups are capped at five and terminal groups at three before a full filtered list. Authenticated customer Help/Profile pages remain in the customer context. Mock-only functionality remains absent. `NEXT_PUBLIC_PRIVATE_PREVIEW` affects presentation only, and the existing Supabase authentication, RLS, server actions and evidence upload behavior remain unchanged. A persistent Light/Dark/System control uses CSS variables and an early theme initializer rather than a second layout system.
+
+**Verification:** Lint, typecheck, 105 unit tests, 40 integration tests (3 environment-dependent skips), security guardrails and the production build passed. Local Chrome review covered the public/auth surfaces at 1280px and 390px, light/dark presentation, preview registration gating, mobile overflow, theme refresh persistence and System-mode changes. Final GitHub CI and authenticated customer/staff browser review remain to be recorded before merge.
+
+**Lesson:** References guide visual decisions; `DECISIONS.md`, implementation and `STATUS.md` still determine accepted behavior, real capabilities and verification state.
+
 ## 2026-10-12 — Supabase-owned objects broke fresh-stack migrations
 
 Related work: [PR #9](https://github.com/bakareolamilekan365-tech/ATEXGROVE/pull/9)

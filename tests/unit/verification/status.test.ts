@@ -44,13 +44,13 @@ describe("verification case status transitions", () => {
   });
 
   it("keeps the submitted label honest", () => {
-    expect(caseStatusLabels.submitted).toBe("Received — not yet verified");
+    expect(caseStatusLabels.submitted).toBe("Received");
     expect(caseStatusLabels.submitted.toLowerCase()).not.toBe("verified");
-    expect(caseStatusLabels.closed).toBe("Closed — no verification result issued");
+    expect(caseStatusLabels.closed).toBe("Closed");
   });
 
   it("labels drafts clearly and exposes only valid customer actions", () => {
-    expect(caseStatusLabels.draft).toBe("Draft — not submitted");
+    expect(caseStatusLabels.draft).toBe("Draft");
     expect(customerCaseActions("draft")).toEqual({
       canUploadEvidence: true,
       canSubmitDraft: true,
@@ -71,8 +71,8 @@ describe("customer-safe case timeline", () => {
   it("maps every event kind without inferring meaning from its text", () => {
     expect(customerSafeStatusMessages.in_review).toBe("Your case is now in review.");
     expect(customerSafeStatusMessages.needs_customer_info).toBe("The review team needs more information from you.");
-    expect(customerSafeStatusMessages.closed).toBe("This case was closed. No verification result was issued.");
-    expect(customerSafeStatusMessages.cancelled).toBe("This case was cancelled.");
+    expect(customerSafeStatusMessages.closed).toBe("This request has been closed. The review ended without a final land assessment.");
+    expect(customerSafeStatusMessages.cancelled).toBe("This request was cancelled.");
     expect(caseStatusEventKindLabels).toEqual({
       status_change: "Workflow status",
       staff_note: "Staff-only note",
@@ -108,12 +108,12 @@ describe("customer-safe case timeline", () => {
       reason: "Your case is now in review.",
     };
     const reply = { ...transition, event_kind: "customer_response" as const, reason: "I have provided the requested plan." };
-    expect(timelineEventHeading(transition)).toBe("In review — not yet verified");
+    expect(timelineEventHeading(transition)).toBe("In review");
     expect(timelineEventHeading(reply)).toBe("Customer response submitted");
     expect(timelineEventKindLabel(timelineEventKindForDisplay(reply))).toBe("Customer reply");
 
     const legacyTransition = { ...reply, reason: "Customer provided the requested information." };
-    expect(timelineEventHeading(legacyTransition)).toBe("In review — not yet verified");
+    expect(timelineEventHeading(legacyTransition)).toBe("In review");
     expect(timelineEventKindForDisplay(legacyTransition)).toBe("status_change");
   });
 });

@@ -164,45 +164,59 @@ export async function finalizeCaseEvidenceUploadAction(
   revalidatePath(`/dashboard/cases/${details.caseId}`);
   return {
     error: null,
-    success: "Saved — not yet submitted to the review team",
+    success: "Document saved. It will be shared with the review team when you submit your request.",
   };
 }
 
-export async function submitDraftCaseAction(formData: FormData): Promise<void> {
+export type CaseControlState = { error: string | null };
+
+export async function submitDraftCaseAction(
+  _previousState: CaseControlState,
+  formData: FormData,
+): Promise<CaseControlState> {
   const caseId = String(formData.get("caseId") ?? "");
   const accepted = formData.get("serviceScopeAccepted") === "on";
-  if (!accepted) throw new Error("Accept the service-scope notice before submitting.");
+  if (!accepted) return { error: "Accept the service-scope notice before submitting." };
   const { supabase } = await requireAuthenticatedUser();
   const { error } = await supabase.rpc("submit_verification_case", {
     p_case_id: caseId,
     p_notice_version: String(formData.get("noticeVersion") ?? CASE_SERVICE_SCOPE_NOTICE_VERSION),
     p_accepted: accepted,
   });
-  if (error) throw new Error("This draft could not be submitted. Refresh and try again.");
+  if (error) return { error: "This draft could not be submitted. Your saved work is unchanged." };
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/cases");
   redirect(`/dashboard/cases/${caseId}`);
 }
 
-export async function discardDraftCaseAction(formData: FormData): Promise<void> {
+export async function discardDraftCaseAction(
+  _previousState: CaseControlState,
+  formData: FormData,
+): Promise<CaseControlState> {
   const caseId = String(formData.get("caseId") ?? "");
   const { supabase } = await requireAuthenticatedUser();
   const { error } = await supabase.rpc("discard_draft_case", { p_case_id: caseId });
-  if (error) throw new Error("This draft could not be discarded. Refresh and try again.");
+  if (error) return { error: "This draft could not be discarded. Your saved work is unchanged." };
   revalidatePath("/dashboard");
-  redirect(`/dashboard/cases/${caseId}`);
+  revalidatePath("/dashboard/cases");
+  redirect("/dashboard/cases");
 }
 
-export async function cancelVerificationCaseAction(formData: FormData): Promise<void> {
+export async function cancelVerificationCaseAction(
+  _previousState: CaseControlState,
+  formData: FormData,
+): Promise<CaseControlState> {
   const caseId = String(formData.get("caseId") ?? "");
   const reason = String(formData.get("reason") ?? "");
-  if (reason.length > 2000) throw new Error("The reason must be 2,000 characters or fewer.");
+  if (reason.length > 2000) return { error: "The reason must be 2,000 characters or fewer." };
   const { supabase } = await requireAuthenticatedUser();
   const { error } = await supabase.rpc("cancel_verification_case", {
     p_case_id: caseId,
     p_reason: reason,
   });
-  if (error) throw new Error("This request could not be cancelled. Refresh and try again.");
+  if (error) return { error: "This request could not be cancelled. Your case is unchanged." };
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/cases");
   revalidatePath(`/dashboard/cases/${caseId}`);
   redirect(`/dashboard/cases/${caseId}`);
 }
@@ -229,5 +243,5 @@ export async function customerRespondToCaseAction(
 
   revalidatePath(`/dashboard/cases/${parsed.data.caseId}`);
   revalidatePath(`/ops/cases/${parsed.data.caseId}`);
-  return { error: null, success: "Response submitted. Documents released for review — not authenticated." };
+  return { error: null, success: "Response submitted. Your documents are now available to the review team. They have not been authenticated." };
 }

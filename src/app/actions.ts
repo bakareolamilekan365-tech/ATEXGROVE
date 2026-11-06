@@ -6,6 +6,10 @@ import { signOutLocalSession } from "@/lib/auth/sign-out";
 
 export async function signOutAction() {
   const { supabase } = await requireAuthenticatedUser();
-  await signOutLocalSession(supabase);
+  const { error } = await signOutLocalSession(supabase);
+  if (error) {
+    console.warn("[auth.sign_out_failed]", { reason: "local_session_clear_failed" });
+    redirect("/dashboard?signout=failed");
+  }
   redirect("/login");
 }

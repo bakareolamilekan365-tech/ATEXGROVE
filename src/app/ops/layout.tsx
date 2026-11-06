@@ -1,44 +1,20 @@
-import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
-import styles from "@/components/cases/case-workflow.module.css";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AuthorizationError, requireStaff } from "@/lib/auth/guards";
-import { signOutAction } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function OperationsLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  let context: Awaited<ReturnType<typeof requireStaff>>;
   try {
-    await requireStaff();
+    context = await requireStaff();
   } catch (error) {
     if (error instanceof AuthorizationError) redirect("/dashboard");
     throw error;
   }
 
-  return (
-    <>
-      <header className={styles.opsNav}>
-        <Link className={styles.brand} href="/" aria-label="Atexgrove home">
-          <Image
-            className={styles.brandMark}
-            src="/logo/atexgrove-mark.svg"
-            alt="Atexgrove mark"
-            width={40}
-            height={40}
-            priority
-          />
-          <span>Atexgrove Operations</span>
-        </Link>
-        <nav aria-label="Operations">
-          <Link className={styles.link} href="/ops/cases">My queue</Link>
-          <a className={styles.link} href="/dashboard">Customer dashboard</a>
-        </nav>
-        <span className={styles.roleBadge}>Staff</span>
-        <form action={signOutAction}><button className={`${styles.button} ${styles.buttonSecondary}`} type="submit">Sign out</button></form>
-      </header>
-      {children}
-    </>
-  );
+  const { data: profile } = await context.supabase.from("profiles").select("full_name").eq("user_id", context.user.id).maybeSingle();
+  return <><SiteHeader state="staff" accountName={profile?.full_name ?? context.user.email} accountUserId={context.user.id} department={context.staff.department} isLead={context.staff.is_lead} current="queue" />{children}</>;
 }
