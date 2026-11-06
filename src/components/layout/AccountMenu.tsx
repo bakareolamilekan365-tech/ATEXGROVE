@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type Ref } from "react";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { initialsFromName } from "@/lib/ui/identity";
 
@@ -15,6 +15,38 @@ export function accountMenuShouldCloseForPointer(
 
 export function accountMenuShouldCloseForKey(key: string) {
   return key === "Escape";
+}
+
+export function AccountMenuPanel({
+  accountName,
+  accountUserId,
+  roleLabel,
+  profileHref,
+  settingsHref,
+  fallbackInitial,
+  firstLinkRef,
+  onNavigate,
+}: Readonly<{
+  accountName?: string | null;
+  accountUserId?: string;
+  roleLabel: string;
+  profileHref: string;
+  settingsHref: string;
+  fallbackInitial: string;
+  firstLinkRef?: Ref<HTMLAnchorElement>;
+  onNavigate: () => void;
+}>) {
+  return (
+    <nav className="account-menu__panel" aria-label="Account options">
+      <div className="account-menu__identity">
+        <strong>{accountName || (fallbackInitial === "S" ? "Staff member" : "Customer")}</strong>
+        <span>{roleLabel}</span>
+      </div>
+      <Link ref={firstLinkRef} href={profileHref} onClick={onNavigate}>Profile</Link>
+      <Link href={settingsHref} onClick={onNavigate}>Settings</Link>
+      <SignOutButton userId={accountUserId} />
+    </nav>
+  );
 }
 
 export function AccountMenu({
@@ -65,23 +97,23 @@ export function AccountMenu({
         ref={triggerRef}
         className="account-avatar"
         type="button"
-        aria-label="Open account menu"
-        aria-haspopup="menu"
+        aria-label={open ? "Close account menu" : "Open account menu"}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
       >
         {initialsFromName(accountName, fallbackInitial)}
       </button>
       {open ? (
-        <div className="account-menu__panel" role="menu" aria-label="Account options">
-          <div className="account-menu__identity">
-            <strong>{accountName || (fallbackInitial === "S" ? "Staff member" : "Customer")}</strong>
-            <span>{roleLabel}</span>
-          </div>
-          <Link ref={firstLinkRef} role="menuitem" href={profileHref} onClick={close}>Profile</Link>
-          <Link role="menuitem" href={settingsHref} onClick={close}>Settings</Link>
-          <SignOutButton userId={accountUserId} />
-        </div>
+        <AccountMenuPanel
+          accountName={accountName}
+          accountUserId={accountUserId}
+          roleLabel={roleLabel}
+          profileHref={profileHref}
+          settingsHref={settingsHref}
+          fallbackInitial={fallbackInitial}
+          firstLinkRef={firstLinkRef}
+          onNavigate={close}
+        />
       ) : null}
     </div>
   );

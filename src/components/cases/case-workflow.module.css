@@ -119,7 +119,7 @@
 .status_draft { background: var(--neutral-chip); color: var(--neutral-chip-text); }
 .status_submitted { background: var(--verification-bg); color: var(--verification-text); }
 .status_assigned { background: var(--brand-primary-tint); color: var(--brand-deep-tint-text); box-shadow: inset 0 0 0 1px var(--brand-border); }
-.status_in_review { background: var(--checked-bg); color: var(--checked-text); }
+.status_in_review { background: var(--verification-bg); color: var(--verification-text); }
 .status_needs_customer_info { background: var(--warning-bg); color: var(--warning-text); }
 .status_closed { background: var(--neutral-chip); color: var(--neutral-chip-text); }
 .status_cancelled { background: var(--danger-bg); color: var(--danger-text); }

@@ -1,10 +1,12 @@
-import type { ReactElement } from "react";
+import { createElement, type ReactElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
-import { accountMenuShouldCloseForKey, accountMenuShouldCloseForPointer } from "@/components/layout/AccountMenu";
+import { AccountMenu, AccountMenuPanel, accountMenuShouldCloseForKey, accountMenuShouldCloseForPointer } from "@/components/layout/AccountMenu";
 import { SignOutButton } from "@/components/layout/SignOutButton";
 import { initialsFromName } from "@/lib/ui/identity";
 
 vi.mock("@/app/actions", () => ({ signOutAction: vi.fn() }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }));
 
 describe("account menu", () => {
   it("derives first-name and surname initials with safe fallbacks", () => {
@@ -25,6 +27,31 @@ describe("account menu", () => {
   it("closes on Escape without treating other keys as dismissal", () => {
     expect(accountMenuShouldCloseForKey("Escape")).toBe(true);
     expect(accountMenuShouldCloseForKey("Enter")).toBe(false);
+  });
+
+  it("uses a native disclosure button and ordinary navigation, not an incomplete ARIA menu", () => {
+    const props = {
+      accountName: "Test Customer",
+      roleLabel: "Customer",
+      profileHref: "/dashboard/profile",
+      settingsHref: "/dashboard/settings",
+      fallbackInitial: "C",
+    };
+    const closed = renderToStaticMarkup(createElement(AccountMenu, props));
+    expect(closed).toContain('aria-label="Open account menu"');
+    expect(closed).toContain('aria-expanded="false"');
+    expect(closed).toContain('type="button"');
+    expect(closed).not.toContain('aria-haspopup="menu"');
+
+    const panel = renderToStaticMarkup(createElement(AccountMenuPanel, { ...props, onNavigate: () => {} }));
+    expect(panel).toContain('<nav');
+    expect(panel).toContain('aria-label="Account options"');
+    expect(panel).toContain('href="/dashboard/profile"');
+    expect(panel).toContain('href="/dashboard/settings"');
+    expect(panel).toContain('Sign out');
+    expect(panel).toContain('<form');
+    expect(panel).not.toContain('role="menu"');
+    expect(panel).not.toContain('role="menuitem"');
   });
 
   it("keeps the sign-out form mounted while its server action is submitted", () => {

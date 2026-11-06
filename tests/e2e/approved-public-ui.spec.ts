@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 test("public navigation leads to honest information pages", async ({ page }) => {
   await page.goto("/");
@@ -24,7 +24,7 @@ test("auth presentation keeps password managers and visibility control", async (
   await expect(page.getByRole("link", { name: /Back to home/ })).toBeVisible();
 });
 
-test("slow sign-in prevents duplicate submission and conflicting registration navigation", async ({ page }) => {
+async function verifySlowSignIn(page: Page, registrationEnabled: boolean) {
   let requests = 0;
   await page.route("**/auth/v1/token**", async (route) => {
     requests += 1;
@@ -32,15 +32,32 @@ test("slow sign-in prevents duplicate submission and conflicting registration na
     await route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "invalid_grant", error_description: "Invalid login credentials" }) });
   });
   await page.goto("/login");
+  const createAccount = page.getByRole("link", { name: "Create account" });
+  if (registrationEnabled) await expect(createAccount).toBeVisible();
+  else await expect(createAccount).toHaveCount(0);
   await page.getByLabel("Email").fill("synthetic@example.test");
   await page.getByLabel("Password", { exact: true }).fill("not-a-real-password");
   const submit = page.getByRole("button", { name: "Sign in" });
   await submit.dblclick();
   await expect(page.getByRole("button", { name: "Signing in..." })).toBeDisabled();
-  await expect(page.getByRole("link", { name: "Create account" })).toHaveAttribute("aria-disabled", "true");
+  if (registrationEnabled) {
+    await expect(createAccount).toHaveAttribute("aria-disabled", "true");
+  } else {
+    await expect(createAccount).toHaveCount(0);
+  }
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("alert")).toBeVisible();
   expect(requests).toBe(1);
+}
+
+test("slow sign-in with public registration prevents duplicate submission and conflicting navigation", async ({ page }) => {
+  test.skip(process.env.E2E_REGISTRATION_ENABLED === "false", "Run with public registration enabled.");
+  await verifySlowSignIn(page, true);
+});
+
+test("slow sign-in in restricted preview prevents duplicate submission", async ({ page }) => {
+  test.skip(process.env.E2E_REGISTRATION_ENABLED !== "false", "Run with E2E_REGISTRATION_ENABLED=false and restricted preview.");
+  await verifySlowSignIn(page, false);
 });
 
 test("theme starts light, respects manual choices and follows the device only in System mode", async ({ page }) => {

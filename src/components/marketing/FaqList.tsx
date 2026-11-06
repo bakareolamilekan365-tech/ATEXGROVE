@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-const items = [
+function faqItems(registrationEnabled: boolean) {
+  return [
   {
     question: "Does Atexgrove certify land ownership?",
     answer: "No. Atexgrove coordinates a review workflow and records what was supplied, reviewed and left unresolved. It is not a government registry or statutory authority.",
@@ -25,16 +26,20 @@ const items = [
   },
   {
     question: "How do I access an account?",
-    answer: "Existing approved users sign in with email and password. Public registration appears only when it is enabled; invitation-only access must also be enforced by the authentication service, not just hidden in the interface.",
+    answer: registrationEnabled
+      ? "Sign in with your email and password if you already have an account. New customers can use Create account to get started."
+      : "During the private preview, only approved accounts can sign in. If you have one, use its email address and password. Public registration is currently unavailable.",
   },
   { question: "When can staff see my documents?", answer: "Your saved draft is private. After you submit a request or a requested reply, authorized staff can review the submitted evidence. Saved replacements remain private until you submit them." },
   { question: "Can I correct a document later?", answer: "You can add a replacement version while your request is still a draft or when staff request more information. Earlier versions stay in the case history." },
   { question: "Can I cancel a request?", answer: "You can discard an unsubmitted draft or cancel an open submitted request. The case and evidence are retained until a separate retention and deletion policy is approved." },
   { question: "Which locations are supported?", answer: "The prototype is limited to the six FCT area councils. Its starter area list is a guide, not an official geographic register." },
-];
+  ];
+}
 
-export function FaqList() {
+export function FaqList({ registrationEnabled }: Readonly<{ registrationEnabled: boolean }>) {
   const [open, setOpen] = useState<number | null>(0);
+  const items = faqItems(registrationEnabled);
   return (
     <div className="faq-list">
       {items.map((item, index) => {
