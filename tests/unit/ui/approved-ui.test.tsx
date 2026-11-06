@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { ReactElement } from "react";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
 import RegisterPage from "@/app/(auth)/register/page";
 import { PreviewBanner, PRIVATE_PREVIEW_MESSAGE } from "@/components/layout/PreviewBanner";
@@ -8,6 +10,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { SiteNavigation } from "@/components/layout/SiteNavigation";
 import { publicRegistrationEnabled } from "@/lib/config/private-preview";
+import { FaqList } from "@/components/marketing/FaqList";
 
 type Element = ReactElement<Record<string, unknown>>;
 
@@ -86,5 +89,22 @@ describe("approved shared UI", () => {
     expect(home).toContain('href="/login"');
     expect(home).toContain('href="/register"');
     expect(login).toContain("<LoginForm");
+  });
+
+  it("uses customer-facing account instructions for both registration configurations", () => {
+    const preview = renderToStaticMarkup(createElement(FaqList, { registrationEnabled: false }));
+    const publicSignup = renderToStaticMarkup(createElement(FaqList, { registrationEnabled: true }));
+    expect(preview).toContain("Public registration is currently unavailable.");
+    expect(publicSignup).toContain("New customers can use Create account");
+    expect(preview).not.toContain("authentication service");
+    expect(publicSignup).not.toContain("authentication service");
+  });
+
+  it("does not style active In Review as the green checked state", () => {
+    const css = readFileSync(resolve(process.cwd(), "src/components/cases/case-workflow.module.css"), "utf8");
+    const rule = css.match(/\.status_in_review\s*\{([^}]+)\}/)?.[1];
+    expect(rule).toContain("--verification-bg");
+    expect(rule).toContain("--verification-text");
+    expect(rule).not.toContain("--checked-bg");
   });
 });

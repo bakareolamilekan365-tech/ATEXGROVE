@@ -49,7 +49,7 @@ export default function HomePage() {
           </ScrollReveal>
         </div></section>
         <section className="page-container landing-section"><ScrollReveal><div className="section-heading"><p className="eyebrow">Built for careful decisions</p><h2>Know what has been submitted and what still needs review</h2><p className="muted">A case keeps the customer request, document versions and customer-safe updates together. Staff work within their assigned scope. A submitted document stays labelled as customer supplied until a separate review records a conclusion.</p></div><div className="landing-actions"><Link className="button button--primary" href="/login">Sign in to your case</Link><Link className="button button--secondary" href="#help">Read common questions</Link></div></ScrollReveal></section>
-        <section className="landing-section landing-section--surface" id="help"><div className="page-container"><div className="section-heading"><p className="eyebrow">Help</p><h2>Frequently asked questions</h2></div><FaqList /></div></section>
+        <section className="landing-section landing-section--surface" id="help"><div className="page-container"><div className="section-heading"><p className="eyebrow">Help</p><h2>Frequently asked questions</h2></div><FaqList registrationEnabled={registrationEnabled} /></div></section>
         <section className="page-container landing-section" id="contact">
           <div className="content-card boundary-card--note">
             <p className="eyebrow">Contact</p>

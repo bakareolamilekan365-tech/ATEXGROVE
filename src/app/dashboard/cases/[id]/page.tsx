@@ -31,7 +31,7 @@ export default async function CustomerCasePage({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: caseData }, { data: eventData, error: eventError }, { data: evidenceData }] = await Promise.all([
+  const [{ data: caseData }, { data: eventData, error: eventError }, { data: evidenceData, error: evidenceError }] = await Promise.all([
     supabase.from("verification_cases").select("*").eq("id", id).eq("customer_user_id", user.id).maybeSingle(),
     supabase.from("case_status_events").select("*").eq("verification_case_id", id).eq("customer_visible", true).order("created_at", { ascending: false }),
     supabase.from("case_evidence").select("*").eq("verification_case_id", id).order("created_at", { ascending: false }),
@@ -73,7 +73,7 @@ export default async function CustomerCasePage({
 
       <div className={styles.caseWorkspace}>
         <div className={styles.caseEvidenceColumn}>
-          {customerActions.canUploadEvidence ? (
+          {customerActions.canUploadEvidence && !evidenceError ? (
             <section className={styles.panel}>
               <h2>{item.workflow_status === "draft" ? "Document checklist" : "Add documents"}</h2>
               <p className={styles.muted}>
@@ -87,12 +87,17 @@ export default async function CustomerCasePage({
             <div className={styles.cardHeader}>
               <div>
                 <p className={styles.eyebrow}>Private evidence</p>
-                <h2>Document history ({evidence.length}/10)</h2>
+                <h2>Document history{evidenceError ? "" : ` (${evidence.length}/10)`}</h2>
               </div>
               {item.is_demo_data ? <span className={styles.demo}>Demo data / not official</span> : null}
             </div>
             <p className={styles.muted}>Sharing a document for review does not authenticate it.</p>
-            {evidence.length ? (
+            {evidenceError ? (
+              <div className={styles.error} role="alert">
+                <p>We could not load your documents. Your files have not been changed.</p>
+                <a href={`/dashboard/cases/${id}`}>Retry loading documents</a>
+              </div>
+            ) : evidence.length ? (
               <div className={styles.stack}>
                 {evidence.map((document) => {
                   const predecessor = evidence.find((candidate) => candidate.id === document.supersedes_evidence_id);
