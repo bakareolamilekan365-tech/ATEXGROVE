@@ -88,6 +88,12 @@ export default async function CustomerCasesPage({
         <button type="submit">Apply filters</button>
         {search || filter !== "all" ? <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/dashboard/cases">Reset filters</Link> : null}
       </form>
+      {!error && (search || filter !== "all") ? (
+        <p className={styles.filterSummary} role="status">
+          Showing {visibleCases.length} of {cases.length} cases · Status: <strong>{filterLabels[filter]}</strong>
+          {search ? <> · Search: <strong>{search}</strong></> : null}
+        </p>
+      ) : null}
 
       {error ? <p className={styles.error} role="alert">We could not load your cases.</p> : null}
       {!error && visibleCases.length === 0 ? (
@@ -109,16 +115,16 @@ export default async function CustomerCasesPage({
               {section.cases.map((item) => {
                 const location = caseLocationDisplay(item.area_name, item.area_lga);
                 return (
-                  <article className={styles.card} key={item.id}>
+                  <article className={`${styles.card} ${styles.caseListCard}`} key={item.id}>
                     <div className={styles.cardHeader}>
                       {item.is_demo_data ? <span className={styles.demo}>Demo</span> : <span />}
                       <CaseStatusBadge status={item.workflow_status} />
                     </div>
                     <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
                     <h2>{location.heading}</h2>
-                    <p>{item.site_description}</p>
+                    <p className={styles.caseListDescription}>{item.site_description}</p>
                     <CaseProgress status={item.workflow_status} history={progressHistory.get(item.id) ?? []} compact />
-                    <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p>
+                    {item.workflow_status !== "closed" && item.workflow_status !== "cancelled" ? <p className={styles.muted}>{nextActionLabel(item.workflow_status)}</p> : null}
                     <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>
                       {item.workflow_status === "draft" ? "Continue draft" : "Open case"}
                     </Link>

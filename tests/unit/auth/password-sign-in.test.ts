@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { signInWithFreshNavigation } from "@/lib/auth/password-sign-in";
+import { signInErrorMessage, signInWithFreshNavigation } from "@/lib/auth/password-sign-in";
 
 describe("signInWithFreshNavigation", () => {
   it("performs one fresh navigation to a safe next destination after successful sign-in", async () => {
@@ -33,7 +33,7 @@ describe("signInWithFreshNavigation", () => {
         "/dashboard",
         navigate,
       ),
-    ).resolves.toEqual({ destination: null, error: "Invalid login credentials" });
+    ).resolves.toEqual({ destination: null, error: "Incorrect email or password. Please try again." });
     expect(navigate).not.toHaveBeenCalled();
   });
 
@@ -51,5 +51,19 @@ describe("signInWithFreshNavigation", () => {
 
     expect(result.error).toContain("next page could not be opened");
     expect(result.destination).toBeNull();
+  });
+});
+
+describe("signInErrorMessage", () => {
+  it("does not reveal whether an email exists", () => {
+    expect(signInErrorMessage({ message: "Invalid login credentials", status: 400 })).toBe("Incorrect email or password. Please try again.");
+  });
+  it("keeps rate limits, unverified email and connectivity distinct", () => {
+    expect(signInErrorMessage({ message: "rate limited", status: 429 })).toContain("Too many attempts");
+    expect(signInErrorMessage({ message: "Email not confirmed", status: 400 })).toContain("verify your email");
+    expect(signInErrorMessage({ message: "Failed to fetch" })).toContain("could not connect");
+  });
+  it("does not expose unknown provider details", () => {
+    expect(signInErrorMessage({ message: "internal token: private" })).not.toContain("private");
   });
 });

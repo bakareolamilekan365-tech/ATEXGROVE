@@ -61,11 +61,11 @@ export default async function CaseQueuePage({
         <span className={styles.demo}>Demo data · not official</span>
       </div>
 
-      <div className={styles.statGrid} aria-label="Visible queue counts">
+      {!error ? <div className={styles.statGrid} aria-label="Visible queue counts">
         <div className={styles.statCard}><strong>{cases.filter((item) => item.workflow_status === "submitted").length}</strong><span>Awaiting assignment</span></div>
         <div className={styles.statCard}><strong>{cases.filter((item) => item.workflow_status === "assigned" || item.workflow_status === "in_review").length}</strong><span>In review</span></div>
         <div className={styles.statCard}><strong>{cases.filter((item) => item.workflow_status === "needs_customer_info").length}</strong><span>Waiting on client</span></div>
-      </div>
+      </div> : null}
 
       <form className={styles.filterRow} aria-label="Queue filters">
         <label>Status
@@ -85,6 +85,14 @@ export default async function CaseQueuePage({
         <button type="submit">Apply filters</button>
         {filteredList ? <Link className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Clear filters</Link> : null}
       </form>
+      {!error && filteredList ? (
+        <p className={styles.filterSummary} role="status">
+          Showing {cases.length} visible cases
+          {status ? <> · Status: <strong>{status.replaceAll("_", " ")}</strong></> : null}
+          {reviewGroup ? <> · Group: <strong>In review</strong></> : null}
+          {department ? <> · Department: <strong>{department}</strong></> : null}
+        </p>
+      ) : null}
 
       {error ? (
         <p className={styles.error} role="alert">The work queue could not be loaded.</p>
@@ -94,14 +102,14 @@ export default async function CaseQueuePage({
           <p>RLS limits this queue to your department or active assignments.</p>
         </div>
       ) : (
-        <div className={styles.queueBoard}>
+        <div className={`${styles.queueBoard} ${filteredList ? styles.queueBoardFiltered : ""}`}>
           {columns.map((column) => (
             <section className={styles.queueColumn} key={column.key} aria-labelledby={`queue-${column.key}`}>
               <div className={styles.queueColumnHeader}>
                 <h2 id={`queue-${column.key}`}>{column.title}</h2>
                 <span>{column.cases.length}</span>
               </div>
-              {column.cases.length ? (filteredList ? column.cases : column.cases.slice(0, column.previewLimit)).map((item) => {
+              {column.cases.length ? <div className={styles.queueCardList}>{(filteredList ? column.cases : column.cases.slice(0, column.previewLimit)).map((item) => {
                 const location = caseLocationDisplay(item.area_name, item.area_lga);
                 return (
                   <article className={styles.queueCard} key={item.id}>
@@ -109,12 +117,14 @@ export default async function CaseQueuePage({
                     <p className={styles.eyebrow}>{item.case_number ?? "Not recorded"}</p>
                     <h3>{location.heading}</h3>
                     <p className={styles.muted}>{formatCustomerIntent(item.customer_intent)} · {item.department}</p>
-                    <p>{item.site_description}</p>
+                    <p className={styles.queueCardDescription}>{item.site_description}</p>
                     <CaseProgress status={item.workflow_status} history={progressHistory.get(item.id) ?? []} compact />
-                    <Link className={`${styles.button} ${styles.buttonSecondary}`} href={`/ops/cases/${item.id}`}>Open case</Link>
+                    <Link className={`${styles.button} ${styles.buttonSecondary}`} href={`/ops/cases/${item.id}`}>
+                      {staff.is_lead && staff.department === item.department && item.workflow_status === "submitted" ? "Assign case" : "Open case"}
+                    </Link>
                   </article>
                 );
-              }) : <p className={styles.queueEmpty}>No cases in this group.</p>}
+              })}</div> : <p className={styles.queueEmpty}>No cases in this group.</p>}
               {!filteredList ? (
                 <Link
                   className={styles.queueViewAll}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SiteNavigation, type SiteHeaderState } from "@/components/layout/SiteNavigation";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { ThemeSwitcher } from "@/components/layout/ThemeSwitcher";
+import { HeaderScrollEffect } from "@/components/layout/HeaderScrollEffect";
 
 export type { SiteHeaderState } from "@/components/layout/SiteNavigation";
 
@@ -28,6 +29,7 @@ export function SiteHeader({
 
   return (
     <header className="site-header">
+      <HeaderScrollEffect />
       <div className={`site-header__inner ${state === "staff" ? "site-header__inner--staff" : ""}`}>
         <Link className="site-brand" href={state === "staff" ? "/ops/cases" : state === "customer" ? "/dashboard" : "/"} aria-label="Atexgrove home">
           <Image className="site-brand__mark" src="/logo/atexgrove-mark.svg" alt="" width={44} height={44} priority />

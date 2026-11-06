@@ -1,4 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+
+const evidencePath = (name: string) => join(tmpdir(), `atexgrove-pr33-${name}.png`);
 
 test("public navigation leads to honest information pages", async ({ page }) => {
   await page.goto("/");
@@ -22,6 +26,28 @@ test("auth presentation keeps password managers and visibility control", async (
   await page.getByRole("button", { name: "Hide password" }).click();
   await expect(password).toHaveAttribute("type", "password");
   await expect(page.getByRole("link", { name: /Back to home/ })).toBeVisible();
+});
+
+test("shared auth background stays decorative and forms remain usable at mobile and desktop widths", async ({ page }) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of ["/login", "/register", "/forgot-password", "/update-password"]) {
+      await page.goto(route);
+      await expect(page.locator(".form-card")).toBeVisible();
+      const background = await page.locator(".auth-page").evaluate((element) => {
+        const decoration = getComputedStyle(element, "::before");
+        return { image: decoration.backgroundImage, blur: decoration.filter };
+      });
+      expect(background.image).toContain("atexgrove-built-environment-hero.webp");
+      expect(background.blur).toContain("blur(");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+  }
+
+  await page.evaluate(() => localStorage.setItem("atexgrove-theme", "dark"));
+  await page.goto("/login");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator(".form-card")).toBeVisible();
 });
 
 async function verifySlowSignIn(page: Page, registrationEnabled: boolean) {
@@ -88,6 +114,70 @@ test("mobile public page has no horizontal overflow and respects reduced motion"
   expect(size.scroll).toBeLessThanOrEqual(size.viewport);
   const animation = await page.locator(".feature-card").first().evaluate((element) => getComputedStyle(element).animationDuration);
   expect(animation).not.toBe("0.55s");
+});
+
+test("compact mobile navigation, scroll header and error styling work without layout overflow", async ({ page }) => {
+  page.on("pageerror", (error) => console.error(`Public-page client error: ${error.message}`));
+  for (const width of [320, 360, 390, 428, 768]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Abuja");
+    const menu = page.getByRole("button", { name: "Menu" });
+    await expect(menu).toBeVisible();
+    if (width === 390) await page.screenshot({ path: evidencePath("landing-hero-390"), fullPage: false });
+    await menu.click();
+    if (width === 390) await page.screenshot({ path: evidencePath("mobile-navigation-open-390"), fullPage: false });
+    await expect(menu).toHaveAttribute("aria-expanded", "true");
+    const navigation = page.getByRole("navigation", { name: "Main navigation" });
+    await expect(navigation.getByRole("link", { name: "Home" })).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeFocused();
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    await menu.click();
+    await page.mouse.click(5, 830);
+    await expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 390) {
+      await page.screenshot({ path: evidencePath("mobile-navigation-390"), fullPage: false });
+      await page.getByRole("button", { name: "Switch to dark appearance" }).click();
+      await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+      await page.screenshot({ path: evidencePath("mobile-dark-390"), fullPage: false });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      const transition = await page.locator(".theme-toggle").evaluate((element) => getComputedStyle(element).transitionDuration);
+      expect(parseFloat(transition)).toBeLessThanOrEqual(0.001);
+      await page.emulateMedia({ reducedMotion: "no-preference" });
+      await page.getByRole("button", { name: "Switch to light appearance" }).click();
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.screenshot({ path: evidencePath("landing-hero-1440"), fullPage: false });
+  await expect(page.locator(".site-header")).not.toHaveClass(/site-header--scrolled/);
+  await page.locator("#how-it-works").scrollIntoViewIfNeeded();
+  await expect(page.locator(".site-header")).toHaveClass(/site-header--scrolled/);
+  await page.screenshot({ path: evidencePath("scrolled-header-1440"), fullPage: false });
+  await page.locator(".landing-section--photo").scrollIntoViewIfNeeded();
+  await expect(page.locator(".boundary-grid")).toHaveClass(/scroll-reveal--visible/);
+  await expect.poll(() => page.locator(".boundary-grid").evaluate((element) => getComputedStyle(element).opacity)).toBe("1");
+  await page.screenshot({ path: evidencePath("supporting-section-1440"), fullPage: false });
+  const boundaryImage = await page.locator(".landing-section--photo").evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
+  expect(boundaryImage).toContain("atexgrove-built-environment-triptych.webp");
+});
+
+test("unknown public page uses the branded 404 state", async ({ page }) => {
+  await page.goto("/info/not-a-page", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".problem-mark")).toBeVisible();
+  await page.screenshot({ path: evidencePath("branded-404-1440"), fullPage: false });
+});
+
+test("invalid login shows a restrained alert without provider text", async ({ page }) => {
+  await page.route("**/auth/v1/token**", (route) => route.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ error: "invalid_grant", error_description: "Invalid login credentials" }) }));
+  await page.goto("/login");
+  await page.getByLabel("Email").fill("synthetic@example.test");
+  await page.getByLabel("Password", { exact: true }).fill("incorrect-placeholder");
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.locator(".auth-form [role='alert']")).toContainText("Incorrect email or password. Please try again.");
+  await page.screenshot({ path: evidencePath("login-error-1440"), fullPage: false });
 });
 
 test("landing content reveals on scroll without hiding essential content before JavaScript", async ({ page }) => {

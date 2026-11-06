@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { customerCaseCounts } from "@/lib/verification-cases/customer-cases";
 import { caseLocationDisplay } from "@/lib/verification-cases/location-display";
 import { nextActionLabel } from "@/lib/verification-cases/next-action";
+import { initialsFromName } from "@/lib/ui/identity";
 import { timelineEventHeading } from "@/lib/verification-cases/status";
 import type { CaseStatusEvent, StaffMember, VerificationCase } from "@/types/verification";
 
@@ -34,7 +35,7 @@ export default async function DashboardPage({
   const drafts = cases.filter((item) => item.workflow_status === "draft");
   const active = cases.filter((item) => ["submitted", "assigned", "in_review"].includes(item.workflow_status));
   const caseById = new Map(cases.map((item) => [item.id, item]));
-  const { data: activityData } = cases.length
+  const { data: activityData, error: activityError } = cases.length
     ? await supabase
         .from("case_status_events")
         .select("*")
@@ -42,7 +43,7 @@ export default async function DashboardPage({
         .in("verification_case_id", cases.map((item) => item.id))
         .order("created_at", { ascending: false })
         .limit(5)
-    : { data: [] as CaseStatusEvent[] };
+    : { data: [] as CaseStatusEvent[], error: null };
 
   let staff: StaffMember | null = null;
   try {
@@ -52,29 +53,38 @@ export default async function DashboardPage({
   }
 
   const { request, signout } = await searchParams;
+  const firstName = profile?.full_name?.trim().split(/\s+/)[0];
   return (
     <main className={styles.shell}>
       <section className={styles.dashboardHero}>
-        <div>
+        <div className={styles.dashboardHeroCopy}>
           <p className={styles.eyebrow}>Customer home</p>
-          <h1>Welcome{profile?.full_name ? `, ${profile.full_name}` : ""}</h1>
+          <h1>Welcome{firstName ? `, ${firstName}` : ""}</h1>
           <p className={styles.muted}>
-            {waitingCases.length
+            {casesError ? "Your request summary is temporarily unavailable. Refresh to try again."
+              : waitingCases.length
               ? `${waitingCases.length} ${waitingCases.length === 1 ? "request needs" : "requests need"} your attention.`
               : active.length
                 ? `${active.length} ${active.length === 1 ? "request is" : "requests are"} currently in progress.`
                 : "Start a request or continue a saved draft when you are ready."}
           </p>
+          {!casesError && waitingCases.length ? <Link className={styles.dashboardHeroNext} href="/dashboard/cases?status=waiting">Action required from you <span aria-hidden="true">→</span></Link> : null}
+          {!casesError && !waitingCases.length && drafts.length ? <Link className={styles.dashboardHeroNext} href="/dashboard/cases?status=draft">Continue a saved draft <span aria-hidden="true">→</span></Link> : null}
+          <div className={styles.actions}>
+            <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
+            {staff ? <a className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</a> : null}
+          </div>
         </div>
-        <div className={styles.actions}>
-          {staff ? <a className={`${styles.button} ${styles.buttonSecondary}`} href="/ops/cases">Staff workspace</a> : null}
-          <Link className={styles.button} href="/dashboard/cases/new">Start a new request</Link>
+        <div className={styles.dashboardHeroVisual} aria-hidden="true">
+          <span className={styles.dashboardHeroInitials}>{initialsFromName(profile?.full_name, "C")}</span>
+          <span className={styles.dashboardHeroVisualLabel}>Your private workspace</span>
         </div>
       </section>
 
       {request === "submitted" ? <p className={styles.success} role="status">Request received. It is not yet verified and will enter the staff queue.</p> : null}
       {signout === "failed" ? <p className={styles.error} role="alert">We could not sign you out. Your session is still active. Please try again.</p> : null}
 
+      {casesError ? <p className={styles.error} role="alert">We could not load your case summary. Refresh to try again.</p> : <>
       <section className={styles.statGrid} aria-label="Your case summary">
         <Link className={styles.statCard} href="/dashboard/cases?status=active"><strong>{counts.active}</strong><span>In progress</span></Link>
         <Link className={styles.statCard} href="/dashboard/cases?status=waiting"><strong>{counts.waiting}</strong><span>Waiting on you</span></Link>
@@ -123,13 +133,15 @@ export default async function DashboardPage({
             <div><p className={styles.eyebrow}>Latest updates</p><h2>Recent activity</h2></div>
             <Link className={styles.link} href="/dashboard/cases">Open My cases</Link>
           </div>
-          {(activityData ?? []).length ? (
-            <ol className={styles.timeline}>
+          {activityError ? <p className={styles.error} role="alert">Recent activity could not be loaded. Refresh to try again.</p> : (activityData ?? []).length ? (
+            <ol className={`${styles.timeline} ${styles.activityList}`}>
               {((activityData ?? []) as CaseStatusEvent[]).map((event) => {
                 const item = caseById.get(event.verification_case_id);
                 return <li key={event.id} data-kind={event.event_kind}>
-                  <strong>{timelineEventHeading(event)}</strong>
-                  <p>{item?.case_number ?? "Case update"}</p>
+                  <div>
+                    <strong>{timelineEventHeading(event)}</strong>
+                    <p>{item?.case_number ?? "Case update"}</p>
+                  </div>
                   <time className={`${styles.muted} ${styles.small}`} dateTime={event.created_at}>{new Intl.DateTimeFormat("en-NG", { dateStyle: "medium" }).format(new Date(event.created_at))}</time>
                   {item ? <Link className={styles.link} href={`/dashboard/cases/${item.id}`}>Open case</Link> : null}
                 </li>;
@@ -138,8 +150,7 @@ export default async function DashboardPage({
           ) : <p className={styles.empty}>No customer-visible activity yet.</p>}
         </section>
       </div>
-
-      {casesError ? <p className={styles.error} role="alert">We could not load your case summary.</p> : null}
+      </>}
     </main>
   );
 }

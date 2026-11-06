@@ -241,8 +241,8 @@ export function NewCaseForm({ idempotencyKey, userId }: Readonly<{ idempotencyKe
         {fieldError("contactPreference", errors.contactPreference)}
       </fieldset>
       {values.contactPreference !== "email" ? <>
-        <div className={styles.field}><label htmlFor="contactPhone">Nigerian mobile number</label><input id="contactPhone" name="contactPhone" type="tel" autoComplete="tel" value={values.contactPhone} onChange={(event) => update("contactPhone", event.target.value)} placeholder="080... or +234..." required aria-invalid={Boolean(errors.contactPhone) || undefined} aria-describedby={errors.contactPhone ? "contactPhone-error" : undefined} />{fieldError("contactPhone", errors.contactPhone)}</div>
         <div><label className={styles.checkbox}><input id="contactPhoneConsent" name="contactPhoneConsent" type="checkbox" checked={values.contactPhoneConsent} onChange={(event) => update("contactPhoneConsent", event.target.checked)} aria-invalid={Boolean(errors.contactPhoneConsent) || undefined} aria-describedby={errors.contactPhoneConsent ? "contactPhoneConsent-error" : undefined} /> So the review team can reach you about this request.</label>{fieldError("contactPhoneConsent", errors.contactPhoneConsent)}</div>
+        <div className={styles.field}><label htmlFor="contactPhone">Nigerian mobile number</label><input id="contactPhone" name="contactPhone" type="tel" autoComplete="tel" value={values.contactPhone} onChange={(event) => update("contactPhone", event.target.value)} placeholder="080... or +234..." required aria-invalid={Boolean(errors.contactPhone) || undefined} aria-describedby={errors.contactPhone ? "contactPhone-error" : undefined} />{fieldError("contactPhone", errors.contactPhone)}</div>
       </> : <><input type="hidden" name="contactPhone" value="" /><input type="hidden" name="contactPhoneConsent" value="false" /></>}
 
       <div className={styles.notice}>

@@ -84,7 +84,10 @@ export function CaseProgress({
         ))}
       </ol>
       <p className={`${styles.progressNote} ${status === "needs_customer_info" ? styles.progressNoteAttention : ""}`}>{model.note}</p>
-      {model.outcome ? (
+      {compact && model.outcome?.tone === "closed" ? (
+        <p className={styles.progressTerminalCompact}>Closed does not confirm land verification.</p>
+      ) : null}
+      {!compact && model.outcome ? (
         <div className={`${styles.progressTerminalLabel} ${model.outcome.tone === "cancelled" ? styles.progressTerminalCancelled : styles.progressTerminalClosed}`} role="status">
           <strong>{model.outcome.label}</strong>
           <span>{model.outcome.description}</span>

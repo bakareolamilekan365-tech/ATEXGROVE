@@ -87,11 +87,13 @@ The `ui/align-approved-design` branch introduces a shared presentation foundatio
 
 ### Design tokens
 
-Touched light and dark colours are centralized in `src/app/globals.css`: primary `#0048B0`, hover `#003A91`, primary tint `#E3EDFB`, page/surface/text pairs, and warm warning, customer-supplied, checked and verification semantic pairs. Cards use a 20px radius and the approved two-layer shadow; buttons/nav pills use 999px radii and a 44px minimum target. The interface uses no decorative gradients.
+Touched light and dark colours are centralized in `src/app/globals.css`: primary `#0048B0`, hover `#003A91`, primary tint `#E3EDFB`, page/surface/text pairs, and warm warning, customer-supplied, checked and verification semantic pairs. Cards use a 20px radius and the approved two-layer shadow; buttons/nav pills use 999px radii and a 44px minimum target. The November remediation uses restrained gradients only on the signed-in welcome and problem-state surfaces, not as a page-wide effect.
 
 ### Responsive and accessibility expectations
 
 The customer container may grow to approximately 1680px with 28px desktop and 16px phone padding. Staff workspaces may grow to 1760px and use additional horizontal space for real queue columns rather than stretching prose. Authentication forms and long-form reading widths remain compact. Staff boards stack into sections on narrow screens. The minimum review widths are 1280px and 390px. Interactive controls need a visible three-pixel blue focus outline, 44px targets, semantic links/buttons/labels, non-colour status text and reduced-motion support.
+
+The final UI remediation also reviews 320px, 360px, 428px and tablet widths. At narrow widths the existing public/customer/staff navigation becomes one compact menu with Escape, outside-click and focus-return behavior; the one header theme control stays accessible without a floating duplicate. The sticky header begins solid and becomes subtly translucent only after meaningful scroll, with a solid fallback where backdrop blur is unsupported. Public supporting imagery uses the approved triptych instead of repeating the hero photo. Authentication loading appears only during a genuine route transition, and login failure copy avoids exposing raw provider internals. Error states keep the existing authorization and HTTP behavior while using a branded responsive presentation.
 
 ### Explicitly deferred reference concepts
 

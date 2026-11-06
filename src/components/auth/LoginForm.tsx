@@ -66,7 +66,7 @@ export function LoginForm({
           </button>
         </div>
       </div>
-      {error ? <p className="form-message form-message--error" role="alert">{error}</p> : null}
+      {error ? <p className="form-message form-message--error" role="alert"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 4h.01" /></svg><span>{error}</span></p> : null}
       <button className="button button--primary button--full" type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Signing in..." : "Sign in"}
       </button>

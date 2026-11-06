@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export function ActiveNavLink({ href, children }: Readonly<{ href: string; children: React.ReactNode }>) {
+export function ActiveNavLink({ href, children, onClick }: Readonly<{ href: string; children: React.ReactNode; onClick?: () => void }>) {
   const pathname = usePathname();
   const [hash, setHash] = useState("");
 
@@ -27,5 +27,5 @@ export function ActiveNavLink({ href, children }: Readonly<{ href: string; child
             ? pathname === "/" && hash === href.slice(1)
             : pathname === href;
 
-  return <Link className="nav-pill" href={href} aria-current={current ? "page" : undefined}>{children}</Link>;
+  return <Link className="nav-pill" href={href} aria-current={current ? "page" : undefined} onClick={onClick}>{children}</Link>;
 }
