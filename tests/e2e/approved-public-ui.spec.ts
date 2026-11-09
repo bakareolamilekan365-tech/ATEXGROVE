@@ -116,6 +116,37 @@ test("mobile public page has no horizontal overflow and respects reduced motion"
   expect(animation).not.toBe("0.55s");
 });
 
+test("mobile homepage keeps brand, login, navigation and FAQ usable", async ({ page }) => {
+  for (const width of [320, 360, 390, 428, 768, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width > 350) await expect(page.locator(".site-brand__wordmark")).toBeVisible();
+    if (width <= 680) {
+      await expect(page.locator(".site-header__mobile-login")).toBeVisible();
+      const actions = await page.locator(".landing-hero .landing-actions a").evaluateAll((links) => links.map((link) => link.getBoundingClientRect()));
+      expect(actions[1].top).toBeGreaterThan(actions[0].bottom);
+      await page.getByRole("button", { name: "Menu" }).click();
+      await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Contact" })).toBeVisible();
+      await page.getByRole("button", { name: "Menu" }).click();
+    } else {
+      await expect(page.locator(".site-header__mobile-login")).toBeHidden();
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.getByRole("link", { name: "See how it works" }).click();
+  await expect(page).toHaveURL(/#how-it-works$/);
+  const firstFaq = page.locator(".faq-item").first();
+  await firstFaq.getByRole("button").click();
+  await expect(firstFaq.getByRole("button")).toHaveAttribute("aria-expanded", "false");
+  await firstFaq.getByRole("button").click();
+  await expect(firstFaq.getByText(/not a government registry/)).toBeVisible();
+  await page.getByRole("button", { name: "Switch to dark appearance" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator(".site-header__mobile-login")).toBeVisible();
+});
+
 test("compact mobile navigation, scroll header and error styling work without layout overflow", async ({ page }) => {
   page.on("pageerror", (error) => console.error(`Public-page client error: ${error.message}`));
   for (const width of [320, 360, 390, 428, 768]) {

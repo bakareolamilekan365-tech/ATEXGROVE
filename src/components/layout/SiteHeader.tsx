@@ -30,7 +30,7 @@ export function SiteHeader({
   return (
     <header className="site-header">
       <HeaderScrollEffect />
-      <div className={`site-header__inner ${state === "staff" ? "site-header__inner--staff" : ""}`}>
+      <div className={`site-header__inner ${state === "staff" ? "site-header__inner--staff" : ""} ${state === "signed-out" ? "site-header__inner--signed-out" : ""}`}>
         <Link className="site-brand" href={state === "staff" ? "/ops/cases" : state === "customer" ? "/dashboard" : "/"} aria-label="Atexgrove home">
           <Image className="site-brand__mark" src="/logo/atexgrove-mark.svg" alt="" width={44} height={44} priority />
           <Image className="site-brand__wordmark" src="/logo/atexgrove-wordmark.svg" alt="Atexgrove" width={150} height={41} priority />
@@ -38,6 +38,7 @@ export function SiteHeader({
 
         <SiteNavigation state={state} registrationEnabled={registrationEnabled} />
         <ThemeSwitcher />
+        {state === "signed-out" ? <Link className="site-header__mobile-login button button--primary" href="/login">Log in</Link> : null}
 
         {state !== "signed-out" ? (
           <div className="site-account">

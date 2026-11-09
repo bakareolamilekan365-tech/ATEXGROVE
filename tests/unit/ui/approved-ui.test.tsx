@@ -37,6 +37,7 @@ describe("approved shared UI", () => {
     expect(navigation.map((item) => item.label)).toContain("Create account");
     expect(elements(header).some(({ props }) => props.src === "/logo/atexgrove-mark.svg")).toBe(true);
     expect(elements(header).some(({ props }) => props.src === "/logo/atexgrove-wordmark.svg")).toBe(true);
+    expect(elements(header).some(({ props }) => typeof props.className === "string" && props.className.includes("site-header__mobile-login"))).toBe(true);
   });
 
   it("shows customer navigation and identity without staff routes", () => {
@@ -48,6 +49,7 @@ describe("approved shared UI", () => {
     expect(accountMenu?.props.accountName).toBe("Test Customer");
     expect(navigation.map((item) => item.href)).not.toContain("/ops/cases");
     expect(accountMenu?.props.roleLabel).toBe("Customer");
+    expect(elements(header).some(({ props }) => typeof props.className === "string" && props.className.includes("site-header__mobile-login"))).toBe(false);
   });
 
   it("shows the real staff queue and supported customer-workspace link", () => {
@@ -60,6 +62,7 @@ describe("approved shared UI", () => {
     expect(accountMenu?.props.roleLabel).toContain("Verification");
     expect(accountMenu?.props.roleLabel).toContain("Lead");
     expect(text(header)).not.toMatch(/Records|Team|Handovers/);
+    expect(elements(header).some(({ props }) => typeof props.className === "string" && props.className.includes("site-header__mobile-login"))).toBe(false);
   });
 
   it("shows the preview banner only when enabled", () => {
