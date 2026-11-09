@@ -18,7 +18,7 @@ Use Figtree at weights 400, 500, 600, 700 and 800 for the application interface,
 
 Avoid excessive gradients, gaming aesthetics, oversized illustrations, childish colors and generic real-estate template layouts.
 
-For the controlled pilot, use an authenticated in-app notification centre plus email for important events such as action required or report ready. Email must not include sensitive document contents or detailed findings; it should direct the user back to the authenticated application. SMS and WhatsApp are future options requiring consent, provider and cost decisions.
+In-app notices are the current planned notification channel, but no notification centre or delivery mechanism is implemented yet. Email is deferred until a provider and its privacy boundaries are approved; any later email must avoid sensitive evidence details and direct users to the authenticated application. SMS and WhatsApp also require separate consent, provider and cost decisions.
 
 ## Layout
 - Desktop-first information density with excellent tablet/mobile adaptation

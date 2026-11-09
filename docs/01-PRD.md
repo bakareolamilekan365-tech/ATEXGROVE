@@ -34,7 +34,7 @@ The prototype can expose a small role-aware experience, but it must not create o
 
 ## Administrative responsibilities
 
-Atexgrove must not depend on one unrestricted “God Admin”. The future administration model should support separated responsibilities and scopes, such as Super Admin, Operations Admin, Verification Admin, Compliance Admin, Finance/Billing Admin and Support Admin. These are conceptual examples rather than a final role catalogue. Administrative actions require auditable actor, action, target, scope and time information.
+Atexgrove must not have an unrestricted Super Admin. The future administration model should separate scoped Operations, Verification, Compliance, Finance/Billing and Support responsibilities; a CEO-held application-administrator role may be designated only with explicit scope. These are planned responsibilities, not November permissions or a final role catalogue. Administrative actions require auditable actor, action, target, scope and time information.
 
 ## 3. Core modules
 ### Authentication
