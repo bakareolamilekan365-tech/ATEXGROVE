@@ -14,6 +14,8 @@ This directory keeps supporting material discoverable without confusing referenc
 
 For current UI work, [`ui/Customer dashboard v2.zip`](ui/Customer%20dashboard%20v2.zip) supersedes `Customer dashboard-html.zip` as the customer visual reference. `Staff dashboard v2.zip` and `Staff dashboard.pdf` are the current **Verification Lead** visual references; they do not define Feasibility or Operations Lead behavior. The older customer and staff files remain historical references where they do not conflict with the current versions.
 
+The CTO-supplied mobile homepage references are [`ui/Mobile homepage@2x.png`](ui/Mobile%20homepage%402x.png) and [`ui/Mobile homepage-html.zip`](ui/Mobile%20homepage-html.zip). The ZIP is a visual reference, not deployable application code; its exported HTML, runtime and logo images are not production assets.
+
 ### Engineering/system-design references
 
 [`system-design/`](system-design/) indexes selected external material used to reason about architecture, scalability, storage, reliability, security and trade-offs. External repositories are linked rather than copied.
