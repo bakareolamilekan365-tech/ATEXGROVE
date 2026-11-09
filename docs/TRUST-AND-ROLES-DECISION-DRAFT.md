@@ -39,6 +39,12 @@ The pilot has no established staff team yet. The founder/CTO may act as lead/ope
 
 The exact permission matrix and named/contracted reviewers remain open and must be settled before real cases.
 
+### November role boundary: as-built versus target (2026-11-09)
+
+- **As built:** the current restricted staff/department/lead checks and case-scoped authorization remain in place; existing customer and staff test permissions are preserved. A demonstration label or proposed title does not grant additional access.
+- **Approved direction:** no unrestricted Super Admin; a CEO may hold a designated, scoped application-administrator role. Executive authority is not a service-role credential. Additional document-verification oversight/final approval is governance direction, not an implemented November approval flow.
+- **Target/planned:** full divisional hierarchy, internal memos/handovers and a reviewed action/resource/department permission matrix. The exact mapping from existing `Verification`/`Feasibility`/`Operations` database department values to the later organizational division structure must be reconciled against the authoritative governance response; do not rename production roles or assume the hierarchy is implemented from this document.
+
 ## 4. Planned staff and professional operating model
 
 Everything in this section is **Planned**, not implemented. See the linked [master backlog](BACKLOG.md) for triage and status.

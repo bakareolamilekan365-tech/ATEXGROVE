@@ -99,14 +99,14 @@ Atexgrove must support separated administrative responsibilities with least priv
 
 | Administrative responsibility | Example scope |
 | --- | --- |
-| Super Admin | Exceptional platform configuration and controlled emergency actions |
+| Designated CEO application administrator (planned) | Approved executive oversight within specifically granted application permissions; not blanket technical or service-role access |
 | Operations Admin | Operational workflows and approved records |
 | Verification Admin | Assignment and review of verification work |
 | Compliance Admin | Policy, retention and compliance investigations |
 | Finance/Billing Admin | Future commercial records and payment operations |
 | Support Admin | User-support actions without unrestricted data access |
 
-These names are examples, not a final role catalogue. Each responsibility needs explicit permissions, resource/jurisdiction scope and, where appropriate, separation between request, review and approval. Sensitive operations should require an auditable actor, target, scope, timestamp, reason/result and relevant metadata. Controls should prevent privilege escalation, self-approval, cross-organization access and accidental use of broad service credentials.
+No unrestricted Super Admin is approved. Corporate leadership, application administration and server/service-role privileges are separate authorities. The CEO may hold a designated scoped application-administrator role, but that office must not automatically bypass object-level checks or RLS. These are planned responsibilities; November retains the existing staff/lead permissions and demonstration-only roles grant no additional access. Each responsibility needs explicit permissions, resource/jurisdiction scope and, where appropriate, separation between request, review and approval. Sensitive operations should require an auditable actor, target, scope, timestamp, reason/result and relevant metadata. Controls should prevent privilege escalation, self-approval, cross-organization access and accidental use of broad service credentials.
 
 ## Row-level and object-level authorization
 

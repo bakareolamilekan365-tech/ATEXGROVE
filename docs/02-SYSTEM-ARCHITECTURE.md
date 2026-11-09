@@ -66,7 +66,7 @@ Checks must run server-side and be reinforced with database Row Level Security. 
 
 ### Multiple administrators
 
-The platform must not depend on one unrestricted “God Admin”. The future administration model should support separated responsibilities such as Super Admin, Operations Admin, Verification Admin, Compliance Admin, Finance/Billing Admin and Support Admin. Names may evolve; the architectural requirement is that responsibilities, permissions and scopes remain separable and auditable.
+The platform must not have an unrestricted Super Admin. The future administration model separates responsibilities such as Operations, Verification, Compliance, Finance/Billing and Support administration, with an explicitly scoped CEO application-administrator function where approved. Corporate/executive authority does not automatically grant technical permissions. These are target responsibilities, not November accounts or implemented controls; every permission must be deliberate, resource-scoped and auditable. The current restricted staff/lead authorization and RLS remain the November as-built model. A future role/permission matrix and mapping from the current department fields to the approved organizational hierarchy require separate governance review before implementation.
 
 ## Verification and authority
 

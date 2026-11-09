@@ -4,6 +4,14 @@ This log records significant engineering problems, their causes, the corrections
 
 Do not add secrets, access tokens, private customer information, email addresses, or user IDs to this log.
 
+## 2026-11-09 — PR #33 signed-out mobile homepage alignment
+
+**Problem:** The first compact mobile treatment did not match the approved CTO mobile homepage reference closely enough; the public header and hero required more deliberate small-screen composition.
+
+**Correction:** Commit `ed94565c` adjusts the signed-out mobile header to retain the wordmark where width allows, expose a direct Log in link alongside the menu, stack hero actions and scale the imagery. Commit `f786693b` indexes the supplied mobile PNG/ZIP as visual references only; exported HTML and logos are not application assets. Existing preview registration restrictions and trust copy remain in place.
+
+**Evidence and boundary:** Responsive public Playwright assertions and unit assertions were added for the signed-out header and mobile interactions. This entry records committed test coverage, not a verified passing run or authenticated browser acceptance. No Supabase, migrations, RLS, staff permissions or deployment changes were part of these commits.
+
 ## 2026-10-29 - PR #33 final visual and sign-out correction
 
 **Problem:** The compact progress treatment hid the journey for terminal cases and included an unreachable Finished stage; wide-screen limits still left unused desktop space; broad neutral styling reduced workflow clarity; loading placeholders looked inactive; the desktop brand omitted its emblem; and selecting Sign out could fail.

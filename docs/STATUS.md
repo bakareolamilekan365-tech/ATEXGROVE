@@ -1,14 +1,16 @@
 # Atexgrove Current Status
 
-**Status date:** 2026-11-06
+**Status date:** 2026-11-09
 
 **Authority:** This file is the single source of truth for current implementation, hosted deployment, automated evidence and open operational verification. Architecture documents describe intended boundaries; dated audit and engineering-log sections remain historical.
 
-## PR #33 local final UI remediation (2026-11-06; not pushed or deployed)
+## PR #33 final UI remediation (2026-11-06 to 2026-11-09; published branch, not merged or deployed)
 
 The dedicated `fix/pr33-final-ui-remediation` branch refines the existing customer/staff layouts without changing case workflow, evidence transport, Supabase authorization or migrations. Customer Home uses a profile-derived initials motif and genuine action/draft state; public mobile navigation is a compact keyboard-accessible disclosure rather than a scrolling link row; the sticky header stays solid at the top and gains a restrained translucent treatment after scrolling. The approved companion triptych distinguishes the Important Boundary section from the landing hero. Existing authentication pages reuse the approved architectural image as a blurred decoration, while forms remain sharp. A genuine auth-route loading boundary and branded problem-state presentation do not add artificial delays or new error routes. Recognized invalid email/password errors now use account-neutral wording; other failure categories remain separate.
 
-The mobile theme control remains the single existing header toggle. Contact consent is presented before the associated number field without changing validation or stored values. Current case and queue cards, filter indication, Recent Activity spacing, and closed/cancelled progress wording receive presentation-only refinements. Authenticated visual acceptance remains blocked until approved staging credentials are available and safely verified; local source/unit tests do not prove those screens in a real customer or staff session. This branch is local review work, not CI-verified or hosted behavior.
+The mobile theme control remains the single existing header toggle. Contact consent is presented before the associated number field without changing validation or stored values. Current case and queue cards, filter indication, Recent Activity spacing, and closed/cancelled progress wording receive presentation-only refinements. Authenticated visual acceptance remains blocked until approved staging credentials are available and safely verified; local source/unit tests do not prove those screens in a real customer or staff session. The remediation branch is published remotely (code/reference baseline `f786693b` inspected 2026-11-09), but has not been merged into `main` or deployed. Its newest branch-specific CI outcome and authenticated browser acceptance have not been independently verified here.
+
+On 2026-11-09, `ed94565c` refined the signed-out mobile homepage: a direct mobile Log in link accompanies the compact menu, the brand wordmark remains visible when width allows, the hero copy/actions and imagery reflow for phones, and the existing theme and FAQ interactions remain available. The CTO-supplied `Mobile homepage@2x.png` and `Mobile homepage-html.zip` were indexed by `f786693b` as design references, not production HTML or assets. Additional responsive Playwright assertions were committed for 320–1440px, but their presence does not establish a passing run. No new staff permission, backend action, migration, or hosted behavior was added by these mobile commits.
 
 ## PR #33 user-acceptance correction (2026-10-29; implementation under review)
 
